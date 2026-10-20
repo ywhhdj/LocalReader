@@ -5,7 +5,7 @@ data class BookGroup(
     val id: Long = 0L,
     val name: String,
     val sortOrder: Int = 0,
-    /** SYSTEM：内置（全部/小说/漫画/收藏）；USER：用户自建 */
+    /** SYSTEM：内置（全部/小说/漫画）；USER：用户自建 */
     val kind: GroupKind = GroupKind.USER,
     val createdAt: Long = System.currentTimeMillis()
 )

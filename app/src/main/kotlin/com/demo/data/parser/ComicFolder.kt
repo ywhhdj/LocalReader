@@ -3,6 +3,8 @@ package com.demo.data.parser
 import com.demo.core.common.util.Constants
 import com.demo.core.common.util.FileUtil
 import com.demo.core.common.util.NaturalOrderComparator
+import com.demo.core.model.ComicChapter
+
 import java.io.File
 
 /**
@@ -19,8 +21,8 @@ object ComicFolder {
 
     /** 话/章目录名：第X话、第X章、第X回、纯数字、Chapter N */
     private val CHAPTER_NAME = Regex(
-        """^\s*(第\s*[0-9零一二三四五六七八九十百千万两]+\s*[话話章节節回卷篇集幕]|""" +
-            """第\s*[0-9]+\s*[话話章节節回卷篇集幕]|""" +
+        """^\s*([第]?\s*[0-9零一二三四五六七八九十百千万两]+\s*[话話章节節回卷篇集幕]|""" +
+            """[第]?\s*[0-9]+\s*[话話章节節回卷篇集幕]|""" +
             """[0-9]{1,4}\s*[.、\-_ ]?\s*\S.*|""" +
             """chapter\s*[0-9ivxlc]+.*)$""",
         RegexOption.IGNORE_CASE
@@ -78,7 +80,9 @@ object ComicFolder {
         val images = imagesIn(dir)
         if (images.isEmpty()) return false
         val subDirs = dir.listFiles()
-            ?.count { it.isDirectory && !it.name.startsWith(".") && !FileUtil.isHidden(it) }
+            ?.count { 
+                it.isDirectory && !it.name.startsWith(".") && !FileUtil.isHidden(it) 
+            }
             ?: 0
         // 没有子目录 → 整本就是这一层；有子目录但图片占绝对多数 → 仍按短篇
         return subDirs == 0 || (images.size >= 2 && images.size >= subDirs * 2)
@@ -119,5 +123,5 @@ object ComicFolder {
         return trimmed.ifBlank { raw.trim() }
     }
 
-    const val SINGLE_CHAPTER_TITLE = com.demo.core.model.ComicChapter.SINGLE_TITLE
+    const val SINGLE_CHAPTER_TITLE = ComicChapter.SINGLE_TITLE
 }

@@ -5,16 +5,55 @@ plugins {
     id 'com.google.devtools.ksp'
 }
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withInputStream { stream ->
+        localProperties.load(stream)
+    }
+}
+
+def storePass = localProperties.getProperty('KEYSTORE_PASSWORD')
+        ?: System.getenv('KEYSTORE_PASSWORD')
+def aliasName = localProperties.getProperty('KEY_ALIAS')
+        ?: System.getenv('KEY_ALIAS')
+def keyPass = localProperties.getProperty('KEY_PASSWORD')
+        ?: System.getenv('KEY_PASSWORD')
+
 android {
     namespace 'com.demo'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.liquidReader.demo"
+        applicationId "com.localReader.demo"
         minSdk 26
         targetSdk 34
         versionCode 1
         versionName "0.1.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../keystore/release.jks")
+            storePassword storePass
+            keyAlias aliasName
+            keyPassword keyPass
+        }
+    }
+
+     buildTypes {
+
+        release {
+            signingConfig signingConfigs.release
+
+            minifyEnabled true
+            shrinkResources true
+
+            proguardFiles(
+                    getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+            )
+        }
     }
 
     buildFeatures {

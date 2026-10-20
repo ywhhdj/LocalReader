@@ -40,8 +40,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.FilterChip
 
 import kotlinx.coroutines.launch
 
@@ -54,6 +57,9 @@ import com.demo.core.ui.components.SectionHeader
 import com.demo.core.ui.glass.GlassIconButton
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
+import com.demo.core.model.SortOrder
+import com.demo.core.model.BookType
+import com.demo.feature.shelf.FilterIconButton
 
 @Composable
 fun ShelfScreen(
@@ -130,7 +136,7 @@ fun ShelfScreen(
                         filterActive = state.filterActive,
                         modifier = Modifier.weight(1f)
                     )
-                    com.demo.feature.shelf.FilterIconButton(
+                    FilterIconButton(
                         active = state.filterActive,
                         onClick = { showFilterSheet = true }
                     )
@@ -263,10 +269,10 @@ fun ShelfScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FilterSheet(
-    typeFilter: com.demo.core.model.BookType?,
-    sortOrder: com.demo.core.model.SortOrder,
-    onTypeChange: (com.demo.core.model.BookType?) -> Unit,
-    onSortChange: (com.demo.core.model.SortOrder) -> Unit,
+    typeFilter: BookType?,
+    sortOrder: SortOrder,
+    onTypeChange: (BookType?) -> Unit,
+    onSortChange: (SortOrder) -> Unit,
     onDismiss: () -> Unit
 ) {
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onDismiss) {
@@ -276,34 +282,34 @@ private fun FilterSheet(
                 .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
             Text("筛选", style = MaterialTheme.typography.titleMedium)
-            androidx.compose.foundation.layout.Spacer(Modifier.size(12.dp))
+            Spacer(Modifier.size(12.dp))
             Text("类型", style = MaterialTheme.typography.labelLarge)
-            androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                androidx.compose.material3.FilterChip(
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
                     selected = typeFilter == null,
                     onClick = { onTypeChange(null) },
                     label = { Text("全部") }
                 )
-                androidx.compose.material3.FilterChip(
-                    selected = typeFilter == com.demo.core.model.BookType.NOVEL,
-                    onClick = { onTypeChange(com.demo.core.model.BookType.NOVEL) },
+                FilterChip(
+                    selected = typeFilter == BookType.NOVEL,
+                    onClick = { onTypeChange(BookType.NOVEL) },
                     label = { Text("小说") }
                 )
-                androidx.compose.material3.FilterChip(
-                    selected = typeFilter == com.demo.core.model.BookType.COMIC,
-                    onClick = { onTypeChange(com.demo.core.model.BookType.COMIC) },
+                FilterChip(
+                    selected = typeFilter == BookType.COMIC,
+                    onClick = { onTypeChange(BookType.COMIC) },
                     label = { Text("漫画") }
                 )
             }
-            androidx.compose.foundation.layout.Spacer(Modifier.size(16.dp))
+            Spacer(Modifier.size(16.dp))
             Text("排序", style = MaterialTheme.typography.labelLarge)
-            androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SortChip("最近阅读", com.demo.core.model.SortOrder.LAST_READ, sortOrder, onSortChange)
-                SortChip("最近添加", com.demo.core.model.SortOrder.RECENT_ADDED, sortOrder, onSortChange)
-                SortChip("书名", com.demo.core.model.SortOrder.TITLE, sortOrder, onSortChange)
-                SortChip("进度", com.demo.core.model.SortOrder.PROGRESS, sortOrder, onSortChange)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SortChip("最近阅读", SortOrder.LAST_READ, sortOrder, onSortChange)
+                SortChip("最近添加", SortOrder.RECENT_ADDED, sortOrder, onSortChange)
+                SortChip("书名", SortOrder.TITLE, sortOrder, onSortChange)
+                SortChip("进度", SortOrder.PROGRESS, sortOrder, onSortChange)
             }
-            androidx.compose.foundation.layout.Spacer(Modifier.size(24.dp))
+            Spacer(Modifier.size(24.dp))
         }
     }
 }
@@ -311,11 +317,11 @@ private fun FilterSheet(
 @Composable
 private fun SortChip(
     label: String,
-    order: com.demo.core.model.SortOrder,
-    current: com.demo.core.model.SortOrder,
-    onSelect: (com.demo.core.model.SortOrder) -> Unit
+    order: SortOrder,
+    current: SortOrder,
+    onSelect: (SortOrder) -> Unit
 ) {
-    androidx.compose.material3.FilterChip(
+    FilterChip(
         selected = order == current,
         onClick = { onSelect(order) },
         label = { Text(label) }
@@ -335,12 +341,12 @@ private fun SelectionBar(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = CircleShape
     ) {
-        androidx.compose.foundation.layout.Row(
+        Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text("已选 $count 项", style = MaterialTheme.typography.labelLarge)
-            androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+            Spacer(Modifier.weight(1f))
             IconButton(onClick = onFavorite) {
                 Icon(Icons.Default.Favorite, contentDescription = "收藏")
             }
@@ -366,15 +372,15 @@ private fun ScanProgressCard(
                 text = if (progress.done) "导入完成" else "正在导入：${progress.current}",
                 style = MaterialTheme.typography.labelLarge
             )
-            androidx.compose.foundation.layout.Spacer(Modifier.size(6.dp))
+            Spacer(Modifier.size(6.dp))
             Text(
                 text = "已扫描 ${progress.scanned} · 新增 ${progress.imported} · 跳过 ${progress.skipped} · 失败 ${progress.failed}",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
             if (!progress.done) {
-                androidx.compose.foundation.layout.Spacer(Modifier.size(8.dp))
-                androidx.compose.material3.LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                Spacer(Modifier.size(8.dp))
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
         }
     }

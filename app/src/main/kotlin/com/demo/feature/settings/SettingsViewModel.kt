@@ -74,13 +74,27 @@ class SettingsViewModel(
         }
     }
 
-    fun setTheme(mode: ThemeMode) = update { it.copy(themeMode = mode) }
-    fun setDynamicColor(enabled: Boolean) = update { it.copy(dynamicColor = enabled) }
-    fun setGlassLevel(level: String) = update { it.copy(glassLevel = level) }
-    fun setNickname(name: String) = update { it.copy(nickname = name.ifBlank { "阅读者" }) }
-    fun setComicPreload(count: Int) = update { it.copy(comicPreload = count.coerceIn(1, 3)) }
-    fun setScanDepth(depth: Int) = update { it.copy(scanMaxDepth = depth.coerceIn(1, 8)) }
-    fun setSkipHidden(skip: Boolean) = update { it.copy(skipHidden = skip) }
+    fun setTheme(mode: ThemeMode) = update {
+        it.copy(themeMode = mode)
+    }
+    fun setDynamicColor(enabled: Boolean) = update {
+        it.copy(dynamicColor = enabled)
+    }
+    fun setGlassLevel(level: String) = update {
+        it.copy(glassLevel = level)
+    }
+    fun setNickname(name: String) = update {
+        it.copy(nickname = name.ifBlank { "阅读者" })
+    }
+    fun setComicPreload(count: Int) = update {
+        it.copy(comicPreload = count.coerceIn(4, 6))
+    }
+    fun setScanDepth(depth: Int) = update { 
+        it.copy(scanMaxDepth = depth.coerceIn(1, 8))
+    }
+    fun setSkipHidden(skip: Boolean) = update {
+        it.copy(skipHidden = skip)
+    }
 
     // ---------- 扫描目录 ----------
     fun addScanDir(raw: String) {
@@ -101,7 +115,7 @@ class SettingsViewModel(
     fun setWebdav(url: String) = update { it.copy(webdavUrl = url.trim()) }
     fun setWebdavUser(user: String) = update { it.copy(webdavUser = user.trim()) }
     fun setWebdavPassword(password: String) = update { it.copy(webdavPassword = password) }
-    fun setWebdavDir(dir: String) = update { it.copy(webdavDir = dir.trim().ifBlank { "LiquidReader" }) }
+    fun setWebdavDir(dir: String) = update { it.copy(webdavDir = dir.trim()) }
     fun setWebdavAutoBackup(enabled: Boolean) = update { it.copy(webdavAutoBackup = enabled) }
 
     fun testConnection() = syncAction("连接") { settings ->

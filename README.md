@@ -53,10 +53,11 @@ LiquidReader/
 ```bash
 # 1. 准备 JDK 17 + Android SDK（compileSdk 34），写入 local.properties: sdk.dir=/path/to/sdk
 # 2. 补齐 Gradle Wrapper（本仓库不含二进制 jar）
-gradle wrapper --gradle-version 8.9
+gradle wrapper --gradle-version 8.7
 
 # 3. 构建 debug APK
-./build.sh debug
+gradle clean
+gradle :app:assembleDebug
 # 输出：app/build/outputs/apk/debug/app-debug.apk
 
 # 4. 安装到真机
@@ -65,10 +66,3 @@ gradle wrapper --gradle-version 8.9
 # release（可选）：cp keystore.properties.example keystore.properties 并填写
 ./build.sh release
 ```
-
-## 关键设计
-
-- **首页**：顶部玻璃导航栏（Logo 位 / 搜索胶囊 / 主题切换 / 设置）+ 分组 Chips +「继续阅读」「最近添加」横向区块 + 书架网格（分页，24/页）。
-- **个人页**：总时长 / 连续天数 / 藏书量、今日概览、近 7 天柱状图（Canvas 自绘）、小说漫画时长占比环形图、最近读完。
-- **液态玻璃**：半透明底色 + API31 实时模糊（低版本自动降级）+ 渐变高光描边 + 顶部反光；设置页可一键关闭（低配机省电）。
-- **内存优化**：书架分页与区块条数上限；Coil 内存缓存 15%、RGB_565、按视图尺寸采样；封面统一 ≤450px WebP（LRU 300）；漫画 ±N 页窗口加载，窗口外释放；EPUB 章节惰性解析 + LRU 10 章；ZipFile/PdfRenderer 在 `DisposableEffect` 关闭；扫描分块事务且可取消。

@@ -1,8 +1,9 @@
-/local.properties
 /.idea/
 .DS_Store
 /build
 */build
+.vscode/
+scripts/
 
 # Compiled class file
 *.class
@@ -17,6 +18,7 @@
 .mtj.tmp/
 
 # Package Files #
+*.iml
 *.jar
 *.war
 *.nar
@@ -32,16 +34,8 @@ replay_pid*
 # Kotlin Gradle plugin data, see https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
 .gradle/
 .kotlin/
-keystore.properties
-
-*.iml
-
+keystore/
+local.properties
 .cxx/
 
-
-.vscode/
-
-
-scripts/
-
-docs/**
+docs/

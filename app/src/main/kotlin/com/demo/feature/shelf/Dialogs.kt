@@ -66,7 +66,10 @@ fun ImportDialog(
     val candidates = remember { defaultScanDirs(context) }
 
     Dialog(onDismissRequest = onDismiss) {
-        GlassSurface(shape = ReaderShapes.large, modifier = Modifier.fillMaxWidth()) {
+        GlassSurface(
+            shape = ReaderShapes.small,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Column(Modifier.padding(20.dp)) {
                 Text("导入本地书籍", style = MaterialTheme.typography.titleMedium)
                 Text(

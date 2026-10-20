@@ -11,8 +11,8 @@ import com.demo.assembly.di.ImageLoaderFactory
 
 //enum 类型枚举
 object BuildConfig {
-    const val DEBUG = true
-    const val PROD = false
+    const val DEBUG = false
+    const val PROD = true
 }
 
 class App : Application() {

@@ -113,7 +113,7 @@ class ComicReaderViewModel(
     init {
         viewModelScope.launch {
             settingsRepository.observe().collectLatest { settings ->
-                preload = settings.comicPreload.coerceIn(1, 3)
+                preload = settings.comicPreload.coerceIn(4, 6)
                 _uiState.update { it.copy(settings = settings) }
             }
         }

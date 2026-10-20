@@ -227,7 +227,6 @@ class FolderComicParser(
 /**
  * PDF（按漫画方式逐页渲染）
  *
- * 修复要点：
  * 1. ParcelFileDescriptor 与 PdfRenderer 成对关闭（旧实现泄漏 fd，打开多本 PDF 后崩溃）；
  * 2. PdfRenderer 非线程安全，所有渲染串行化；
  * 3. 封面/页面按**长边**缩放（旧实现按宽度，竖版 PDF 封面被拉伸裁切）；

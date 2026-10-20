@@ -1,7 +1,10 @@
 package com.demo.core.common.util
 
 object Constants {
-    const val DB_NAME = "liquid_reader.db"
+    const val APP_NAME = "LocalReader"
+    const val APP_VERSION = "0.1.1"
+
+    const val DB_NAME = "local_reader.db"
     const val DB_VERSION = 1
 
     const val COVER_DIR = "covers"

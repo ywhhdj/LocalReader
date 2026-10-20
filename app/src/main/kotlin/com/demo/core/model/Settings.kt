@@ -1,5 +1,7 @@
 package com.demo.core.model
 
+import com.demo.core.common.util.Constants
+
 /** 主题模式（core-model 定义，供 domain/data/UI 共用） */
 enum class ThemeMode(val value: String) {
     SYSTEM("SYSTEM"), LIGHT("LIGHT"), DARK("DARK");
@@ -31,14 +33,14 @@ data class AppSettings(
     // 小说
     val fontSize: Int = 14,
     val lineHeightMultiplier: Float = 2.2f,
-    val letterSpacing: Float = 0f,
+    val letterSpacing: Float = 1.0f,
     val readerBackground: ReaderBackground = ReaderBackground.PAPER,
     val keepScreenOn: Boolean = false,
     val volumeKeyTurnPage: Boolean = false,
     // 漫画
     val comicDirection: ComicDirection = ComicDirection.LTR,
     val comicDoublePage: Boolean = false,
-    val comicPreload: Int = 2,
+    val comicPreload: Int = 4,
     val pageFitMode: PageFitMode = PageFitMode.WIDTH,
     // 扫描
     val scanMaxDepth: Int = 4,
@@ -55,7 +57,7 @@ data class AppSettings(
     val webdavUrl: String = "",
     val webdavUser: String = "",
     val webdavPassword: String = "",
-    val webdavDir: String = "LiquidReader",
+    val webdavDir: String = Constants.APP_NAME,
     val webdavAutoBackup: Boolean = false,
     val lastBackupAt: Long = 0L,
     // 在线书源（默认关闭，关闭时不产生任何网络请求）

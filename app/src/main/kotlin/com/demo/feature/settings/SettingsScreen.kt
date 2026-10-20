@@ -42,6 +42,7 @@ import com.demo.core.ui.components.AppBackdrop
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
 import com.demo.core.ui.theme.CardShape
+import com.demo.core.common.util.Constants
 
 @Composable
 fun SettingsScreen(
@@ -355,7 +356,7 @@ fun SettingsScreen(
                         Slider(
                             value = state.settings.comicPreload.toFloat(),
                             onValueChange = { viewModel.setComicPreload(it.toInt()) },
-                            valueRange = 1f..3f,
+                            valueRange = 3f..5f,
                             steps = 1,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -372,7 +373,7 @@ fun SettingsScreen(
 
                 item {
                     SettingsCard("关于") {
-                        Text("Liquid Reader v1.1.0", style = MaterialTheme.typography.bodyMedium)
+                        Text("Liquid Reader v${Constants.APP_VERSION}", style = MaterialTheme.typography.bodyMedium)
                         Text(
                             "本地小说 / 漫画阅读器 · 支持 EPUB / TXT / PDF / CBZ / ZIP / 图片文件夹",
                             style = MaterialTheme.typography.labelSmall,
