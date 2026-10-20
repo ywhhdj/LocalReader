@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+  <files-path name="covers" path="covers/" />
+  <files-path name="bookcache" path="bookcache/" />
+  <files-path name="pagecache" path="pagecache/" />
+  <cache-path name="cache" path="." />
+  <external-files-path name="external" path="." />
+</paths>
