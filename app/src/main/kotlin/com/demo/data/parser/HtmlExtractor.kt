@@ -82,6 +82,9 @@ object HtmlExtractor {
         return blocks
     }
 
+    /** 供外部复用（如目录标题去标签后解码实体） */
+    fun decodeEntitiesStatic(input: String): String = decodeEntities(input)
+
     private fun decodeEntities(input: String): String {
         if (input.indexOf('&') < 0) return input
         var s = input
@@ -95,8 +98,17 @@ object HtmlExtractor {
         s = s.replace("&mdash;", "—")
         s = s.replace("&ldquo;", "“")
         s = s.replace("&rdquo;", "”")
+        s = NUM_ENTITY.replace(s) { m ->
+            m.groupValues[1].toIntOrNull()?.toChar()?.toString() ?: m.value
+        }
+        s = HEX_ENTITY.replace(s) { m ->
+            m.groupValues[1].toIntOrNull(16)?.toChar()?.toString() ?: m.value
+        }
         return s
     }
+
+    private val NUM_ENTITY = Regex("""&#(\d+);""")
+    private val HEX_ENTITY = Regex("""&#[xX]([0-9a-fA-F]+);""")
 
     private enum class Kind { PARAGRAPH, HEADING, QUOTE }
 }

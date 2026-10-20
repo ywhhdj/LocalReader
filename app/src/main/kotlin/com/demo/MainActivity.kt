@@ -27,6 +27,10 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestPermission()
     ) { granted -> permissionGranted = granted || !needStoragePermission() }
 
+    private val requestPermissions = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { result -> permissionGranted = result.values.any { it } || !needStoragePermission() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -37,9 +41,16 @@ class MainActivity : ComponentActivity() {
             val settings by container.settingsRepository.observe()
                 .collectAsStateWithLifecycle(initialValue = com.demo.core.model.AppSettings())
 
+            // Android 13+ 使用 READ_MEDIA_*；Android 12 及以下使用 READ_EXTERNAL_STORAGE。
+            // Android 11+ 直接扫描公共目录还需"所有文件访问权限"（由首页/设置引导授权）。
             LaunchedEffect(Unit) {
-                if (needStoragePermission() && !hasStoragePermission()) {
-                    requestPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                val missing = com.demo.core.common.util.StorageAccess.missingPermissions(this@MainActivity)
+                if (missing.isNotEmpty()) {
+                    if (missing.size == 1) {
+                        requestPermission.launch(missing.first())
+                    } else {
+                        requestPermissions.launch(missing.toTypedArray())
+                    }
                 }
             }
 

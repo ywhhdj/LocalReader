@@ -20,6 +20,8 @@ import com.demo.domain.repository.NovelContent
 import com.demo.domain.repository.ProgressRepository
 import com.demo.domain.repository.ReaderRepository
 import com.demo.domain.repository.SettingsRepository
+import com.demo.domain.repository.TtsEngine
+import com.demo.domain.repository.TtsState
 import com.demo.domain.usecase.GetBookUseCase
 import com.demo.domain.usecase.OpenNovelUseCase
 import com.demo.domain.usecase.ReadingSessionUseCase
@@ -35,7 +37,9 @@ data class NovelReaderUiState(
     val showSettings: Boolean = false,
     val error: String? = null,
     val canPrev: Boolean = false,
-    val canNext: Boolean = false
+    val canNext: Boolean = false,
+    /** 朗读状态 */
+    val tts: TtsState = TtsState()
 )
 
 /**
@@ -48,7 +52,8 @@ class NovelReaderViewModel(
     private val readerRepository: ReaderRepository,
     private val progressRepository: ProgressRepository,
     private val settingsRepository: SettingsRepository,
-    private val session: ReadingSessionUseCase
+    private val session: ReadingSessionUseCase,
+    private val ttsEngine: TtsEngine
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NovelReaderUiState())
@@ -67,6 +72,27 @@ class NovelReaderViewModel(
         viewModelScope.launch {
             settingsRepository.observe().collectLatest { settings ->
                 _uiState.update { it.copy(settings = settings) }
+                ttsEngine.setRate(settings.ttsRate)
+                ttsEngine.setPitch(settings.ttsPitch)
+            }
+        }
+        viewModelScope.launch {
+            var wasSpeaking = false
+            ttsEngine.state.collectLatest { tts ->
+                val finished = wasSpeaking && !tts.speaking &&
+                    tts.chunkCount > 0 && tts.chunkIndex >= tts.chunkCount
+                wasSpeaking = tts.speaking
+                _uiState.update { it.copy(tts = tts) }
+                if (finished && _uiState.value.settings.ttsAutoNext && _uiState.value.canNext) {
+                    nextChapter()
+                    // 等待新章节内容渲染完成后再继续朗读
+                    var waited = 0
+                    while (_uiState.value.loading && waited < 5000) {
+                        kotlinx.coroutines.delay(120)
+                        waited += 120
+                    }
+                    startTts()
+                }
             }
         }
     }
@@ -140,6 +166,51 @@ class NovelReaderViewModel(
         }
     }
 
+    // ---------- 朗读（TTS） ----------
+
+    /** 朗读当前章节；已在朗读则停止 */
+    fun toggleTts() {
+        if (_uiState.value.tts.speaking) {
+            stopTts()
+            return
+        }
+        startTts()
+    }
+
+    /** 朗读当前章节正文（图片跳过） */
+    private fun startTts() {
+        val blocks = _uiState.value.blocks
+        if (blocks.isEmpty()) return
+        val text = buildString {
+            blocks.forEach { block ->
+                when (block) {
+                    is BookBlock.Paragraph -> append(block.text).append('\n')
+                    is BookBlock.Heading -> append(block.text).append('\n')
+                    is BookBlock.Quote -> append(block.text).append('\n')
+                    is BookBlock.Image -> Unit
+                    BookBlock.Break -> append('\n')
+                }
+            }
+        }
+        viewModelScope.launch {
+            ttsEngine.setRate(_uiState.value.settings.ttsRate)
+            ttsEngine.setPitch(_uiState.value.settings.ttsPitch)
+            ttsEngine.speak(text)
+        }
+    }
+
+    fun stopTts() = ttsEngine.stop()
+
+    fun setTtsRate(rate: Float) {
+        ttsEngine.setRate(rate)
+        updateSettings { it.copy(ttsRate = rate) }
+    }
+
+    fun setTtsPitch(pitch: Float) {
+        ttsEngine.setPitch(pitch)
+        updateSettings { it.copy(ttsPitch = pitch) }
+    }
+
     fun toggleToc(show: Boolean? = null) = _uiState.update { it.copy(showToc = show ?: !it.showToc) }
     fun toggleSettings(show: Boolean? = null) = _uiState.update { it.copy(showSettings = show ?: !it.showSettings) }
 
@@ -156,6 +227,7 @@ class NovelReaderViewModel(
 
     override fun onCleared() {
         super.onCleared()
+        runCatching { ttsEngine.stop() }
         viewModelScope.launch {
             runCatching { session.end(sessionId, sessionStartAt, BookType.NOVEL) }
         }

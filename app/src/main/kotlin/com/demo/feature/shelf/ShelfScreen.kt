@@ -52,6 +52,7 @@ import com.demo.core.ui.components.SectionHeader
 import com.demo.core.ui.glass.GlassIconButton
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
+import com.demo.core.ui.theme.CardShape
 
 @Composable
 fun ShelfScreen(
@@ -59,6 +60,8 @@ fun ShelfScreen(
     onBookClick: (Long) -> Unit,
     onSearch: () -> Unit,
     onSettings: () -> Unit,
+    onPickDirectory: () -> Unit = {},
+    onRequestPermission: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -159,12 +162,19 @@ fun ShelfScreen(
                     }
                     if (state.isLoading && state.gridBooks.isEmpty()) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
-                            Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                            Box(
+                                Modifier.fillMaxWidth().padding(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 CircularProgressIndicator()
                             }
                         }
                     }
-                    items(state.gridBooks, key = { it.id }, contentType = { "book" }) { book ->
+                    items(
+                        state.gridBooks,
+                        key = { it.id },
+                        contentType = { "book" }
+                    ) { book ->
                         BookCoverCard(
                             book = book,
                             selected = book.id in state.selection,
@@ -226,11 +236,19 @@ fun ShelfScreen(
 
     if (showImportDialog) {
         ImportDialog(
+            savedDirs = state.settings.scanDirs,
             onDismiss = { showImportDialog = false },
             onImport = { paths ->
                 showImportDialog = false
+                viewModel.addScanDir(paths.firstOrNull().orEmpty())
                 viewModel.import(paths)
-            }
+            },
+            onPickDirectory = {
+                showImportDialog = false
+                onPickDirectory()
+            },
+            onRequestPermission = onRequestPermission,
+            onRemoveDir = viewModel::removeScanDir
         )
     }
 
@@ -256,7 +274,7 @@ private fun SelectionBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = CircleShape
+        shape = CardShape
     ) {
         androidx.compose.foundation.layout.Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),

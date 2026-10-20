@@ -161,13 +161,14 @@ class ShelfViewModel(
     fun import(paths: List<String>) {
         importJob?.cancel()
         importJob = viewModelScope.launch {
-            importBooks(paths).collect { progress ->
+            importBooks.raw(paths).collect { progress ->
                 _uiState.update { it.copy(scan = progress) }
                 if (progress.done) {
                     refresh()
                     _uiState.update {
                         it.copy(
-                            message = "导入完成：新增 ${progress.imported}，跳过 ${progress.skipped}，失败 ${progress.failed}",
+                            message = progress.message?.let { m -> "导入完成：$m" }
+                                ?: "导入完成：新增 ${progress.imported}，跳过 ${progress.skipped}，失败 ${progress.failed}",
                             scan = null
                         )
                     }
@@ -240,6 +241,38 @@ class ShelfViewModel(
                 it.copy(message = if (id > 0) "已创建分组：$name" else "分组已存在")
             }
         }
+    }
+
+    /** SAF 授权目录：持久化后扫描（Android 11+ 无所有文件权限时的主要入口） */
+    fun importFromUri(uri: String) {
+        viewModelScope.launch {
+            addScanDir(uri)
+            import(listOf(uri))
+        }
+    }
+
+    fun addScanDir(raw: String) {
+        if (raw.isBlank()) return
+        viewModelScope.launch {
+            updateSettings { s ->
+                if (raw in s.scanDirs) s else s.copy(scanDirs = (listOf(raw) + s.scanDirs).distinct().take(20))
+            }
+        }
+    }
+
+    fun removeScanDir(raw: String) {
+        viewModelScope.launch {
+            updateSettings { s -> s.copy(scanDirs = s.scanDirs - raw) }
+        }
+    }
+
+    fun rescanAll() {
+        val dirs = _uiState.value.settings.scanDirs
+        if (dirs.isEmpty()) {
+            _uiState.update { it.copy(message = "还没有保存的扫描目录，请先添加") }
+            return
+        }
+        import(dirs)
     }
 
     fun consumeMessage() = _uiState.update { it.copy(message = null) }

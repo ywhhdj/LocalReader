@@ -3,12 +3,15 @@ package com.demo.data.cache
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
-import com.demo.core.common.util.Constants
+
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+
 import kotlin.math.max
 import kotlin.math.min
+
+import com.demo.core.common.util.Constants
 
 /** 图片解码与压缩：统一采样策略，控制内存峰值 */
 object ImageTools {

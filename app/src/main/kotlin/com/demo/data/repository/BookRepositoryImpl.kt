@@ -4,7 +4,7 @@ import com.demo.core.database.dao.BookDao
 import com.demo.core.model.Book
 import com.demo.core.model.BookFilter
 import com.demo.core.model.SortOrder
-import com.demo.data.cache.CoverStore
+import com.demo.data.cover.CoverStore
 import com.demo.data.mapper.toEntity
 import com.demo.data.mapper.toModel
 import com.demo.domain.repository.BookCounts

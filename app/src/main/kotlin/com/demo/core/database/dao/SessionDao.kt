@@ -3,6 +3,7 @@ package com.demo.core.database.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+
 import com.demo.core.database.entity.ReadingSessionEntity
 
 @Dao
@@ -42,6 +43,10 @@ interface SessionDao {
 
     @Query("SELECT COUNT(*) FROM reading_sessions")
     suspend fun count(): Int
+
+    /** 全量导出（备份） */
+    @Query("SELECT * FROM reading_sessions ORDER BY start_at ASC")
+    suspend fun all(): List<ReadingSessionEntity>
 }
 
 data class DayAggregate(val dayKey: Long, val total: Long)

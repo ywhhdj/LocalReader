@@ -28,6 +28,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FormatSize
+import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,6 +38,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -162,6 +165,14 @@ fun NovelReaderScreen(
                         maxLines = 1,
                         modifier = Modifier.weight(1f)
                     )
+                    IconButton(onClick = viewModel::toggleTts) {
+                        Icon(
+                            if (state.tts.speaking) Icons.Default.Stop else Icons.Default.RecordVoiceOver,
+                            contentDescription = "朗读",
+                            tint = if (state.tts.speaking) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                     IconButton(onClick = { viewModel.toggleToc(true) }) {
                         Icon(Icons.AutoMirrored.Filled.List, contentDescription = "目录")
                     }
@@ -247,6 +258,41 @@ fun NovelReaderScreen(
                     .background(Color.Black.copy(alpha = 0.25f))
                     .clickable { viewModel.toggleToc(false) }
             )
+        }
+
+        // 朗读控制条
+        AnimatedVisibility(
+            visible = state.tts.speaking || state.tts.error != null,
+            enter = slideInVertically { it },
+            exit = slideOutVertically { it },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            GlassSurface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                shape = ReaderShapes.large
+            ) {
+                Column(Modifier.padding(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = state.tts.error ?: "朗读中 ${state.tts.progressText}",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        TextButton(onClick = viewModel::stopTts) { Text("停止") }
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("语速", style = MaterialTheme.typography.labelSmall)
+                        Slider(
+                            value = state.settings.ttsRate,
+                            onValueChange = viewModel::setTtsRate,
+                            valueRange = 0.5f..2.0f,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
         }
 
         // 阅读设置面板

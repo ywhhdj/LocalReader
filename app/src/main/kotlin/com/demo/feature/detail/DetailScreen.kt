@@ -51,11 +51,13 @@ import coil.compose.AsyncImage
 import com.demo.core.common.util.FormatUtil
 import com.demo.core.model.Book
 import com.demo.core.model.BookType
+import com.demo.core.model.Chapter
 import com.demo.core.ui.components.AppBackdrop
 import com.demo.core.ui.components.CoverSkeleton
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
 import com.demo.core.ui.theme.ReaderShapes
+
 
 @Composable
 fun DetailScreen(
@@ -97,6 +99,7 @@ fun DetailScreen(
             }
 
             val book = state.book ?: return@Column
+            val chapters = state.chapters
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
@@ -105,25 +108,7 @@ fun DetailScreen(
                 item { HeaderCard(book, onRead) }
                 item { MetaCard(book) }
                 item { ActionsCard(book, viewModel) }
-                if (state.chapters.isNotEmpty()) {
-                    item {
-                        Text(
-                            "目录预览",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                        )
-                    }
-                    itemsIndexed(state.chapters.take(20), key = { _, c -> c.index }) { _, chapter ->
-                        Text(
-                            text = chapter.title,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp, horizontal = 4.dp)
-                        )
-                    }
-                }
+                item { ChaptersCard(chapters, viewModel) }
             }
         }
     }
@@ -304,6 +289,37 @@ private fun ActionsCard(book: Book, viewModel: DetailViewModel) {
         }
     }
 }
+
+
+//目录卡片
+@Composable
+private fun ChaptersCard(
+    chapters: List<Chapter>,
+    viewModel: DetailViewModel
+) {
+    if (chapters.isNotEmpty()) {
+        GlassSurface(shape = ReaderShapes.extraSmall, modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(12.dp)) {
+                Text(
+                    "目录",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                )
+                chapters.take(20).forEach { chapter ->
+                    Text(
+                        text = chapter.title,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp, horizontal = 4.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
 private fun ActionButton(

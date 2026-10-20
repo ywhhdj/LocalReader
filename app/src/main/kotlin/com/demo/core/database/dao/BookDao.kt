@@ -88,6 +88,10 @@ interface BookDao {
     @Query("SELECT file_path FROM books")
     suspend fun allPaths(): List<String>
 
+    /** 全量导出（备份） */
+    @Query("SELECT * FROM books ORDER BY id ASC")
+    suspend fun all(): List<BookEntity>
+
     @Query("SELECT COUNT(*) FROM books")
     suspend fun count(): Int
 

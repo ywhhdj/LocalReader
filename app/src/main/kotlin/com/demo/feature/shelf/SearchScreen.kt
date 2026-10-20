@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,7 +43,8 @@ import com.demo.core.ui.glass.GlassTopBar
 fun SearchScreen(
     viewModel: ShelfViewModel,
     onBack: () -> Unit,
-    onBookClick: (Long) -> Unit
+    onBookClick: (Long) -> Unit,
+    onOnlineSearch: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val focusRequester = remember { FocusRequester() }
@@ -54,6 +56,13 @@ fun SearchScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                actions = {
+                    if (state.settings.onlineSourceEnabled) {
+                        IconButton(onClick = onOnlineSearch) {
+                            Icon(Icons.Default.Public, contentDescription = "在线书源")
+                        }
                     }
                 },
                 title = {

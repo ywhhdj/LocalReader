@@ -3,7 +3,9 @@ package com.demo.core.database.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
+
 import com.demo.core.database.entity.ReadingProgressEntity
+
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -11,6 +13,10 @@ interface ProgressDao {
 
     @Query("SELECT * FROM reading_progress WHERE book_id = :bookId")
     suspend fun get(bookId: Long): ReadingProgressEntity?
+
+    /** 全量导出（备份） */
+    @Query("SELECT * FROM reading_progress ORDER BY book_id ASC")
+    suspend fun all(): List<ReadingProgressEntity>
 
     @Query("SELECT * FROM reading_progress WHERE book_id = :bookId")
     fun observe(bookId: Long): Flow<ReadingProgressEntity?>

@@ -20,7 +20,9 @@ enum class ReaderBackground(val value: String) {
     }
 }
 
-/** 全局设置（DataStore 持久化） */
+/**
+ * 全局设置（DataStore 持久化）
+ */
 data class AppSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val dynamicColor: Boolean = false,
@@ -41,5 +43,22 @@ data class AppSettings(
     // 扫描
     val scanMaxDepth: Int = 4,
     val scanMaxFiles: Int = 20_000,
-    val skipHidden: Boolean = true
+    val skipHidden: Boolean = true,
+    /** 已保存的扫描目录：本地绝对路径或 SAF 树 URI（content://...） */
+    val scanDirs: List<String> = emptyList(),
+    // 朗读（TTS）
+    val ttsRate: Float = 1.0f,
+    val ttsPitch: Float = 1.0f,
+    /** 朗读完当前章节自动继续下一章 */
+    val ttsAutoNext: Boolean = true,
+    // WebDAV 备份（默认关闭）
+    val webdavUrl: String = "",
+    val webdavUser: String = "",
+    val webdavPassword: String = "",
+    val webdavDir: String = "LiquidReader",
+    val webdavAutoBackup: Boolean = false,
+    val lastBackupAt: Long = 0L,
+    // 在线书源（默认关闭，关闭时不产生任何网络请求）
+    val onlineSourceEnabled: Boolean = false,
+    val onlineSourceJson: String = ""
 )

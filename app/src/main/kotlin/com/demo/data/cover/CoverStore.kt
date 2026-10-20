@@ -1,11 +1,14 @@
-package com.demo.data.cache
+package com.demo.data.cover
 
 import android.graphics.Bitmap
+
+import java.io.File
+import java.io.InputStream
+
 import com.demo.core.common.util.Constants
 import com.demo.core.common.util.FileUtil
 import com.demo.data.cache.ImageTools
-import java.io.File
-import java.io.InputStream
+import com.demo.data.cache.DiskLruCache
 
 /**
  * 封面存储：统一缩放至 ≤450px 的 WebP，按 filePath 哈希命名，LRU 上限 300。
