@@ -18,6 +18,7 @@ object ShelfRoute {
     const val HOME = "shelf/home"
     const val SEARCH = "shelf/search"
     const val ONLINE = "shelf/online"
+    const val FAVORITES = "shelf/favorites"
 }
 
 /**
@@ -44,6 +45,14 @@ fun NavGraphBuilder.shelfGraph(
             onSettings = onSettings,
             onPickDirectory = pickDirectory,
             onRequestPermission = { StorageAccess.openAllFilesAccessSettings(context) }
+        )
+    }
+    composable(ShelfRoute.FAVORITES) {
+        val vm: FavoritesViewModel = viewModel(factory = factory)
+        FavoritesScreen(
+            viewModel = vm,
+            onBack = { navController.popBackStack() },
+            onBookClick = onBookClick
         )
     }
     composable(ShelfRoute.SEARCH) {

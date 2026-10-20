@@ -25,6 +25,7 @@ class App : Application() {
         Logger.enabled = BuildConfig.DEBUG
         if (BuildConfig.DEBUG) enableStrictMode()
         Coil.setImageLoader(ImageLoaderFactory.create(this))
+        CrashGuard.install(this)
         container = AppContainer(this)
     }
 

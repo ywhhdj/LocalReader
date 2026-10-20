@@ -50,6 +50,16 @@ class PageCache(filesDir: File) {
         return result
     }
 
+    /**
+     * 删除指定漫画的缓存
+     */
+    fun clear(bookId: Long) {
+        val bookDir = bookDir(bookId)
+        if (bookDir.exists()) {
+            FileUtil.deleteRecursively(bookDir)
+        }
+    }
+
     fun trim() = cache.trim()
 
     fun clear() = cache.clear()

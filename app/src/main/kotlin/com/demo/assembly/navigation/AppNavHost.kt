@@ -1,6 +1,7 @@
 package com.demo.assembly.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
@@ -36,7 +37,9 @@ fun AppNavHost(
 ) {
     val entry by navController.currentBackStackEntryAsState()
     val currentRoute = entry?.destination?.route
-    val showBottomBar = currentRoute == ShelfRoute.HOME || currentRoute == ProfileRoute.PROFILE
+    val showBottomBar = currentRoute == ShelfRoute.HOME ||
+        currentRoute == ShelfRoute.FAVORITES ||
+        currentRoute == ProfileRoute.PROFILE
 
     androidx.compose.foundation.layout.Box(modifier = modifier) {
         NavHost(
@@ -89,6 +92,17 @@ fun AppNavHost(
                         onClick = {
                             navController.navigate(ShelfRoute.HOME) {
                                 popUpTo(ShelfRoute.HOME) { inclusive = false }
+                                launchSingleTop = true
+                            }
+                        }
+                    ),
+                    BottomItem(
+                        label = "收藏",
+                        icon = Icons.Default.Favorite,
+                        selected = currentRoute == ShelfRoute.FAVORITES,
+                        onClick = {
+                            navController.navigate(ShelfRoute.FAVORITES) {
+                                popUpTo(ShelfRoute.HOME)
                                 launchSingleTop = true
                             }
                         }

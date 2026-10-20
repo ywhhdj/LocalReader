@@ -1,5 +1,18 @@
 package com.demo.data.scanner
 
+import com.demo.core.common.util.Constants
+import com.demo.core.common.util.FileUtil
+import com.demo.core.common.util.Logger
+import com.demo.core.database.dao.BookDao
+import com.demo.core.model.Book
+import com.demo.data.mapper.toEntity
+import com.demo.data.parser.ComicFolder
+import com.demo.data.parser.ParserFactory
+import com.demo.data.parser.ParserFactoryImpl
+import com.demo.domain.repository.ScanOptions
+import com.demo.domain.repository.ScanProgress
+import com.demo.domain.repository.ScanTarget
+import com.demo.domain.repository.ScannerRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -7,22 +20,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.coroutineContext
-
 import java.io.File
-
-import com.demo.core.common.util.Constants
-import com.demo.core.common.util.FileUtil
-import com.demo.core.common.util.Logger
-import com.demo.core.database.dao.BookDao
-import com.demo.core.model.Book
-import com.demo.data.mapper.toEntity
-import com.demo.data.parser.ParserFactory
-import com.demo.data.parser.ParserFactoryImpl
-import com.demo.domain.repository.ScanOptions
-import com.demo.domain.repository.ScanProgress
-import com.demo.domain.repository.ScanTarget
-import com.demo.domain.repository.ScannerRepository
+import kotlin.coroutines.coroutineContext
 
 /**
  * 本地文件 / SAF 授权目录扫描与导入：
@@ -50,6 +49,8 @@ class FileScanner(
     override fun scan(targets: List<ScanTarget>, options: ScanOptions): Flow<ScanProgress> = flow {
         val c = Counters()
         val pending = ArrayList<Book>(200)
+        // 已入库路径一次性载入内存：避免每个文件都查一次库（5000 文件的目录可省 5000 次查询）
+        val knownPaths = HashSet(withContext(Dispatchers.IO) { bookDao.allPaths() })
         // 用 lambda 捕获 FlowCollector#emit，避免局部函数无法访问 receiver
         val post: suspend (ScanProgress) -> Unit = { emit(it) }
         var visited = 0
@@ -89,22 +90,28 @@ class FileScanner(
             }
             c.scanned++
             runCatching {
-                val exists = withContext(Dispatchers.IO) { bookDao.byPath(file.absolutePath) }
-                if (exists != null) {
-                    val changed = options.refreshExisting &&
+                val path = file.absolutePath
+                if (knownPaths.contains(path)) {
+                    if (!options.refreshExisting) {
+                        c.skipped++
+                        return@runCatching
+                    }
+                    // 仅在需要刷新时才回查该条记录（大部分场景不会走到这里）
+                    val exists = withContext(Dispatchers.IO) { bookDao.byPath(path) }
+                    val changed = exists != null &&
                         (exists.size_bytes != file.length() || exists.title.isBlank())
                     if (!changed) {
                         c.skipped++
                         return@runCatching
                     }
-                    val book = parser.parseMeta(file)
-                    if (book == null) {
+                    val refreshed = parser.parseMeta(file)
+                    if (refreshed == null || exists == null) {
                         c.failed++
                         return@runCatching
                     }
                     withContext(Dispatchers.IO) {
                         bookDao.upsert(
-                            book.copy(sourceUri = sourceUri ?: exists.source_uri).toEntity(exists.id)
+                            refreshed.copy(sourceUri = sourceUri ?: exists.source_uri).toEntity(exists.id)
                         )
                     }
                     c.updated++
@@ -115,6 +122,7 @@ class FileScanner(
                     c.failed++
                     return@runCatching
                 }
+                knownPaths.add(path)
                 pending.add(if (sourceUri != null) book.copy(sourceUri = sourceUri) else book)
                 c.imported++
                 if (pending.size >= 200) flush()
@@ -197,7 +205,18 @@ class FileScanner(
                 onDirectory = { dir, children ->
                     if (!coroutineContext.isActive || stopped) {
                         true
+                    } else if (options.folderAsComic && safScanner.isChapterFolder(children)) {
+                        // 分话：外层目录名即漫画名，各话子目录整体保留
+                        val local = safScanner.materializeChaptered(dir.uri, children)
+                        if (local != null) {
+                            handle(local, "", dir.uri)
+                            tick(dir.name)
+                            true
+                        } else {
+                            false
+                        }
                     } else if (options.folderAsComic && safScanner.isComicFolder(children)) {
+                        // 短篇：本层图片即整本（1 话）
                         val local = safScanner.materializeFolder(dir.uri, children)
                         if (local != null) {
                             handle(local, "", dir.uri)
@@ -256,15 +275,12 @@ class FileScanner(
         )
     }.flowOn(Dispatchers.IO)
 
-    private fun isComicFolder(dir: File): Boolean {
-        if (!dir.isDirectory) return false
-        val children = dir.listFiles() ?: return false
-        if (children.isEmpty() || children.any { it.isDirectory }) return false
-        return children.count {
-            it.isFile && it.length() > Constants.MIN_IMAGE_SIZE &&
-                (FileUtil.extension(it.name) in Constants.IMAGE_EXTENSIONS)
-        } >= 2
-    }
+    /**
+     * 图片文件夹漫画判定：
+     * - 短篇：目录下全是图片；
+     * - 分话：目录下是「第一话 / 第二话」这类子目录，外层目录名即漫画名。
+     */
+    private fun isComicFolder(dir: File): Boolean = ComicFolder.isComicFolder(dir)
 
     /** 受限/系统目录黑名单：遍历必然失败或极慢 */
     private fun isBlockedDir(dir: File): Boolean {

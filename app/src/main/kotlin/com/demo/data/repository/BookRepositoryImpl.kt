@@ -17,7 +17,9 @@ import java.io.File
 
 class BookRepositoryImpl(
     private val bookDao: BookDao,
-    private val coverStore: CoverStore
+    private val coverStore: CoverStore,
+    private val pageCache: com.demo.data.cache.PageCache? = null,
+    private val bookCacheDir: java.io.File? = null
 ) : BookRepository {
 
     override suspend fun page(filter: BookFilter): List<Book> = withContext(Dispatchers.IO) {
@@ -65,11 +67,16 @@ class BookRepositoryImpl(
         Unit
     }
 
+    /** 删除书籍：DB 记录 + 封面 + 章节缓存 + 页面缓存，缺一不可（否则缓存残留占用空间） */
     override suspend fun delete(ids: List<Long>) = withContext(Dispatchers.IO) {
         if (ids.isEmpty()) return@withContext
         val paths = ids.mapNotNull { bookDao.byId(it)?.file_path }
         bookDao.deleteByIds(ids)
         paths.forEach { coverStore.delete(it) }
+        ids.forEach { id ->
+            pageCache?.clear(id)
+            bookCacheDir?.let { runCatching { java.io.File(it, id.toString()).deleteRecursively() } }
+        }
     }
 
     override suspend fun setFavorite(ids: List<Long>, favorite: Boolean) = withContext(Dispatchers.IO) {
@@ -96,10 +103,5 @@ class BookRepositoryImpl(
             finished = bookDao.finishedCount(),
             reading = bookDao.readingCount()
         )
-    }
-
-    /** 删除书籍时清理章节缓存（供上层调用） */
-    suspend fun clearBookCache(cacheRoot: File, bookId: Long) = withContext(Dispatchers.IO) {
-        runCatching { File(cacheRoot, bookId.toString()).deleteRecursively() }
     }
 }

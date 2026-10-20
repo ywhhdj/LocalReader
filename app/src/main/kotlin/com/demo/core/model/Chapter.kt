@@ -8,7 +8,12 @@ data class Chapter(
     val href: String = "",
     /** TXT 字节偏移起点 */
     val startOffset: Long = -1L,
-    val endOffset: Long = -1L
+    val endOffset: Long = -1L,
+    /**
+     * 所属卷名（分卷识别后写入，空串表示未分卷）。
+     * 例如标题「第一卷 江湖 第三章 初遇」→ volume = "第一卷 江湖"。
+     */
+    val volume: String = ""
 )
 
 /**

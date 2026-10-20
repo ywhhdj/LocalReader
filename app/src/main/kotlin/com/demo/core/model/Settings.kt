@@ -29,8 +29,8 @@ data class AppSettings(
     val glassLevel: String = "OFF",
     val nickname: String = "阅读者",
     // 小说
-    val fontSize: Int = 17,
-    val lineHeightMultiplier: Float = 1.6f,
+    val fontSize: Int = 14,
+    val lineHeightMultiplier: Float = 2.2f,
     val letterSpacing: Float = 0f,
     val readerBackground: ReaderBackground = ReaderBackground.PAPER,
     val keepScreenOn: Boolean = false,

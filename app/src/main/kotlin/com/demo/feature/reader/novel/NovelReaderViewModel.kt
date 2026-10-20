@@ -3,13 +3,19 @@ package com.demo.feature.reader.novel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+import com.demo.core.common.util.VolumeSplitter
 import com.demo.core.model.AppSettings
 import com.demo.core.model.Book
 import com.demo.core.model.BookBlock
@@ -68,12 +74,27 @@ class NovelReaderViewModel(
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, List<BookBlock>>?): Boolean = size > 10
     }
 
+    /** 滚动位置 → 节流合并写库（滚动时不再每个索引都落一次 DB） */
+    private val pendingProgress = MutableSharedFlow<Pair<Int, Int>>(extraBufferCapacity = 8)
+
+    /**
+     * 独立于 viewModelScope 的收尾作用域：
+     * viewModelScope 在 onCleared 之前就被取消，若仍用它写库，阅读会话会丢失（统计永远为 0）。
+     */
+    private val flushScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     init {
         viewModelScope.launch {
             settingsRepository.observe().collectLatest { settings ->
                 _uiState.update { it.copy(settings = settings) }
                 ttsEngine.setRate(settings.ttsRate)
                 ttsEngine.setPitch(settings.ttsPitch)
+            }
+        }
+        viewModelScope.launch {
+            pendingProgress.collectLatest { (chapterIndex, charOffset) ->
+                delay(PROGRESS_THROTTLE_MS)
+                saveProgress(chapterIndex, charOffset)
             }
         }
         viewModelScope.launch {
@@ -131,6 +152,12 @@ class NovelReaderViewModel(
     fun nextChapter() = jumpToChapter(_uiState.value.chapterIndex + 1)
     fun prevChapter() = jumpToChapter(_uiState.value.chapterIndex - 1)
 
+    private fun chaptersOf(): List<Chapter> = _uiState.value.chapters
+
+    private companion object {
+        const val PROGRESS_THROTTLE_MS = 500L
+    }
+
     private suspend fun loadChapterInternal(index: Int) {
         val cached = chapterCache[index]
         if (cached != null) {
@@ -142,8 +169,16 @@ class NovelReaderViewModel(
             val book = _uiState.value.book ?: return
             openNovel(book).also { content = it }
         }
-        val blocks = runCatching { opened.loadChapter(index) }
+        val raw = runCatching { opened.loadChapter(index) }
             .getOrDefault(listOf(BookBlock.Paragraph("（章节加载失败）")))
+        // 双保险：解析器已去掉重复标题行，这里再兜一层（含卷名写法）
+        val chapter = chaptersOf().getOrNull(index)
+        val blocks = if (chapter == null) raw else {
+            VolumeSplitter.stripTitles(
+                raw,
+                listOf(chapter.title, VolumeSplitter.displayTitle(chapter))
+            )
+        }
         chapterCache[index] = blocks
         _uiState.update {
             it.copy(
@@ -156,7 +191,12 @@ class NovelReaderViewModel(
         saveProgress(index, 0)
     }
 
-    /** 滚动位置节流保存由 UI 调用，内部合并写库 */
+    /** UI 滚动回调：只投递，不做 IO（由 pendingProgress 节流后统一写库） */
+    fun onScrollPosition(chapterIndex: Int, charOffset: Int) {
+        pendingProgress.tryEmit(chapterIndex to charOffset)
+    }
+
+    /** 立即写入（切章、退出阅读器时使用） */
     fun saveProgress(chapterIndex: Int, charOffset: Int) {
         val chapters = _uiState.value.chapters
         if (chapters.isEmpty()) return
@@ -218,6 +258,16 @@ class NovelReaderViewModel(
         viewModelScope.launch { settingsRepository.update(transform) }
     }
 
+    /** 退出前强制落盘最近一次滚动位置（走 flushScope，viewModelScope 此时已取消） */
+    fun flushProgress() {
+        val state = _uiState.value
+        if (state.chapters.isEmpty() || bookId <= 0L) return
+        val progress = ((state.chapterIndex + 1).toFloat() / state.chapters.size).coerceAtMost(1f)
+        flushScope.launch {
+            runCatching { progressRepository.saveNovel(bookId, state.chapterIndex, 0, progress) }
+        }
+    }
+
     fun finishChapterReading() {
         val state = _uiState.value
         if (state.chapters.isNotEmpty()) {
@@ -228,7 +278,8 @@ class NovelReaderViewModel(
     override fun onCleared() {
         super.onCleared()
         runCatching { ttsEngine.stop() }
-        viewModelScope.launch {
+        flushProgress()
+        flushScope.launch {
             runCatching { session.end(sessionId, sessionStartAt, BookType.NOVEL) }
         }
         content?.close()

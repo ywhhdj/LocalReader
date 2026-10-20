@@ -38,6 +38,7 @@ data class ShelfUiState(
     val groups: List<BookGroup> = emptyList(),
     val selectedGroupId: Long = BuiltInGroup.ALL,
     val typeFilter: BookType? = null,
+    val sortOrder: SortOrder = SortOrder.LAST_READ,
     val gridBooks: List<Book> = emptyList(),
     val page: Int = 0,
     val canLoadMore: Boolean = true,
@@ -48,7 +49,10 @@ data class ShelfUiState(
     val selection: Set<Long> = emptySet(),
     val settings: AppSettings = AppSettings(),
     val message: String? = null
-)
+) {
+    /** 是否有非默认筛选（用于筛选图标高亮） */
+    val filterActive: Boolean get() = typeFilter != null || sortOrder != SortOrder.LAST_READ
+}
 
 class ShelfViewModel(
     private val loadHomeSections: LoadHomeSectionsUseCase,
@@ -83,11 +87,13 @@ class ShelfViewModel(
         refresh()
     }
 
+    /**
+     * 刷新：书架页只加载网格。
+     * 「继续阅读 / 最近添加 / 收藏」已迁到收藏页，这里不再查询三张区块，省掉 3 次聚合查询。
+     */
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, page = 0, canLoadMore = true, gridBooks = emptyList()) }
-            val sections = loadHomeSections()
-            _uiState.update { it.copy(sections = sections, isLoading = false) }
             loadPage(0)
         }
     }
@@ -96,8 +102,8 @@ class ShelfViewModel(
         BuiltInGroup.ALL -> Triple(null, state.typeFilter, false)
         BuiltInGroup.NOVEL -> Triple(null, BookType.NOVEL, false)
         BuiltInGroup.COMIC -> Triple(null, BookType.COMIC, false)
-        BuiltInGroup.FAVORITE -> Triple(null, null, true)
-        else -> Triple(state.selectedGroupId, null, false)
+        BuiltInGroup.FAVORITE -> Triple(null, state.typeFilter, true)
+        else -> Triple(state.selectedGroupId, state.typeFilter, false)
     }
 
     fun loadPage(page: Int) {
@@ -109,7 +115,7 @@ class ShelfViewModel(
                 type = type?.value,
                 favoriteOnly = fav,
                 keyword = "",
-                sort = SortOrder.LAST_READ,
+                sort = state.sortOrder,
                 page = page,
                 pageSize = BookFilter.DEFAULT_PAGE_SIZE
             )
@@ -139,8 +145,16 @@ class ShelfViewModel(
     }
 
     fun setTypeFilter(type: BookType?) {
-        _uiState.update { 
+        _uiState.update {
             it.copy(typeFilter = type, page = 0, gridBooks = emptyList(), canLoadMore = true)
+        }
+        loadPage(0)
+    }
+
+    fun setSortOrder(order: SortOrder) {
+        if (order == _uiState.value.sortOrder) return
+        _uiState.update {
+            it.copy(sortOrder = order, page = 0, gridBooks = emptyList(), canLoadMore = true)
         }
         loadPage(0)
     }

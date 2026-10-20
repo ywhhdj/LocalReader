@@ -47,8 +47,10 @@ fun ReaderSettingsPanel(
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.FormatSize, contentDescription = null)
-                Text("字号 ${fontSize}sp", style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(start = 8.dp))
+                Text("字号 ${fontSize}sp",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
                 Slider(
                     value = fontSize.toFloat(),
                     onValueChange = { onFontSize(it.toInt()) },
@@ -64,7 +66,7 @@ fun ReaderSettingsPanel(
                 Slider(
                     value = lineHeight,
                     onValueChange = { onLineHeight(it) },
-                    valueRange = 1.2f..2.2f,
+                    valueRange = 1.6f..3.2f,
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 12.dp)

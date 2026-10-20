@@ -39,7 +39,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Row
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material3.ExperimentalMaterial3Api
 
 import kotlinx.coroutines.launch
 
@@ -52,7 +54,6 @@ import com.demo.core.ui.components.SectionHeader
 import com.demo.core.ui.glass.GlassIconButton
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
-import com.demo.core.ui.theme.CardShape
 
 @Composable
 fun ShelfScreen(
@@ -70,6 +71,7 @@ fun ShelfScreen(
     val scope = rememberCoroutineScope()
     var showImportDialog by remember { mutableStateOf(false) }
     var showCreateGroupDialog by remember { mutableStateOf(false) }
+    var showFilterSheet by remember { mutableStateOf(false) }
 
     val scrolled by remember {
         derivedStateOf { gridState.firstVisibleItemIndex > 0 || gridState.firstVisibleItemScrollOffset > 8 }
@@ -113,12 +115,26 @@ fun ShelfScreen(
                     }
                 )
 
-                GroupChips(
-                    groups = state.groups,
-                    selectedId = state.selectedGroupId,
-                    onSelect = viewModel::selectGroup,
-                    onCreate = { showCreateGroupDialog = true }
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    GroupChips(
+                        groups = state.groups,
+                        selectedId = state.selectedGroupId,
+                        onSelect = viewModel::selectGroup,
+                        onCreate = { showCreateGroupDialog = true },
+                        onFilter = { showFilterSheet = true },
+                        filterActive = state.filterActive,
+                        modifier = Modifier.weight(1f)
+                    )
+                    com.demo.feature.shelf.FilterIconButton(
+                        active = state.filterActive,
+                        onClick = { showFilterSheet = true }
+                    )
+                }
 
                 if (state.selection.isNotEmpty()) {
                     SelectionBar(
@@ -137,44 +153,14 @@ fun ShelfScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    if (state.sections.continueBooks.isNotEmpty()) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            BookRow(
-                                title = "继续阅读",
-                                books = state.sections.continueBooks,
-                                onBookClick = { onBookClick(it.id) },
-                                onBookLongClick = { viewModel.toggleSelection(it.id) }
-                            )
-                        }
-                    }
-                    if (state.sections.recentBooks.isNotEmpty()) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            BookRow(
-                                title = "最近添加",
-                                books = state.sections.recentBooks,
-                                onBookClick = { onBookClick(it.id) },
-                                onBookLongClick = { viewModel.toggleSelection(it.id) }
-                            )
-                        }
-                    }
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        SectionHeader(title = "书架")
-                    }
                     if (state.isLoading && state.gridBooks.isEmpty()) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
-                            Box(
-                                Modifier.fillMaxWidth().padding(32.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
+                            Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
                                 CircularProgressIndicator()
                             }
                         }
                     }
-                    items(
-                        state.gridBooks,
-                        key = { it.id },
-                        contentType = { "book" }
-                    ) { book ->
+                    items(state.gridBooks, key = { it.id }, contentType = { "book" }) { book ->
                         BookCoverCard(
                             book = book,
                             selected = book.id in state.selection,
@@ -252,6 +238,16 @@ fun ShelfScreen(
         )
     }
 
+    if (showFilterSheet) {
+        FilterSheet(
+            typeFilter = state.typeFilter,
+            sortOrder = state.sortOrder,
+            onTypeChange = viewModel::setTypeFilter,
+            onSortChange = viewModel::setSortOrder,
+            onDismiss = { showFilterSheet = false }
+        )
+    }
+
     if (showCreateGroupDialog) {
         CreateGroupDialog(
             onDismiss = { showCreateGroupDialog = false },
@@ -261,6 +257,69 @@ fun ShelfScreen(
             }
         )
     }
+}
+
+/** 筛选面板：类型 + 排序 */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FilterSheet(
+    typeFilter: com.demo.core.model.BookType?,
+    sortOrder: com.demo.core.model.SortOrder,
+    onTypeChange: (com.demo.core.model.BookType?) -> Unit,
+    onSortChange: (com.demo.core.model.SortOrder) -> Unit,
+    onDismiss: () -> Unit
+) {
+    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+        ) {
+            Text("筛选", style = MaterialTheme.typography.titleMedium)
+            androidx.compose.foundation.layout.Spacer(Modifier.size(12.dp))
+            Text("类型", style = MaterialTheme.typography.labelLarge)
+            androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.material3.FilterChip(
+                    selected = typeFilter == null,
+                    onClick = { onTypeChange(null) },
+                    label = { Text("全部") }
+                )
+                androidx.compose.material3.FilterChip(
+                    selected = typeFilter == com.demo.core.model.BookType.NOVEL,
+                    onClick = { onTypeChange(com.demo.core.model.BookType.NOVEL) },
+                    label = { Text("小说") }
+                )
+                androidx.compose.material3.FilterChip(
+                    selected = typeFilter == com.demo.core.model.BookType.COMIC,
+                    onClick = { onTypeChange(com.demo.core.model.BookType.COMIC) },
+                    label = { Text("漫画") }
+                )
+            }
+            androidx.compose.foundation.layout.Spacer(Modifier.size(16.dp))
+            Text("排序", style = MaterialTheme.typography.labelLarge)
+            androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SortChip("最近阅读", com.demo.core.model.SortOrder.LAST_READ, sortOrder, onSortChange)
+                SortChip("最近添加", com.demo.core.model.SortOrder.RECENT_ADDED, sortOrder, onSortChange)
+                SortChip("书名", com.demo.core.model.SortOrder.TITLE, sortOrder, onSortChange)
+                SortChip("进度", com.demo.core.model.SortOrder.PROGRESS, sortOrder, onSortChange)
+            }
+            androidx.compose.foundation.layout.Spacer(Modifier.size(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun SortChip(
+    label: String,
+    order: com.demo.core.model.SortOrder,
+    current: com.demo.core.model.SortOrder,
+    onSelect: (com.demo.core.model.SortOrder) -> Unit
+) {
+    androidx.compose.material3.FilterChip(
+        selected = order == current,
+        onClick = { onSelect(order) },
+        label = { Text(label) }
+    )
 }
 
 @Composable
@@ -274,7 +333,7 @@ private fun SelectionBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = CardShape
+        shape = CircleShape
     ) {
         androidx.compose.foundation.layout.Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),

@@ -1,5 +1,6 @@
 package com.demo.data.cache
 
+import com.demo.core.common.util.FileUtil
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
@@ -28,29 +29,40 @@ class DiskLruCache(
         return f.exists() && f.length() > 0
     }
 
-    /** 容量超限时淘汰最旧的一半多余文件 */
+    /**
+     * 容量超限时淘汰最旧的条目。
+     */
+    @Synchronized
     fun trim() {
-        val files = dir.listFiles()?.toMutableList() ?: return
-        var total = files.sumOf { it.length() }
-        if (files.size <= maxCount && total <= maxBytes) return
+        val entries = dir.listFiles()?.toMutableList() ?: return
+        var total = entries.sumOf { sizeOf(it) }
+        if (entries.size <= maxCount && total <= maxBytes) return
 
-        files.sortBy { accessMap[it.name] ?: it.lastModified().toLong() * 1_000_000L }
         val targetCount = (maxCount * 0.8).toInt().coerceAtLeast(1)
-        for (f in files) {
-            if (files.size <= targetCount && total <= maxBytes * 0.8) break
-            val len = f.length()
-            if (f.delete()) {
-                files.remove(f)
+        val sorted = entries.sortedBy { accessMap[it.name] ?: it.lastModified().toLong() * 1_000_000L }
+        var remaining = entries.size
+        for (f in sorted) {
+            if (remaining <= targetCount && total <= maxBytes * 0.8) break
+            val len = sizeOf(f)
+            if (deleteOf(f)) {
                 accessMap.remove(f.name)
                 total -= len
+                remaining--
             }
         }
     }
 
+    @Synchronized
     fun clear() {
-        dir.listFiles()?.forEach { it.delete() }
+        dir.listFiles()?.forEach { deleteOf(it) }
         accessMap.clear()
     }
 
-    fun size(): Long = dir.listFiles()?.sumOf { it.length() } ?: 0L
+    fun size(): Long = dir.listFiles()?.sumOf { sizeOf(it) } ?: 0L
+
+    private fun sizeOf(f: File): Long =
+        if (f.isDirectory) FileUtil.dirSize(f) else runCatching { f.length() }.getOrDefault(0L)
+
+    private fun deleteOf(f: File): Boolean =
+        runCatching { if (f.isDirectory) f.deleteRecursively() else f.delete() }.getOrDefault(false)
 }

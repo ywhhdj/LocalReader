@@ -1,12 +1,7 @@
 package com.demo.data.parser
 
-import java.io.BufferedInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileInputStream
-import java.nio.charset.Charset
-
 import com.demo.core.common.util.FileUtil
+import com.demo.core.common.util.VolumeSplitter
 import com.demo.core.model.Book
 import com.demo.core.model.BookBlock
 import com.demo.core.model.BookFormat
@@ -16,10 +11,15 @@ import com.demo.data.cover.CoverStore
 import com.demo.data.cover.TextCoverFactory
 import com.demo.domain.repository.NovelContent
 
+import java.io.BufferedInputStream
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.nio.charset.Charset
+
 /**
  * TXT 解析：编码探测 → 按常见章节标题正则切分 → 按字节区间惰性读取。
  *
- * 修复要点：
  * 1. 章节定位改用**字节偏移**保存，阅读时用 InputStream#skip 直接定位（旧实现用字符 skip，
  *    大文件翻到后面章节会逐字符扫描，卡顿数十秒）。
  * 2. 第一个标题之前的内容补一章（前言/简介不再丢失）。
@@ -36,7 +36,6 @@ class TxtParser(
         Regex("""^\s*(Chapter|CHAPTER|chapter|CHAPTIR)\s*[0-9IVXLC]+.{0,40}$"""),
         Regex("""^\s*(序章|序言|前言|楔子|引子|尾声|后记|後記|番外|终章|終章|简介|內容簡介).{0,30}$"""),
         Regex("""^\s*(卷[0-9零一二三四五六七八九十百千万]+).{0,40}$"""),
-        Regex("""^\s*[0-9]{1,4}\s*[.、]\s*\S.{0,30}$""")
     )
 
     override fun matches(file: File, ext: String): Boolean =
@@ -85,9 +84,7 @@ class TxtParser(
                     titles.add(start to trimmed)
                 }
             }
-        }.onFailure { 
-            return fallbackChapters(file)
-        }
+        }.onFailure { return fallbackChapters(file) }
 
         if (titles.isEmpty()) return fallbackChapters(file)
 
@@ -115,7 +112,8 @@ class TxtParser(
             )
         }
         totalBytes.coerceAtLeast(1L)
-        return chapters
+        // 分卷：识别「第X卷 …」并向下延续归属
+        return VolumeSplitter.apply(chapters)
     }
 
     /** 无标题：按约 20KB 字节切分（中文约 1 万字/章） */
@@ -182,25 +180,28 @@ class TxtParser(
         private val charset: Charset,
         override val chapters: List<Chapter>
     ) : NovelContent {
-
-        override suspend fun loadChapter(index: Int): List<BookBlock> {
+        /** 章节正文：保留段内换行、去掉重复的章节标题行，异常兜底不崩 */
+        override suspend fun loadChapter(index: Int): List<BookBlock> = runCatching {
             val chapter = chapters.getOrNull(index) ?: return emptyList()
             val text = readRange(chapter)
             if (text.isBlank()) return listOf(BookBlock.Paragraph("（空章节）"))
+            val displayTitle = VolumeSplitter.displayTitle(chapter)
             val blocks = ArrayList<BookBlock>()
             text.split(Regex("""\n\s*\n+"""))
                 .asSequence()
                 .map { it.trim() }
                 .filter { it.isNotBlank() }
                 .forEach { paragraph ->
-                    if (chapter.title.isNotBlank() && paragraph == chapter.title) {
-                        blocks.add(BookBlock.Heading(paragraph, 2))
-                    } else {
-                        blocks.add(BookBlock.Paragraph(paragraph.replace("\n", " ")))
-                    }
+                    // 段内换行保留（观感：换行显示），仅折叠行尾多余空格
+                    val body = paragraph.replace(Regex("""[ \t　]+"""), " ")
+                    blocks.add(BookBlock.Paragraph(body))
                 }
             if (blocks.isEmpty()) blocks.add(BookBlock.Paragraph(text.trim()))
-            return blocks
+            // 顶部已单独显示章节名，正文里再来一遍的标题行去掉
+            VolumeSplitter.stripTitles(blocks, listOf(chapter.title, displayTitle))
+                .ifEmpty { listOf(BookBlock.Paragraph("（本章无正文内容）")) }
+        }.getOrElse { 
+            listOf(BookBlock.Paragraph("（该章节内容无法解析）"))
         }
 
         /** 按字节区间读取：skip 定位 + 定长读取，避免整本解码 */
@@ -230,9 +231,7 @@ class TxtParser(
             ""
         }
 
-        override fun close() {
-            // TXT 没有持有流，留空即可
-        }
+        override fun close() { /* TXT 没有持有流，留空即可 */ }
     }
 
     companion object {

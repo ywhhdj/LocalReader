@@ -42,6 +42,7 @@ import com.demo.feature.profile.ProfileViewModel
 import com.demo.feature.reader.comic.ComicReaderViewModel
 import com.demo.feature.reader.novel.NovelReaderViewModel
 import com.demo.feature.settings.SettingsViewModel
+import com.demo.feature.shelf.FavoritesViewModel
 import com.demo.feature.shelf.OnlineSearchViewModel
 import com.demo.feature.shelf.ShelfViewModel
 
@@ -96,6 +97,10 @@ class AppContainer(context: Context) : ViewModelProvider.Factory {
         ShelfViewModel::class.java -> ShelfViewModel(
             loadHomeSections, loadShelfPage, observeGroups, observeSettings, updateSettings,
             searchBooks, importBooks, createGroup, toggleFavorite, moveToGroup, deleteBooks
+        ) as T
+
+        FavoritesViewModel::class.java -> FavoritesViewModel(
+            loadHomeSections, loadShelfPage, observeSettings, toggleFavorite, deleteBooks
         ) as T
 
         OnlineSearchViewModel::class.java -> OnlineSearchViewModel(

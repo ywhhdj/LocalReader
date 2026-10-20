@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.heightIn
 
 import coil.compose.AsyncImage
 
@@ -297,22 +298,34 @@ private fun ChaptersCard(
     chapters: List<Chapter>,
     viewModel: DetailViewModel
 ) {
-    if (chapters.isNotEmpty()) {
-        GlassSurface(shape = ReaderShapes.extraSmall, modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(12.dp)) {
-                Text(
-                    "目录",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                )
-                chapters.take(20).forEach { chapter ->
+    if (chapters.isEmpty()) return
+    GlassSurface(
+        shape = ReaderShapes.extraSmall,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(12.dp)) {
+            Text(
+                "目录",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+            )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 360.dp),   // 关键：给内层一个高度约束
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                itemsIndexed(
+                    items = chapters,
+                    key = { _, c -> c.index }
+                ) { _, chapter ->
                     Text(
                         text = chapter.title,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 6.dp, horizontal = 4.dp)
+                            .padding(vertical = 8.dp, horizontal = 4.dp)
                     )
                 }
             }

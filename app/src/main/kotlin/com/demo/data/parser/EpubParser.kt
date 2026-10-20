@@ -2,7 +2,10 @@ package com.demo.data.parser
 
 import android.util.Xml
 
+import org.xmlpull.v1.XmlPullParser
+
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URLDecoder
@@ -11,12 +14,11 @@ import java.nio.charset.StandardCharsets
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
-import org.xmlpull.v1.XmlPullParser
-
 import com.demo.core.common.AppError
 import com.demo.core.common.util.Constants
 import com.demo.core.common.util.FileUtil
 import com.demo.core.common.util.Logger
+import com.demo.core.common.util.VolumeSplitter
 import com.demo.core.model.Book
 import com.demo.core.model.BookBlock
 import com.demo.core.model.BookFormat
@@ -26,8 +28,6 @@ import com.demo.data.cover.CoverStore
 import com.demo.data.cover.TextCoverFactory
 import com.demo.domain.repository.NovelContent
 
-
-
 /**
  * EPUB 解析（零第三方依赖）：container.xml → OPF → (nav.xhtml | toc.ncx) → spine 章节正文。
  *
@@ -35,7 +35,7 @@ import com.demo.domain.repository.NovelContent
  *    原始名（如 dc:title），旧实现直接比较 "title" 导致标题/作者永远为空 —— 统一取 localName。
  * 2. 编码：OPF/章节按 XML 声明与 <meta charset> 探测，中文 GBK EPUB 不再乱码。
  * 3. 章节 href：剥离 #锚点，并按 nav/ncx 所在目录解析相对路径，避免"章节缺失"。
- * 4. 图片：按章节文件所在目录解析相对 src。
+ * 4. 图片：按章节文件所在目录解析相对 src
  * 5. 封面：meta cover → item[properties=cover-image] → 首章节首图 → 文字占位封面。
  */
 class EpubParser(
@@ -74,10 +74,12 @@ class EpubParser(
     override suspend fun openNovel(file: File, book: Book): NovelContent {
         val (opfPath, chapters) = EpubMetaCodec.decode(book.metaJson)
         val basePath = opfPath.substringBeforeLast('/', "")
+        // 分卷识别：目录含「第X卷」时补出卷归属（metaJson 不持久化卷名，故每次打开重算）
+        val grouped = VolumeSplitter.apply(chapters)
         return EpubNovelContent(
             file = file,
             bookId = book.id,
-            chapters = chapters,
+            chapters = grouped,
             basePath = basePath,
             cacheDir = File(bookCacheDir, book.id.toString())
         )
@@ -251,7 +253,10 @@ class EpubParser(
                         if (clean.isNotBlank()) {
                             val href = joinPath(ncxDir, clean)
                             if (result.none { it.href == href }) {
-                                result.add(Chapter(result.size, label.trim().ifBlank { "第 ${result.size + 1} 章" }, href))
+                                result.add(Chapter(
+                                    index=result.size,
+                                    title=label.trim().ifBlank { "第 ${result.size + 1} 章" }, href
+                                ))
                             }
                         }
                         label = ""
@@ -345,6 +350,23 @@ class EpubParser(
     private fun readEntryBytes(zip: ZipFile, entry: ZipEntry): ByteArray? =
         runCatching { zip.getInputStream(entry).use { it.readBytes() } }.getOrNull()
 
+    /** 带上限的条目读取：超大章节（内嵌巨型 SVG/图片）截断，避免一次性 OOM */
+    private fun readEntryBytes(zip: ZipFile, entry: ZipEntry, limit: Int): ByteArray? =
+        runCatching {
+            zip.getInputStream(entry).use { input ->
+                val buffer = ByteArrayOutputStream(64 * 1024)
+                val chunk = ByteArray(64 * 1024)
+                var total = 0
+                while (total < limit) {
+                    val n = input.read(chunk, 0, minOf(chunk.size, limit - total))
+                    if (n <= 0) break
+                    buffer.write(chunk, 0, n)
+                    total += n
+                }
+                buffer.toByteArray()
+            }
+        }.onFailure { Logger.w("读取章节失败：${entry.name} ${it.message}", "EpubParser") }.getOrNull()
+
     /** XML 声明编码探测 */
     private fun detectXmlEncoding(bytes: ByteArray): Charset {
         val head = String(bytes, 0, minOf(bytes.size, 256), StandardCharsets.ISO_8859_1)
@@ -377,6 +399,8 @@ class EpubParser(
 
     private companion object {
         const val NCX_MEDIA_TYPE = "application/x-dtbncx+xml"
+        /** 单章节最大读取字节（8MB，超出截断保护） */
+        const val MAX_CHAPTER_BYTES = 8 * 1024 * 1024
     }
 
     // ---------- 已打开的书 ----------
@@ -395,21 +419,39 @@ class EpubParser(
 
         private fun zip(): ZipFile = zip ?: synchronized(lock) { zip ?: ZipFile(file).also { zip = it } }
 
-        override suspend fun loadChapter(index: Int): List<BookBlock> {
+        /**
+         * 章节正文：整体兜底，任何异常（含 OOM / StackOverflow / 编码错误）都退化成占位文本，
+         * 不再让"制作信息"这类特殊章节把应用打崩。
+         */
+        override suspend fun loadChapter(index: Int): List<BookBlock> = runCatching {
             val chapter = chapters.getOrNull(index) ?: return emptyList()
             val zf = zip()
             val entry = resolveEntry(zf, chapter.href)
                 ?: return listOf(BookBlock.Paragraph("（章节缺失：${chapter.title}）"))
-            val bytes = readEntryBytes(zf, entry) ?: return listOf(BookBlock.Paragraph("（章节读取失败）"))
+            val bytes = readEntryBytes(zf, entry, MAX_CHAPTER_BYTES)
+                ?: return listOf(BookBlock.Paragraph("（章节读取失败）"))
             val charset = detectHtmlCharset(bytes)
             var html = String(bytes, charset)
             // 少数中文 EPUB 声明为 UTF-8 实为 GBK：出现大量替换字符时回退
             if (charset == StandardCharsets.UTF_8 && html.count { it == '\uFFFD' } > 8) {
-                html = String(bytes, charsetOf("GBK"))
+                html = runCatching { String(bytes, charsetOf("GBK")) }.getOrDefault(html)
             }
             val chapterDir = entry.name.substringBeforeLast('/', "")
-            return HtmlExtractor.extract(html) { src -> resolveImage(zf, chapterDir, src) }
+            val blocks = HtmlExtractor.extract(html) { src -> resolveImageSafe(zf, chapterDir, src) }
+            // 正文里重复出现的章节标题不再显示（顶部已单独展示）
+            VolumeSplitter.stripTitles(
+                blocks,
+                listOf(chapter.title, VolumeSplitter.displayTitle(chapter))
+            ).ifEmpty { listOf(BookBlock.Paragraph("（本章无正文内容）")) }
+        }.getOrElse { e ->
+            Logger.w("章节加载失败 #$index：${e.javaClass.simpleName} ${e.message}", "EpubParser")
+            listOf(BookBlock.Paragraph("（该章节内容无法解析）"))
         }
+
+        private fun resolveImageSafe(zf: ZipFile, chapterDir: String, src: String): String? =
+            runCatching { resolveImage(zf, chapterDir, src) }
+                .onFailure { Logger.w("图片解析失败：$src", "EpubParser") }
+                .getOrNull()
 
         private fun resolveEntry(zf: ZipFile, href: String): ZipEntry? {
             val clean = stripFragment(href)

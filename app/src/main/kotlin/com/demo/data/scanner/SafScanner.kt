@@ -4,13 +4,12 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
-
-import java.io.File
-import java.io.FileOutputStream
-
 import com.demo.core.common.util.Constants
 import com.demo.core.common.util.FileUtil
 import com.demo.core.common.util.Logger
+import com.demo.core.common.util.NaturalOrderComparator
+import java.io.File
+import java.io.FileOutputStream
 
 /**
  * SAF（Storage Access Framework）目录扫描支持。
@@ -81,12 +80,30 @@ class SafScanner(private val context: Context, cacheRoot: File) {
         mime = type
     )
 
-    /** 目录是否为"图片文件夹漫画" */
+    /** 目录是否为"图片文件夹漫画"（短篇：本层直接是图片） */
     fun isComicFolder(children: List<Entry>): Boolean {
         if (children.isEmpty()) return false
         if (children.any { it.isDirectory }) return false
         return children.count { it.extension in Constants.IMAGE_EXTENSIONS } >= 2
     }
+
+    /** 分话结构：子目录名为「第一话 / 第二话」，外层目录即一本漫画 */
+    fun isChapterFolder(children: List<Entry>): Boolean {
+        if (children.isEmpty()) return false
+        val dirs = chapterEntries(children)
+        if (dirs.size < 2) return false
+        val images = children.count { !it.isDirectory && it.extension in Constants.IMAGE_EXTENSIONS }
+        return images == 0
+    }
+
+    private fun chapterEntries(children: List<Entry>): List<Entry> = children
+        .filter { it.isDirectory && CHAPTER_NAME.matches(it.name) }
+        .sortedWith(compareBy(NaturalOrderComparator) { e: Entry -> e.name })
+
+    /** 列出子目录内容（分话结构物化时需要） */
+    fun listChildren(entry: Entry): List<Entry> = runCatching {
+        DocumentFile.fromTreeUri(context, Uri.parse(entry.uri))?.listFiles()?.map { it.toEntry() }
+    }.getOrNull().orEmpty()
 
     /** 目录是否为漫画文件夹（排除隐藏文件与过小图片） */
     fun comicImages(children: List<Entry>): List<Entry> = children
@@ -151,11 +168,49 @@ class SafScanner(private val context: Context, cacheRoot: File) {
         }
     }
 
+    /**
+     * 物化分话目录：外层目录名即漫画名，各话子目录保持结构，
+     * 物化后由 FolderComicParser 按话自然序拼成一本。
+     */
+    fun materializeChaptered(folderUri: String, children: List<Entry>): File? {
+        val chapters = chapterEntries(children)
+        if (chapters.isEmpty()) return null
+        val root = File(materialRoot, FileUtil.md5(folderUri))
+        if (!root.exists() && !root.mkdirs()) return null
+        var ok = false
+        chapters.forEach { chapter ->
+            val images = comicImages(listChildren(chapter).filter { !it.isDirectory })
+            if (images.isEmpty()) return@forEach
+            val dir = File(root, FileUtil.safeFileName(chapter.name))
+            if (!dir.exists() && !dir.mkdirs()) return@forEach
+            images.forEach { entry ->
+                val target = File(dir, FileUtil.safeFileName(entry.name))
+                if (target.exists() && target.length() > 0) {
+                    ok = true
+                    return@forEach
+                }
+                runCatching {
+                    context.contentResolver.openInputStream(Uri.parse(entry.uri))?.use { input ->
+                        FileOutputStream(target).use { output -> input.copyTo(output) }
+                    }
+                    ok = true
+                }.onFailure { target.delete() }
+            }
+        }
+        return if (ok) root else null
+    }
+
     fun clearCache() = runCatching { materialRoot.deleteRecursively(); materialRoot.mkdirs() }
 
     fun cacheSize(): Long = FileUtil.dirSize(materialRoot)
 
     companion object {
+        /** 话/章目录名 */
+        private val CHAPTER_NAME = Regex(
+            """^\s*(第\s*[0-9零一二三四五六七八九十百千万两]+\s*[话話章节節回卷篇集幕]|第\s*[0-9]+\s*[话話章节節回卷篇集幕]|[0-9]{1,4}\s*[.、\-_ ]?\s*\S.*|chapter\s*[0-9ivxlc]+.*)$""",
+            RegexOption.IGNORE_CASE
+        )
+
         /** 判断 URI 是否仍持有持久化读权限 */
         fun hasPermission(context: Context, uri: String): Boolean {
             val granted = context.contentResolver.persistedUriPermissions

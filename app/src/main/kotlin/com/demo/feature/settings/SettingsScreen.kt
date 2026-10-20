@@ -82,7 +82,10 @@ fun SettingsScreen(
             ) {
                 item {
                     SettingsCard("外观") {
-                        Text("主题", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            "主题",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             ThemeMode.entries.forEach { mode ->
                                 FilterChip(
@@ -265,8 +268,10 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                         )
                         Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text("自动备份（进入阅读器时）", style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f))
+                            Text("自动备份（进入阅读器时）",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f)
+                            )
                             Switch(checked = state.settings.webdavAutoBackup, onCheckedChange = viewModel::setWebdavAutoBackup)
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {

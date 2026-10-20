@@ -16,7 +16,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Settings
@@ -62,13 +65,18 @@ fun BrandLogo(modifier: Modifier = Modifier) {
     }
 }
 
-/** 分组筛选 chips */
+/**
+ * 分组筛选 chips（末尾固定"新建"与"筛选"）：
+ * 筛选入口独立于分组滚动区之外，点击弹出类型/排序面板。
+ */
 @Composable
 fun GroupChips(
     groups: List<BookGroup>,
     selectedId: Long,
     onSelect: (Long) -> Unit,
     onCreate: () -> Unit,
+    onFilter: () -> Unit,
+    filterActive: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     LazyRow(
@@ -97,6 +105,26 @@ fun GroupChips(
                 leadingIcon = {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                 }
+            )
+        }
+    }
+}
+
+/** 分组行右侧的筛选入口 */
+@Composable
+fun FilterIconButton(
+    active: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    GlassIconButton(onClick = onClick, modifier = modifier.size(36.dp)) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = if (active) Icons.Default.Tune else Icons.Default.FilterList,
+                contentDescription = "筛选",
+                tint = if (active) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(18.dp)
             )
         }
     }

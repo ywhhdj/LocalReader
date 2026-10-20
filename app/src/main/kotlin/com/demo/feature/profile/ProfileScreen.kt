@@ -343,7 +343,10 @@ private fun TypeRatioCard(stats: ReadingStats) {
             }
             Spacer(Modifier.width(18.dp))
             Column {
-                Text("阅读时长占比", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    "阅读时长占比",
+                    style = MaterialTheme.typography.titleMedium
+                )
                 Spacer(Modifier.height(8.dp))
                 RatioRow("小说", stats.novelMillis, total, primary)
                 Spacer(Modifier.height(6.dp))

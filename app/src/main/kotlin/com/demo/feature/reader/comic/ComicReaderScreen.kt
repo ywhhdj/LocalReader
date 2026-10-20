@@ -5,20 +5,26 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,34 +36,38 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-import kotlinx.coroutines.launch
-
 import coil.compose.AsyncImage
 
-import com.demo.core.model.ComicDirection
 import com.demo.core.ui.glass.GlassSurface
-import com.demo.feature.reader.common.ReaderSettingsPanel
 import com.demo.core.ui.theme.ReaderShapes
+import com.demo.feature.reader.common.ReaderSettingsPanel
 
+/**
+ * 漫画阅读器（固定竖向连续滚动）
+ * - 话：顶部/底部提供话按钮列表，点击加载该话页面；
+ * - 滚到当前话最后一张时，右侧出现「下一话」按钮；
+ * - 图片按宽高比占位、异步解码，不支持双击放大与拖动（避免误触与额外内存）；
+ * - 顶部/底部留出状态栏与导航栏空间，与首页视觉一致。
+ */
 @Composable
 fun ComicReaderScreen(
     viewModel: ComicReaderViewModel,
@@ -66,22 +76,44 @@ fun ComicReaderScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val paths by viewModel.paths.collectAsStateWithLifecycle()
+    val aspects by viewModel.pageAspects.collectAsStateWithLifecycle()
+    val scroll by viewModel.scrollRequest.collectAsStateWithLifecycle()
+    val view = LocalView.current
     val pages = state.pages
-    val pagerState = rememberPagerState(
-        initialPage = state.pageIndex.coerceAtLeast(0),
-        pageCount = { pages.size.coerceAtLeast(1) }
-    )
-    val scope = rememberCoroutineScope()
+    val range = state.chapterRange
     var showSettings by remember { mutableStateOf(false) }
 
-    LaunchedEffect(pages.size) {
-        if (pages.isNotEmpty()) {
-            runCatching { pagerState.scrollToPage(state.pageIndex.coerceIn(0, pages.lastIndex)) }
+    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
+    LaunchedEffect(state.settings.keepScreenOn) {
+        view.keepScreenOn = state.settings.keepScreenOn
+    }
+
+    val listState = rememberLazyListState(
+        initialFirstVisibleItemIndex = (state.pageIndex - range.first).coerceAtLeast(0)
+    )
+
+    // 切话 / 跳转：滚动到目标页
+    LaunchedEffect(scroll?.token) {
+        val target = scroll?.index ?: return@LaunchedEffect
+        val offset = (target - range.first).coerceAtLeast(0)
+        runCatching { listState.scrollToItem(offset) }
+    }
+
+    // 当前可见的最后一页是否已到该话末尾
+    val atChapterEnd by remember {
+        derivedStateOf {
+            val visibleLast = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val count = listState.layoutInfo.totalItemsCount
+            count > 0 && visibleLast >= count - 1
         }
     }
 
-    LaunchedEffect(pagerState.currentPage) {
-        if (pages.isNotEmpty()) viewModel.onPageChanged(pagerState.currentPage)
+    LaunchedEffect(listState.firstVisibleItemIndex, range.first) {
+        val global = (range.first + listState.firstVisibleItemIndex)
+            .coerceAtMost(state.pages.lastIndex.coerceAtLeast(0))
+        viewModel.onPageChanged(global)
     }
 
     Box(
@@ -94,17 +126,32 @@ fun ComicReaderScreen(
                 if (state.loading) CircularProgressIndicator() else Text("没有可显示的页面", color = Color.White)
             }
         } else {
-            HorizontalPager(
-                state = pagerState,
-                beyondViewportPageCount = state.settings.comicPreload.coerceIn(1, 3),
-                modifier = Modifier.fillMaxSize()
-            ) { index ->
-                val path = paths[index]
-                ZoomablePage(
-                    path = path,
-                    onTap = { viewModel.toggleOverlay() }
-                )
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(top = topInset, bottom = bottomInset)
+            ) {
+                // 用 count + key 而非 range.toList()：避免每次重组都新建整段索引列表
+                items(
+                    count = range.count(),
+                    key = { offset -> range.first + offset }
+                ) { offset ->
+                    val index = range.first + offset
+                    ComicPageItem(
+                        path = paths[index],
+                        aspect = aspects[index] ?: pages.getOrNull(index)?.aspect ?: 0.72f,
+                        onTap = viewModel::toggleOverlay
+                    )
+                }
             }
+        }
+
+        // 到当前话末尾 → 右下角出现「下一话」
+        if (state.hasNextChapter && atChapterEnd) {
+            NextChapterButton(
+                title = state.chapters.getOrNull(state.chapterIndex + 1)?.title ?: "下一话",
+                onClick = viewModel::nextChapter
+            )
         }
 
         AnimatedVisibility(
@@ -117,27 +164,36 @@ fun ComicReaderScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(WindowInsets.statusBars.asPaddingValues())
                 ) {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                    Text(
-                        text = state.book?.title.orEmpty(),
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = "${state.pageIndex + 1}/${pages.size}",
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                    IconButton(onClick = { showSettings = true }) {
-                        Icon(Icons.Default.Settings, contentDescription = "设置")
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = state.book?.title.orEmpty(),
+                                style = MaterialTheme.typography.titleMedium,
+                                maxLines = 1
+                            )
+                            Text(
+                                text = chapterPositionText(state),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                maxLines = 1
+                            )
+                        }
+                        IconButton(onClick = { showSettings = true }) {
+                            Icon(Icons.Default.Settings, contentDescription = "设置")
+                        }
                     }
                 }
             }
@@ -150,47 +206,32 @@ fun ComicReaderScreen(
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
             GlassSurface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                shape = ReaderShapes.large
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
             ) {
-                Column(Modifier.padding(12.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(WindowInsets.navigationBars.asPaddingValues())
+                        .padding(12.dp)
+                ) {
                     if (pages.size > 1) {
                         Slider(
                             value = (state.pageIndex + 1).toFloat(),
                             onValueChange = { target ->
-                                scope.launch {
-                                    runCatching {
-                                        pagerState.animateScrollToPage((target.toInt() - 1).coerceIn(0, pages.lastIndex))
-                                    }
-                                }
+                                viewModel.jumpToPage((target.toInt() - 1).coerceIn(0, pages.lastIndex))
                             },
                             valueRange = 1f..pages.size.toFloat(),
                             steps = (pages.size - 2).coerceAtLeast(0),
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        ComicDirection.entries.forEach { direction ->
-                            FilterChip(
-                                selected = state.settings.comicDirection == direction,
-                                onClick = {
-                                    viewModel.updateSettings { s -> s.copy(comicDirection = direction) }
-                                },
-                                label = { Text(labelOf(direction)) }
-                            )
-                        }
-                        Spacer(Modifier.weight(1f))
-                        FilterChip(
-                            selected = state.settings.comicDoublePage,
-                            onClick = {
-                                viewModel.updateSettings { s -> s.copy(comicDoublePage = !s.comicDoublePage) }
-                            },
-                            label = { Text("双页") }
+                    // 话按钮列表：多话时展示，点击加载对应话
+                    if (state.chapters.size > 1) {
+                        ChapterButtons(
+                            chapters = state.chapters,
+                            selectedIndex = state.chapterIndex,
+                            onSelect = viewModel::selectChapter
                         )
                     }
                 }
@@ -220,52 +261,120 @@ fun ComicReaderScreen(
     }
 }
 
+private fun chapterPositionText(state: ComicReaderUiState): String {
+    val chapter = state.chapters.getOrNull(state.chapterIndex)
+    val inChapter = (state.pageIndex - (chapter?.startIndex ?: 0) + 1).coerceAtLeast(1)
+    val chapterPart = if (state.chapters.size > 1 && chapter != null) {
+        "${chapter.title} · $inChapter/${chapter.pageCount} · "
+    } else ""
+    return chapterPart + "${state.pageIndex + 1}/${state.pages.size}"
+}
+
+/** 单页：按宽高比占位 + 异步解码；不响应双击与拖动 */
 @Composable
-private fun ZoomablePage(path: String?, onTap: () -> Unit) {
-    var scale by remember { mutableFloatStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
-    val state = rememberTransformableState { zoomChange, panChange, _ ->
-        scale = (scale * zoomChange).coerceIn(1f, 4f)
-        offset = if (scale > 1f) offset + panChange else Offset.Zero
-    }
+private fun ComicPageItem(
+    path: String?,
+    aspect: Float,
+    onTap: () -> Unit
+) {
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .background(Color.Black)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { onTap() },
-                    onDoubleTap = {
-                        scale = if (scale > 1f) 1f else 2f
-                        offset = Offset.Zero
-                    }
-                )
-            }
-            .transformable(state = state),
+            .pointerInput(onTap) { detectTapGestures(onTap = { onTap() }) },
         contentAlignment = Alignment.Center
     ) {
         if (path == null) {
-            CircularProgressIndicator()
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(if (aspect > 0.05f) aspect else 0.72f),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(modifier = Modifier.size(28.dp), color = Color.White)
+                    Spacer(Modifier.size(8.dp))
+                    Text("加载中…", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
+                }
+            }
+        } else if (aspect > 0.05f) {
+            // 已知宽高比：用固定高度约束，避免 LazyColumn 无界高度导致按原图尺寸解码（省内存）
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(aspect)
+            ) {
+                AsyncImage(
+                    model = path,
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         } else {
             AsyncImage(
                 model = path,
                 contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer(
-                        scaleX = scale,
-                        scaleY = scale,
-                        translationX = offset.x,
-                        translationY = offset.y
-                    )
+                contentScale = ContentScale.FillWidth,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
 
-private fun labelOf(direction: ComicDirection): String = when (direction) {
-    ComicDirection.LTR -> "从左"
-    ComicDirection.RTL -> "从右"
-    ComicDirection.VERTICAL -> "竖向"
+/** 话按钮列表（横向滚动，当前话高亮） */
+@Composable
+private fun ChapterButtons(
+    chapters: List<com.demo.core.model.ComicChapter>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit
+) {
+    androidx.compose.foundation.lazy.LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(chapters, key = { it.index }) { chapter ->
+            FilterChip(
+                selected = chapter.index == selectedIndex,
+                onClick = { onSelect(chapter.index) },
+                label = { Text(chapter.title, style = MaterialTheme.typography.labelMedium) },
+                shape = ReaderShapes.small
+            )
+        }
+    }
+}
+
+/** 右下角「下一话」：滚到当前话最后一张时出现 */
+@Composable
+private fun BoxScope.NextChapterButton(
+    title: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.92f),
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        modifier = Modifier
+            .align(Alignment.CenterEnd)
+            .padding(end = 12.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "下一话",
+                style = MaterialTheme.typography.labelLarge,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.size(4.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 1,
+                modifier = Modifier.padding(end = 2.dp)
+            )
+        }
+    }
 }
