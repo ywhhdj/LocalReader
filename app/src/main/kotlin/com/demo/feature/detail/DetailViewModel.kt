@@ -53,7 +53,7 @@ class DetailViewModel(
     }
 
     /** 由导航参数驱动加载，避免 ViewModel 构造依赖外部参数 */
-    fun load(bookId: Long) {
+    fun load(bookId: Long,chapter: Int?) {
         if (bookId <= 0L || _uiState.value.book?.id == bookId) return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
@@ -67,7 +67,7 @@ class DetailViewModel(
         if (book.type != com.demo.core.model.BookType.NOVEL) return
         runCatching {
             readerRepository.openNovel(book).use { content ->
-                _uiState.update { it.copy(chapters = content.chapters.take(30)) }
+                _uiState.update { it.copy(chapters = content.chapters) }
             }
         }
     }

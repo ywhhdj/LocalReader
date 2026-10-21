@@ -76,4 +76,9 @@ data class Book(
         if (type == BookType.NOVEL && chapterCount > 0) append(" · ${chapterCount}章")
         if (type == BookType.COMIC && pageCount > 0) append(" · ${pageCount}页")
     }
+
+    fun displayType(): String = when (type) {
+        BookType.NOVEL -> "小说"
+        BookType.COMIC -> "漫画"
+    }
 }

@@ -23,10 +23,10 @@ object MemoryUtils {
         return max(32L * 1024 * 1024, avail / 8)
     }
 
-    /** 依据内存等级给出漫画预加载页数：1~3 */
+    /** 依据内存等级给出漫画预加载页数：4-6 */
     fun preloadPageCount(context: Context): Int {
-        if (isLowRamDevice(context)) return 1
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 2 else 2
+        if (isLowRamDevice(context)) return 4
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 4 else 5
     }
 
     /** 依据屏幕与内存计算图片采样目标宽度 */

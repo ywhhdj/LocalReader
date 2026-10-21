@@ -15,7 +15,7 @@ object ReaderRadius {
 }
 
 val CardShape = RoundedCornerShape(ReaderRadius.XS)
-val SheetShape = RoundedCornerShape(topStart = ReaderRadius.XL, topEnd = ReaderRadius.XL)
+val SheetShape = RoundedCornerShape(topStart = ReaderRadius.S, topEnd = ReaderRadius.S)
 val ChipShape = RoundedCornerShape(ReaderRadius.FULL)
 val CoverShape = RoundedCornerShape(ReaderRadius.XS)
 

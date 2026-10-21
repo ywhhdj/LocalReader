@@ -6,15 +6,15 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 
 object SettingsRoute {
-    const val SETTINGS = "settings"
+  const val SETTINGS = "settings"
 }
 
 fun NavGraphBuilder.settingsGraph(
-    factory: ViewModelProvider.Factory,
-    onBack: () -> Unit
+  factory: ViewModelProvider.Factory,
+  onBack: () -> Unit
 ) {
-    composable(SettingsRoute.SETTINGS) {
-        val vm: SettingsViewModel = viewModel(factory = factory)
-        SettingsScreen(viewModel = vm, onBack = onBack)
-    }
+  composable(SettingsRoute.SETTINGS) {
+    val vm: SettingsViewModel = viewModel(factory = factory)
+    SettingsScreen(viewModel = vm, onBack = onBack)
+  }
 }

@@ -24,9 +24,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.ReaderRadius
+import com.demo.core.model.Book
 
 /** 区块标题 + 右侧"更多" */
 @Composable
@@ -53,6 +57,31 @@ fun SectionHeader(
                     .clip(CircleShape)
                     .padding(horizontal = 8.dp, vertical = 4.dp)
                     .then(Modifier)
+            )
+        }
+    }
+}
+
+/** 横向书籍区块 */
+@Composable
+fun BookRow(
+  books: List<Book>,
+  onBookClick: (Book) -> Unit,
+  onBookLongClick: ((Book) -> Unit)? = null,
+  actionText: String? = null,
+  onAction: (() -> Unit)? = null
+) {
+    if (books.isEmpty()) return
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(books, key = { it.id }) { book ->
+            BookCoverCard(
+                book = book,
+                modifier = Modifier.width(112.dp),
+                onClick = { onBookClick(book) },
+                onLongClick = onBookLongClick?.let { { it(book) } }
             )
         }
     }

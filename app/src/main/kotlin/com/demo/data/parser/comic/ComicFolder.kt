@@ -1,4 +1,4 @@
-package com.demo.data.parser
+package com.demo.data.parser.comic
 
 import com.demo.core.common.util.Constants
 import com.demo.core.common.util.FileUtil
@@ -24,7 +24,7 @@ object ComicFolder {
         """^\s*([第]?\s*[0-9零一二三四五六七八九十百千万两]+\s*[话話章节節回卷篇集幕]|""" +
             """[第]?\s*[0-9]+\s*[话話章节節回卷篇集幕]|""" +
             """[0-9]{1,4}\s*[.、\-_ ]?\s*\S.*|""" +
-            """chapter\s*[0-9ivxlc]+.*)$""",
+            """chapter\s*[0-9ivxlc]+.*).*$""",
         RegexOption.IGNORE_CASE
     )
 

@@ -40,9 +40,7 @@ import com.demo.core.model.BookGroup
 import com.demo.core.model.BuiltInGroup
 import com.demo.core.model.ThemeMode
 
-import com.demo.core.ui.components.BookCoverCard
 import com.demo.core.ui.components.CoverSkeleton
-import com.demo.core.ui.components.SectionHeader
 import com.demo.core.ui.glass.GlassIconButton
 import com.demo.core.ui.theme.PrimaryLight
 
@@ -58,9 +56,10 @@ fun BrandLogo(modifier: Modifier = Modifier) {
         )
         androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
         Column {
-            Text("Liquid", style = MaterialTheme.typography.labelLarge)
+            Text("Local", style = MaterialTheme.typography.labelLarge)
             Text("Reader", style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
         }
     }
 }
@@ -126,35 +125,6 @@ fun FilterIconButton(
                 else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(18.dp)
             )
-        }
-    }
-}
-
-/** 横向书籍区块（继续阅读 / 最近添加） */
-@Composable
-fun BookRow(
-    title: String,
-    books: List<Book>,
-    onBookClick: (Book) -> Unit,
-    onBookLongClick: ((Book) -> Unit)? = null,
-    actionText: String? = null,
-    onAction: (() -> Unit)? = null
-) {
-    if (books.isEmpty()) return
-    Column(modifier = Modifier.fillMaxWidth()) {
-        SectionHeader(title = title, actionText = actionText, onAction = onAction)
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(books, key = { it.id }) { book ->
-                BookCoverCard(
-                    book = book,
-                    modifier = Modifier.width(112.dp),
-                    onClick = { onBookClick(book) },
-                    onLongClick = onBookLongClick?.let { { it(book) } }
-                )
-            }
         }
     }
 }

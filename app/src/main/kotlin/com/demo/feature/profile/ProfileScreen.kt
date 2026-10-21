@@ -54,8 +54,8 @@ import com.demo.core.common.util.FormatUtil
 import com.demo.core.model.DayStat
 import com.demo.core.model.ReadingStats
 import com.demo.core.ui.components.AppBackdrop
-import com.demo.core.ui.components.BookCoverCard
 import com.demo.core.ui.components.SectionHeader
+import com.demo.core.ui.components.BookRow
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
 import com.demo.core.ui.theme.PrimaryLight
@@ -97,16 +97,13 @@ fun ProfileScreen(
                 item { WeekBarCard(state.stats.last7Days) }
                 item { TypeRatioCard(state.stats) }
                 if (state.recentFinished.isNotEmpty()) {
-                    item { SectionHeader(title = "最近读完") }
-                    item {
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            items(state.recentFinished, key = { it.id }) { book ->
-                                BookCoverCard(
-                                    book = book,
-                                    modifier = Modifier.width(104.dp),
-                                    onClick = { onBookClick(book.id) }
-                                )
-                            }
+                    item { 
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            SectionHeader(title = "最近读完")
+                            BookRow(
+                                books = state.recentFinished,
+                                onBookClick =  { book -> onBookClick(book.id) },
+                            )
                         }
                     }
                 }

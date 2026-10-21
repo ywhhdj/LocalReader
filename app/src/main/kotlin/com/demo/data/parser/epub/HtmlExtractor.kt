@@ -1,4 +1,4 @@
-package com.demo.data.parser
+package com.demo.data.parser.epub
 
 import com.demo.core.model.BookBlock
 
@@ -24,6 +24,9 @@ object HtmlExtractor {
     private val ALT_REGEX = Regex("""alt\s*=\s*["']([^"']*)["']""", RegexOption.IGNORE_CASE)
     private val SPACE_REGEX = Regex("""[ \t\r\u00A0\u3000]+""")
     private val BLANK_LINE_REGEX = Regex("""\n[ \t]*\n+""")
+    private val XML_PROLOG_REGEX = Regex("""<\?[\s\S]*?\?>""")
+    /** DOCTYPE 可能带内部子集 [ <!ENTITY ...> ]，用 [^>\[] 排除 '>' 和 '[' 再配平方括号 */
+    private val DOCTYPE_REGEX = Regex("""<!DOCTYPE(?:[^>\[]|\[[\s\S]*?])*>""", RegexOption.IGNORE_CASE)
 
     /** 单章节正文最大处理长度（超出截断，防止超大章节 OOM） */
     private const val MAX_HTML_LENGTH = 4 * 1024 * 1024
@@ -39,6 +42,8 @@ object HtmlExtractor {
 
     private fun extractInternal(html: String, imageResolver: ((String) -> String?)?): List<BookBlock> {
         var cleaned = if (html.length > MAX_HTML_LENGTH) html.substring(0, MAX_HTML_LENGTH) else html
+        cleaned = XML_PROLOG_REGEX.replace(cleaned, " ")
+        cleaned = DOCTYPE_REGEX.replace(cleaned, " ")
         cleaned = DROP_REGEX.replace(cleaned, " ")
         cleaned = COMMENT_REGEX.replace(cleaned, " ")
 
@@ -120,7 +125,7 @@ object HtmlExtractor {
     /** 保留段落内换行，折叠多余空白（HTML 源码缩进不会变成换行） */
     private fun normalize(text: String): String {
         if (text.isBlank()) return ""
-        var s = decodeEntities(text)
+        var s = decodeEntities(text).replace("\uFEFF", "")
         s = s.replace(BLANK_LINE_REGEX, "\n")
         s = s.replace(SPACE_REGEX, " ")
         s = s.replace(Regex("""\n """), "\n").replace(Regex(""" \n"""), "\n")

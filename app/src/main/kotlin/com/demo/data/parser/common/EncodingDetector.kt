@@ -1,4 +1,4 @@
-package com.demo.data.parser
+package com.demo.data.parser.common
 
 import java.io.File
 import java.io.FileInputStream

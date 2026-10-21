@@ -57,11 +57,12 @@ fun AppNavHost(
             detailGraph(
                 factory = factory,
                 onBack = { navController.popBackStack() },
-                onRead = { book ->
+                onRead = { book, chapter ->
                     val route = if (book.type == BookType.NOVEL) {
+                        // 小说暂不支持按章跳转（NovelReaderViewModel.load 只有 bookId）
                         ReaderRoute.novel(book.id)
                     } else {
-                        ReaderRoute.comic(book.id)
+                        ReaderRoute.comic(book.id, chapter)
                     }
                     navController.navigate(route)
                 }

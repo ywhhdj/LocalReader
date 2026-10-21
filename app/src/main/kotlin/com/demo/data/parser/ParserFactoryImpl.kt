@@ -1,9 +1,13 @@
 package com.demo.data.parser
 
 import com.demo.core.common.util.FileUtil
-import com.demo.data.cover.CoverStore
 import com.demo.data.cache.PageCache
+import com.demo.data.cover.CoverStore
 import com.demo.data.cover.TextCoverFactory
+import com.demo.data.parser.comic.FolderComicParser
+import com.demo.data.parser.comic.PdfComicParser
+import com.demo.data.parser.comic.ZipComicParser
+
 import java.io.File
 
 /** 解析器注册与分发（RAR 预留：未注册，扫描时给出"请转为 CBZ/ZIP"提示） */

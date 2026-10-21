@@ -10,6 +10,8 @@ import com.demo.core.model.Chapter
 import com.demo.data.cover.CoverStore
 import com.demo.data.cover.TextCoverFactory
 import com.demo.domain.repository.NovelContent
+import com.demo.data.parser.common.EncodingDetector
+import com.demo.data.parser.txt.TxtMetaCodec
 
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
@@ -31,6 +33,11 @@ class TxtParser(
     private val textCoverFactory: TextCoverFactory = TextCoverFactory()
 ) : NovelParser {
 
+    private data class SniffedMeta(
+        val title: String,
+        val author: String
+    )
+
     private val patterns = listOf(
         Regex("""^\s*第\s*[0-9零一二三四五六七八九十百千万两]+\s*[章节節回卷篇部集].{0,40}$"""),
         Regex("""^\s*(Chapter|CHAPTER|chapter|CHAPTIR)\s*[0-9IVXLC]+.{0,40}$"""),
@@ -38,20 +45,97 @@ class TxtParser(
         Regex("""^\s*(卷[0-9零一二三四五六七八九十百千万]+).{0,40}$"""),
     )
 
+    private companion object {
+        const val HEAD_SNIFF_BYTES = 8 * 1024
+        /** 单章最大读取字节（约 2MB，超长章节截断保护） */
+        const val MAX_CHAPTER_BYTES = 2 * 1024 * 1024
+    }
+    // 注意：原来的 companion object 里已经有一个 MAX_CHAPTER_BYTES，
+    // 把 HEAD_SNIFF_BYTES 加进去即可，别重复声明。
+
+    /** 作者：落家小沫 / 作 者：xxx / Author: xxx */
+    private val AUTHOR_REGEX = Regex(
+        """(?:^|[\r\n])[\s\u3000]*(?:作者|作[\s\u3000]*者|著者|Author|author)[\s\u3000]*[:：][\s\u3000]*([^\r\n]+)"""
+    )
+
+    /** 作者行尾部常见的其它字段，用它切掉"类型：游戏动漫 状态：完结" */
+    private val AUTHOR_TAIL_REGEX = Regex(
+        """[\s\u3000]{2,}""" +
+        """|[\s\u3000]+(?=(?:类型|類型|分类|分類|状态|狀態|版权|版權|简介|簡介|标签|標籤|字数|字數|出处|出處|来源|來源|连载|連載|更新|译者|譯者)[\s\u3000]*[:：])""" +
+        """|[\t|｜]"""
+    )
+
+    private val BOOK_TITLE_REGEX = Regex("""《([^》\r\n]{1,40})》""")
+    private val META_LINE = Regex(
+        """(?:作者|作[\s\u3000]*者|类型|類型|状态|狀態|版权|版權|简介|簡介)[\s\u3000]*[:：]"""
+    )
+    private val JUNK_LINE = Regex(
+        """(?:https?://|www\.|手机用户|请记住|最新章节|免费阅读|本书由|更多精彩|广告|求收藏|求推荐)""",
+        RegexOption.IGNORE_CASE
+    )
+
     override fun matches(file: File, ext: String): Boolean =
         ext.equals("txt", ignoreCase = true) || ext.equals("text", ignoreCase = true)
+    
+    private fun sniffHeader(file: File, charset: Charset): SniffedMeta {
+        val head = readHead(file, charset, HEAD_SNIFF_BYTES)
+            .removePrefix("\uFEFF")            // 去 UTF-8 BOM，否则正则 ^ 前的作者行匹配不到
+        if (head.isBlank()) return SniffedMeta("", "")
+
+        val author = cleanAuthor(AUTHOR_REGEX.find(head)?.groupValues?.get(1).orEmpty())
+
+        val titleFromMark = BOOK_TITLE_REGEX.find(head)?.groupValues?.get(1)?.trim().orEmpty()
+        val titleFromFirstLine = head.lineSequence()
+            .map { it.trim().trim('\u3000', '\uFEFF') }
+            .firstOrNull { line ->
+                line.length in 1..40 &&
+                    !JUNK_LINE.containsMatchIn(line) &&
+                    !META_LINE.containsMatchIn(line) &&      // "作者：xxx" 这种行不当书名
+                    patterns.none { it.matches(line) }        // 章节标题行不当书名
+            }
+            ?.trim('《', '》')
+            .orEmpty()
+
+        return SniffedMeta(
+            title = titleFromMark.ifBlank { titleFromFirstLine },
+            author = author
+        )
+    }
+
+    private fun cleanAuthor(raw: String): String {
+        if (raw.isBlank()) return ""
+        val cut = AUTHOR_TAIL_REGEX.split(raw).firstOrNull().orEmpty()
+        return cut.trim().trim('，', ',', '；', ';', '。', '、', '|', '｜', ' ')
+    }
+
+    private fun readHead(file: File, charset: Charset, maxBytes: Int): String = runCatching {
+        FileInputStream(file).use { fis ->
+            val cap = minOf(file.length(), maxBytes.toLong()).toInt().coerceAtLeast(1)
+            val buf = ByteArray(cap)
+            var read = 0
+            while (read < cap) {
+                val n = fis.read(buf, read, cap - read)
+                if (n <= 0) break
+                read += n
+            }
+            if (read <= 0) "" else String(buf, 0, read, charset)
+        }
+    }.getOrDefault("")
 
     override suspend fun parseMeta(file: File): Book? = runCatching {
         if (!file.exists() || file.length() <= 0L) return null
         val charset = EncodingDetector.detect(file)
         val chapters = splitChapters(file, charset)
-        val title = FileUtil.humanTitle(file.name)
+        val sniffed = sniffHeader(file, charset)              // ← 新增
+        val fileTitle = FileUtil.humanTitle(file.name)
+        val title = sniffed.title.ifBlank { fileTitle }       // 正文标题优先，兜底文件名
+        val author = sniffed.author.ifBlank { "未知作者" }
         val cover = runCatching {
             coverStore?.save(textCoverFactory.create(title, "TXT"), file.absolutePath)
         }.getOrNull()
         Book(
             title = title,
-            author = "未知",
+            author = author,
             type = BookType.NOVEL,
             format = BookFormat.TXT,
             filePath = file.absolutePath,
@@ -232,10 +316,5 @@ class TxtParser(
         }
 
         override fun close() { /* TXT 没有持有流，留空即可 */ }
-    }
-
-    companion object {
-        /** 单章最大读取字节（约 2MB，超长章节截断保护） */
-        const val MAX_CHAPTER_BYTES = 2 * 1024 * 1024
     }
 }

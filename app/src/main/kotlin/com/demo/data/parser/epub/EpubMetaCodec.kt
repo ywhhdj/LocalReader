@@ -1,4 +1,4 @@
-package com.demo.data.parser
+package com.demo.data.parser.epub
 
 import com.demo.core.model.Chapter
 

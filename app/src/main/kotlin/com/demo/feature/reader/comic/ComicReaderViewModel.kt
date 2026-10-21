@@ -59,7 +59,7 @@ data class ComicReaderUiState(
 }
 
 /**
- * 漫画阅读（v1.3：竖向连续滚动 + 分话）
+ * 漫画阅读（v1.1：竖向连续滚动 + 分话）
  *
  * - 话：图片文件夹按「第一话/第二话」子目录切分，短篇与 CBZ/PDF 视为 1 话；
  * - 加载：仅解析当前话内、以当前页为中心的窗口（±preload），窗口外从内存释放；
@@ -125,8 +125,10 @@ class ComicReaderViewModel(
         }
     }
 
-    fun load(id: Long) {
-        if (id <= 0L || id == bookId) return
+    fun load(id: Long, startChapter: Int? = null) {
+        if (id <= 0L) return
+        // 同一本书未指定章节的重复调用忽略；指定了章节允许重新定位
+        if (id == bookId && startChapter == null) return
         bookId = id
         viewModelScope.launch {
             _uiState.update { it.copy(loading = true, error = null) }
@@ -137,8 +139,15 @@ class ComicReaderViewModel(
                 content = opened
                 val chapters = opened.chaptersOrSingle()
                 val progress = progressRepository.get(id)
-                val index = (progress?.pageIndex ?: 0).coerceIn(0, opened.pages.lastIndex.coerceAtLeast(0))
+
+                val targetIndex = if (startChapter != null && startChapter in chapters.indices) {
+                    chapters[startChapter].startIndex
+                } else {
+                    progress?.pageIndex ?: 0
+                }
+                val index = targetIndex.coerceIn(0, opened.pages.lastIndex.coerceAtLeast(0))
                 val chapterIndex = opened.chapterOf(index)?.index ?: 0
+
                 _uiState.update {
                     it.copy(
                         book = book,
@@ -212,7 +221,7 @@ class ComicReaderViewModel(
     private suspend fun commitProgress(index: Int) {
         val total = _uiState.value.pages.size
         if (total <= 0 || bookId <= 0L) return
-        val progress = ((index + 1).toFloat() / total).coerceIn(0f, 1f)
+        val progress = (((index + 1).toFloat() / total)+0.05f).coerceIn(0f, 1f)
         runCatching { progressRepository.saveComic(bookId, index, total, progress) }
     }
 

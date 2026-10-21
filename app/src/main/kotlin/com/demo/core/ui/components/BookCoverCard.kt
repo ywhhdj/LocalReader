@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.aspectRatio
 
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -63,7 +64,7 @@ fun BookCoverCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(160.dp)
+                .aspectRatio(0.7f)
                 .clip(CoverShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .then(if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CoverShape) else Modifier)

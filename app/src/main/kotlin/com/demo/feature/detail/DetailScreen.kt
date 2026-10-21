@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.FilterChip
 
 import coil.compose.AsyncImage
 
@@ -59,12 +60,12 @@ import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
 import com.demo.core.ui.theme.ReaderShapes
 
-
 @Composable
 fun DetailScreen(
     viewModel: DetailViewModel,
     onBack: () -> Unit,
-    onRead: (Book) -> Unit,
+    /** chapterIndex 为 null：从进度继续；非 null：跳转到指定话 */
+    onRead: (Book, Int?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -106,17 +107,22 @@ fun DetailScreen(
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                item { HeaderCard(book, onRead) }
+                item { HeaderCard(book, { onRead(book, null) }) }
                 item { MetaCard(book) }
                 item { ActionsCard(book, viewModel) }
-                item { ChaptersCard(chapters, viewModel) }
+                if(book.type == BookType.COMIC){
+                    item { ComicChaptersCard(chapters) { index -> onRead(book, index) } }
+                }else if(book.type == BookType.NOVEL){
+                    item { NovalChaptersCard(chapters) }
+                }
+                
             }
         }
     }
 }
 
 @Composable
-private fun HeaderCard(book: Book, onRead: (Book) -> Unit) {
+private fun HeaderCard(book: Book,  onRead: () -> Unit) {
     GlassSurface(shape = ReaderShapes.extraSmall, modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.padding(16.dp)) {
             Box(
@@ -158,9 +164,11 @@ private fun HeaderCard(book: Book, onRead: (Book) -> Unit) {
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
                 Spacer(Modifier.height(10.dp))
-                InfoChip(text = if (book.type == BookType.NOVEL) "小说" else "漫画")
-                Spacer(Modifier.height(6.dp))
-                InfoChip(text = book.format.value)
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    InfoChip(text = book.displayType())
+                    Spacer(Modifier.width(6.dp))
+                    InfoChip(text = book.format.value)
+                }
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = if (book.type == BookType.NOVEL) "${book.chapterCount} 章" else "${book.pageCount} 页",
@@ -170,7 +178,7 @@ private fun HeaderCard(book: Book, onRead: (Book) -> Unit) {
                 GlassSurface(
                     shape = CircleShape,
                     tintAlpha = 0.22f,
-                    onClick = { onRead(book) }
+                    onClick = onRead
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
@@ -192,6 +200,74 @@ private fun HeaderCard(book: Book, onRead: (Book) -> Unit) {
                 }
             }
         }
+    }
+}
+
+
+
+/** 话集卡片：GlassSurface 包裹，内部是逐话可点的 GlassSurface 按钮 */
+@Composable
+private fun ComicChaptersCard(
+    chapters: List<Chapter>,
+    onOpenChapter: (Int) -> Unit
+) {
+    if (chapters.isEmpty()) return
+    GlassSurface(
+        shape = ReaderShapes.extraSmall,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(12.dp)) {
+            Text(
+                "话集",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+            )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 360.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val rows = chapters.chunked(2)
+                itemsIndexed(rows, key = { _, row -> row.firstOrNull()?.index ?: 0 }) { _, row ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        row.forEach { chapter ->
+                            ChapterChip(
+                                chapter = chapter,
+                                modifier = Modifier.weight(1f),
+                                onClick = { onOpenChapter(chapter.index) }
+                            )
+                        }
+                        if (row.size == 1) Spacer(Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChapterChip(
+    chapter: Chapter,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    GlassSurface(
+        shape = ReaderShapes.small,
+        tintAlpha = 0.18f,
+        onClick = onClick,
+        modifier = modifier
+    ) {
+        Text(
+            text = chapter.title,
+            style = MaterialTheme.typography.labelMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp)
+        )
     }
 }
 
@@ -294,9 +370,8 @@ private fun ActionsCard(book: Book, viewModel: DetailViewModel) {
 
 //目录卡片
 @Composable
-private fun ChaptersCard(
-    chapters: List<Chapter>,
-    viewModel: DetailViewModel
+private fun NovalChaptersCard(
+    chapters: List<Chapter>
 ) {
     if (chapters.isEmpty()) return
     GlassSurface(

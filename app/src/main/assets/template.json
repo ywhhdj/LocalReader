@@ -1,0 +1,25 @@
+[
+  {
+    "bookSourceName": "示例书源",
+    "bookSourceUrl": "https://www.example-novel.com",
+    "bookSourceType": 0,
+    "enabled": true,
+    "searchUrl": "/search?q={key}",
+    "charset": "UTF-8",
+    "ruleSearch": {
+      "bookList": "class.book-item",
+      "name": "class.book-name@text",
+      "author": "class.book-author@text",
+      "bookUrl": "class.book-link@a@href",
+      "coverUrl": "class.book-cover@img@src"
+    },
+    "ruleToc": {
+      "chapterList": "class.chapter-list",
+      "chapterName": "class.chapter-name@text",
+      "chapterUrl": "class.chapter-link@a@href"
+    },
+    "ruleContent": {
+      "content": "id.content@html"
+    }
+  }
+]

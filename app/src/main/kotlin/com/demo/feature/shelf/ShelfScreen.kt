@@ -45,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ModalBottomSheet
 
 import kotlinx.coroutines.launch
 
@@ -53,13 +54,14 @@ import com.demo.core.ui.components.AppBackdrop
 import com.demo.core.ui.components.BookCoverCard
 import com.demo.core.ui.components.EmptyState
 import com.demo.core.ui.components.GlassSearchBar
-import com.demo.core.ui.components.SectionHeader
 import com.demo.core.ui.glass.GlassIconButton
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
 import com.demo.core.model.SortOrder
 import com.demo.core.model.BookType
+import com.demo.core.ui.theme.ReaderShapes
 import com.demo.feature.shelf.FilterIconButton
+import com.demo.domain.repository.ScanProgress
 
 @Composable
 fun ShelfScreen(
@@ -166,14 +168,7 @@ fun ShelfScreen(
                             }
                         }
                     }
-                    items(state.gridBooks, key = { it.id }, contentType = { "book" }) { book ->
-                        BookCoverCard(
-                            book = book,
-                            selected = book.id in state.selection,
-                            onClick = { onBookClick(book.id) },
-                            onLongClick = { viewModel.toggleSelection(book.id) }
-                        )
-                    }
+
                     if (state.gridBooks.isEmpty() && !state.isLoading) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             EmptyState(
@@ -183,6 +178,14 @@ fun ShelfScreen(
                             )
                         }
                     }
+                    items(state.gridBooks, key = { it.id }, contentType = { "book" }) { book ->
+                        BookCoverCard(
+                            book = book,
+                            selected = book.id in state.selection,
+                            onClick = { onBookClick(book.id) },
+                            onLongClick = { viewModel.toggleSelection(book.id) }
+                        )
+                    }
                 }
             }
         }
@@ -191,7 +194,7 @@ fun ShelfScreen(
         GlassSurface(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 24.dp)
+                .padding(end = 5.dp, bottom = 65.dp)
                 .size(56.dp)
                 .navigationBarsPadding(),
             shape = CircleShape,
@@ -275,7 +278,7 @@ private fun FilterSheet(
     onSortChange: (SortOrder) -> Unit,
     onDismiss: () -> Unit
 ) {
-    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -339,7 +342,7 @@ private fun SelectionBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = CircleShape
+        shape = ReaderShapes.extraSmall,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -362,7 +365,7 @@ private fun SelectionBar(
 
 @Composable
 private fun ScanProgressCard(
-    progress: com.demo.domain.repository.ScanProgress,
+    progress: ScanProgress,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {

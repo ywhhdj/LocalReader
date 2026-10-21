@@ -1,34 +1,40 @@
 package com.demo.feature.reader.novel
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
@@ -45,6 +51,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,10 +60,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,14 +73,18 @@ import coil.compose.AsyncImage
 
 import com.demo.core.common.util.VolumeSplitter
 import com.demo.core.model.BookBlock
+import com.demo.core.model.Chapter
 import com.demo.core.model.ReaderBackground
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.ReaderShapes
 import com.demo.feature.reader.common.ReaderSettingsPanel
 
-/** 底部翻章热区：宽高占比（左下角上一章 / 右下角下一章） */
+/** 底部翻页热区：宽高占比 */
 private const val TAP_ZONE_WIDTH_RATIO = 0.32f
 private const val TAP_ZONE_HEIGHT_RATIO = 0.22f
+
+/** 内容左右内边距 */
+private val ContentHorizontalPadding = 20.dp
 
 @Composable
 fun NovelReaderScreen(
@@ -81,12 +93,11 @@ fun NovelReaderScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberLazyListState()
     var showChrome by remember { mutableStateOf(false) }
+    var pageIndex by remember { mutableIntStateOf(0) }
     val colors = readerColors(state.settings.readerBackground)
     val view = LocalView.current
     val currentChapter = state.chapters.getOrNull(state.chapterIndex)
-    // 与首页一致：内容区避开状态栏与导航栏
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
@@ -94,71 +105,160 @@ fun NovelReaderScreen(
         view.keepScreenOn = state.settings.keepScreenOn
     }
 
-    // 章节切换时回到顶部
+    // 章节切换 → 回到该章首页
     LaunchedEffect(state.chapterIndex) {
-        runCatching { listState.scrollToItem(0) }
+        pageIndex = 0
+        viewModel.onScrollPosition(state.chapterIndex, 0)
     }
 
-    // 滚动位置投递给 ViewModel（内部节流后写库）
-    LaunchedEffect(listState.firstVisibleItemIndex, state.chapterIndex) {
-        viewModel.onScrollPosition(state.chapterIndex, listState.firstVisibleItemIndex)
+    if (state.loading && state.blocks.isEmpty()) {
+        Box(
+            modifier.fillMaxSize().background(colors.background),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = colors.text)
+        }
+        return
     }
 
-    Box(
+    // 注意：必须用 BoxWithConstraints 提供 maxWidth/maxHeight 与 BoxScope.align
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
             .background(colors.background)
     ) {
-        if (state.loading && state.blocks.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = colors.text)
-            }
+        val density = LocalDensity.current
+        val textMeasurer = rememberTextMeasurer()
+
+        val pageWidthPx = with(density) {
+            (maxWidth - ContentHorizontalPadding * 2).toPx().toInt().coerceAtLeast(1)
+        }
+        val pageHeightPx = with(density) {
+            (maxHeight - topInset - bottomInset).toPx().toInt().coerceAtLeast(1)
         }
 
-        LazyColumn(
-            state = listState,
+        // 合成：章节标题 + 本章 blocks
+        val allBlocks = remember(state.chapterIndex, state.blocks, currentChapter) {
+            val header = currentChapter?.let {
+                val volume = it.volume.orEmpty()
+                val title = VolumeSplitter.displayTitle(it)
+                val text = if (volume.isNotBlank()) "$volume\n$title" else title
+                BookBlock.Heading(text)
+            }
+            listOfNotNull(header) + state.blocks
+        }
+
+        val pages = remember(
+            allBlocks, state.settings.fontSize, state.settings.lineHeightMultiplier,
+            pageWidthPx, pageHeightPx
+        ) {
+            paginateNovel(
+                measurer = textMeasurer,
+                blocks = allBlocks,
+                pageWidth = pageWidthPx,
+                pageHeight = pageHeightPx,
+                fontSize = state.settings.fontSize,
+                lineHeightMultiplier = state.settings.lineHeightMultiplier,
+                density = density
+            )
+        }
+
+        if (pageIndex > pages.lastIndex) {
+            pageIndex = pages.lastIndex.coerceAtLeast(0)
+        }
+
+        fun goNext() {
+            if (pageIndex < pages.lastIndex) pageIndex++
+            else if (state.canNext) viewModel.nextChapter()
+        }
+        fun goPrev() {
+            if (pageIndex > 0) pageIndex--
+            else if (state.canPrev) viewModel.prevChapter()
+        }
+
+        // ---------- 当前页内容（含左右滑动手势） ----------
+        AnimatedContent(
+            targetState = pageIndex,
+            transitionSpec = {
+                if (targetState > initialState) {
+                    (slideInHorizontally(animationSpec = tween(220)) { it } + fadeIn(tween(220)))
+                        .togetherWith(
+                            slideOutHorizontally(animationSpec = tween(220)) { -it } + fadeOut(tween(220))
+                        )
+                } else {
+                    (slideInHorizontally(animationSpec = tween(220)) { -it } + fadeIn(tween(220)))
+                        .togetherWith(
+                            slideOutHorizontally(animationSpec = tween(220)) { it } + fadeOut(tween(220))
+                        )
+                }
+            },
             modifier = Modifier
                 .fillMaxSize()
-                // 中间区域点击只切换上下栏；左右下角热区负责翻章
-                .clickable { showChrome = !showChrome },
-            contentPadding = PaddingValues(
-                start = 20.dp, end = 20.dp,
-                top = topInset + 64.dp,
-                bottom = bottomInset + 88.dp
-            )
-        ) {
-            item {
-                ChapterHeader(
-                    chapter = currentChapter,
-                    fontSize = state.settings.fontSize,
-                    colors = colors
+                .padding(
+                    start = ContentHorizontalPadding,
+                    end = ContentHorizontalPadding,
+                    top = topInset,
+                    bottom = bottomInset
                 )
+                .pointerInput(pageIndex, pages.size) {
+                    var accumulated = 0f
+                    detectHorizontalDragGestures(
+                        onDragStart = { accumulated = 0f },
+                        onDragEnd = {
+                            val threshold = size.width * 0.15f
+                            when {
+                                accumulated < -threshold -> goNext()
+                                accumulated > threshold -> goPrev()
+                            }
+                        },
+                        onHorizontalDrag = { change, dragAmount ->
+                            change.consume()
+                            accumulated += dragAmount
+                        }
+                    )
+                }
+                // 轻点：切换顶栏 / 底栏
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { showChrome = !showChrome })
+                }
+        ) { idx ->
+            val page = pages.getOrNull(idx)
+            Column(Modifier.fillMaxSize()) {
+                page?.items?.forEach { item ->
+                    BlockView(
+                        block = item.block,
+                        fontSize = state.settings.fontSize,
+                        lineHeight = state.settings.lineHeightMultiplier,
+                        colors = colors,
+                        isContinuation = item.isContinuation
+                    )
+                }
             }
-            // key 用索引：正文天然存在重复段落，用内容 hash 做 key 会直接崩溃
-            itemsIndexed(state.blocks, key = { index, _ -> index }) { _, block ->
-                BlockView(block, state.settings.fontSize, state.settings.lineHeightMultiplier, colors)
-            }
-            item { Spacer(Modifier.height(24.dp)) }
         }
 
-        // 左下角：上一章（显示上下栏时禁用，避免误触）
+        // ---------- 左下：上一页 / 上一章 ----------
+        val canPrevPage = pageIndex > 0
         TapZone(
             alignment = Alignment.BottomStart,
-            enabled = !showChrome && !state.showToc && !state.showSettings && state.canPrev,
-            label = "上一章",
+            enabled = !showChrome && !state.showToc && !state.showSettings &&
+                (canPrevPage || state.canPrev),
+            label = if (canPrevPage) "上一页" else "上一章",
             colors = colors,
-            onClick = viewModel::prevChapter
-        )
-        // 右下角：下一章
-        TapZone(
-            alignment = Alignment.BottomEnd,
-            enabled = !showChrome && !state.showToc && !state.showSettings && state.canNext,
-            label = "下一章",
-            colors = colors,
-            onClick = viewModel::nextChapter
+            onClick = { if (canPrevPage) pageIndex-- else viewModel.prevChapter() }
         )
 
-        // 顶部栏
+        // ---------- 右下：下一页 / 下一章 ----------
+        val canNextPage = pageIndex < pages.lastIndex
+        TapZone(
+            alignment = Alignment.BottomEnd,
+            enabled = !showChrome && !state.showToc && !state.showSettings &&
+                (canNextPage || state.canNext),
+            label = if (canNextPage) "下一页" else "下一章",
+            colors = colors,
+            onClick = { if (canNextPage) pageIndex++ else viewModel.nextChapter() }
+        )
+
+        // ---------- 顶栏 ----------
         AnimatedVisibility(
             visible = showChrome,
             enter = slideInVertically { -it },
@@ -193,17 +293,17 @@ fun NovelReaderScreen(
                             else MaterialTheme.colorScheme.onSurface
                         )
                     }
-                    IconButton(onClick = { viewModel.toggleToc(true) }) {
+                    IconButton(onClick = viewModel::toggleToc) {
                         Icon(Icons.AutoMirrored.Filled.List, contentDescription = "目录")
                     }
-                    IconButton(onClick = { viewModel.toggleSettings(true) }) {
+                    IconButton(onClick = viewModel::toggleSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "设置")
                     }
                 }
             }
         }
 
-        // 底部进度
+        // ---------- 底栏 ----------
         AnimatedVisibility(
             visible = showChrome,
             enter = slideInVertically { it },
@@ -220,7 +320,10 @@ fun NovelReaderScreen(
                         .padding(12.dp)
                 ) {
                     Text(
-                        text = chapterLabel(currentChapter, state.chapterIndex, state.chapters.size),
+                        text = chapterAndPageLabel(
+                            currentChapter, state.chapterIndex, state.chapters.size,
+                            pageIndex, pages.size
+                        ),
                         style = MaterialTheme.typography.labelMedium
                     )
                     if (state.chapters.size > 1) {
@@ -236,7 +339,7 @@ fun NovelReaderScreen(
             }
         }
 
-        // 目录抽屉（按卷分组）
+        // ---------- 目录抽屉 ----------
         AnimatedVisibility(
             visible = state.showToc,
             enter = slideInHorizontally { -it },
@@ -267,7 +370,7 @@ fun NovelReaderScreen(
             )
         }
 
-        // 朗读控制条
+        // ---------- 朗读控制条 ----------
         AnimatedVisibility(
             visible = state.tts.speaking || state.tts.error != null,
             enter = slideInVertically { it },
@@ -302,7 +405,7 @@ fun NovelReaderScreen(
             }
         }
 
-        // 阅读设置面板
+        // ---------- 设置面板 ----------
         AnimatedVisibility(
             visible = state.showSettings,
             enter = slideInVertically { it },
@@ -326,52 +429,27 @@ fun NovelReaderScreen(
     }
 }
 
-/** 章节标题区：卷名单独一行小字，章节名已去掉卷名前缀 */
-@Composable
-private fun ChapterHeader(
-    chapter: com.demo.core.model.Chapter?,
-    fontSize: Int,
-    colors: ReaderColors
-) {
-    val volume = chapter?.volume.orEmpty()
-    Column(modifier = Modifier.padding(bottom = 16.dp)) {
-        if (volume.isNotBlank()) {
-            Text(
-                text = volume,
-                style = MaterialTheme.typography.labelLarge.copy(
-                    color = colors.text.copy(alpha = 0.65f),
-                    fontSize = (fontSize - 1).sp
-                ),
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
-        }
-        Text(
-            text = chapter?.let { VolumeSplitter.displayTitle(it) }.orEmpty(),
-            style = MaterialTheme.typography.titleLarge.copy(
-                color = colors.text,
-                fontSize = (fontSize + 4).sp,
-                fontWeight = FontWeight.Bold
-            )
-        )
-    }
-}
-
-private fun chapterLabel(
-    chapter: com.demo.core.model.Chapter?,
-    index: Int,
-    total: Int
+/** 底栏文字：卷名 · 章节（第几章/共几章 · 第几页/共几页） */
+private fun chapterAndPageLabel(
+    chapter: Chapter?,
+    chapterIndex: Int,
+    chapterTotal: Int,
+    pageIndex: Int,
+    pageTotal: Int
 ): String {
     val volume = chapter?.volume.orEmpty()
     val name = chapter?.let { VolumeSplitter.displayTitle(it) }.orEmpty()
-    val position = if (total > 0) "（${index + 1}/$total）" else ""
+    val chapterPart = if (chapterTotal > 0) "（${chapterIndex + 1}/$chapterTotal）" else ""
+    val pagePart = if (pageTotal > 0) " · ${pageIndex + 1}/$pageTotal 页" else ""
     return buildString {
         if (volume.isNotBlank()) append(volume).append(" · ")
         append(name)
-        append(position)
+        append(chapterPart)
+        append(pagePart)
     }
 }
 
-/** 左下 / 右下角翻章热区（只在可用时接收点击，其余区域仍可滑动与呼出上下栏） */
+/** 左下 / 右下角热区 */
 @Composable
 private fun BoxScope.TapZone(
     alignment: Alignment,
@@ -401,14 +479,17 @@ private fun BoxScope.TapZone(
                 style = MaterialTheme.typography.labelSmall,
                 color = colors.text.copy(alpha = 0.25f),
                 modifier = Modifier
-                    .align(if (alignment == Alignment.BottomStart) Alignment.BottomStart else Alignment.BottomEnd)
+                    .align(
+                        if (alignment == Alignment.BottomStart) Alignment.BottomStart
+                        else Alignment.BottomEnd
+                    )
                     .padding(12.dp)
             )
         }
     }
 }
 
-/** 目录：卷标题 + 卷内章节（章节名不含卷名） */
+/** 目录：卷标题 + 卷内章节 */
 @Composable
 private fun TocList(
     entries: List<VolumeSplitter.TocEntry>,
@@ -459,46 +540,54 @@ private fun TocList(
     }
 }
 
+/**
+ * 单块渲染。
+ * 缩进已写入文本前缀（全角空格），[isContinuation] 仅为调用兼容保留，不参与渲染。
+ */
 @Composable
 private fun BlockView(
     block: BookBlock,
     fontSize: Int,
     lineHeight: Float,
-    colors: ReaderColors
+    colors: ReaderColors,
+    @Suppress("UNUSED_PARAMETER") isContinuation: Boolean = false
 ) {
     when (block) {
-        is BookBlock.Heading -> Text(
-            text = block.text,
-            style = MaterialTheme.typography.titleMedium.copy(
-                color = colors.text,
-                fontSize = (fontSize + 2).sp,
-                lineHeight = (fontSize * lineHeight).sp,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-        is BookBlock.Paragraph -> Text(
-            text = block.text,
-            style = MaterialTheme.typography.bodyLarge.copy(
-                color = colors.text,
-                fontSize = fontSize.sp,
-                lineHeight = (fontSize * lineHeight).sp,
-                // 首行缩进两字符，段落内保留原有换行
-                textIndent = TextIndent(firstLine = (fontSize * 2).sp),
-                textAlign = TextAlign.Start
-            ),
-            modifier = Modifier.padding(vertical = 6.dp)
-        )
-        is BookBlock.Quote -> Text(
-            text = block.text,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = colors.text.copy(alpha = 0.75f),
-                fontSize = fontSize.sp,
-                lineHeight = (fontSize * lineHeight).sp,
-                textIndent = TextIndent(firstLine = (fontSize * 2).sp)
-            ),
-            modifier = Modifier.padding(vertical = 6.dp, horizontal = 8.dp)
-        )
+        is BookBlock.Heading -> SelectionContainer {
+            Text(
+                text = block.text,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = colors.text,
+                    fontSize = (fontSize + 2).sp,
+                    lineHeight = (fontSize * lineHeight).sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+        is BookBlock.Paragraph -> SelectionContainer {
+            Text(
+                text = block.text,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    color = colors.text,
+                    fontSize = fontSize.sp,
+                    lineHeight = (fontSize * lineHeight).sp,
+                    textAlign = TextAlign.Start
+                ),
+                modifier = Modifier.padding(vertical = 6.dp)
+            )
+        }
+        is BookBlock.Quote -> SelectionContainer {
+            Text(
+                text = block.text,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = colors.text.copy(alpha = 0.75f),
+                    fontSize = fontSize.sp,
+                    lineHeight = (fontSize * lineHeight).sp
+                ),
+                modifier = Modifier.padding(vertical = 6.dp, horizontal = 8.dp)
+            )
+        }
         is BookBlock.Image -> AsyncImage(
             model = block.src,
             contentDescription = block.alt,
@@ -515,8 +604,8 @@ data class ReaderColors(val background: Color, val text: Color)
 
 @Composable
 fun readerColors(background: ReaderBackground): ReaderColors {
-    val dark = MaterialTheme.colorScheme.background.red + MaterialTheme.colorScheme.background.green +
-        MaterialTheme.colorScheme.background.blue < 1.5f
+    val bg = MaterialTheme.colorScheme.background
+    val dark = (bg.red + bg.green + bg.blue) / 3f < 0.5f
     return when (background) {
         ReaderBackground.CREAM -> ReaderColors(Color(0xFFF6EFE2), Color(0xFF3B3226))
         ReaderBackground.GREEN -> ReaderColors(Color(0xFFE8F0E3), Color(0xFF2E3A2A))

@@ -54,12 +54,15 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.lazy.LazyRow
 
 import coil.compose.AsyncImage
 
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.ReaderShapes
 import com.demo.feature.reader.common.ReaderSettingsPanel
+import com.demo.core.ui.theme.SheetShape
+import com.demo.core.model.ComicChapter
 
 /**
  * 漫画阅读器（固定竖向连续滚动）
@@ -99,6 +102,14 @@ fun ComicReaderScreen(
         val target = scroll?.index ?: return@LaunchedEffect
         val offset = (target - range.first).coerceAtLeast(0)
         runCatching { listState.scrollToItem(offset) }
+    }
+
+    // 当前可见的页面是否已到该话开头
+    val atChapterStart by remember {
+        derivedStateOf {
+            val visibleFirst = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: 0
+            visibleFirst <= range.first
+        }
     }
 
     // 当前可见的最后一页是否已到该话末尾
@@ -146,11 +157,21 @@ fun ComicReaderScreen(
             }
         }
 
+        // 到当前话开头 → 左下角出现「上一话」
+        if (state.hasPrevChapter && atChapterStart) {
+            ChapterButton(
+                onClick = viewModel::prevChapter,
+                text="上一话",
+                align = Alignment.CenterStart
+            )
+        }
+
         // 到当前话末尾 → 右下角出现「下一话」
         if (state.hasNextChapter && atChapterEnd) {
-            NextChapterButton(
-                title = state.chapters.getOrNull(state.chapterIndex + 1)?.title ?: "下一话",
-                onClick = viewModel::nextChapter
+            ChapterButton(
+                onClick = viewModel::nextChapter,
+                text="下一话",
+                align = Alignment.CenterEnd
             )
         }
 
@@ -207,7 +228,7 @@ fun ComicReaderScreen(
         ) {
             GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                shape =  SheetShape
             ) {
                 Column(
                     modifier = Modifier
@@ -267,7 +288,7 @@ private fun chapterPositionText(state: ComicReaderUiState): String {
     val chapterPart = if (state.chapters.size > 1 && chapter != null) {
         "${chapter.title} · $inChapter/${chapter.pageCount} · "
     } else ""
-    return chapterPart + "${state.pageIndex + 1}/${state.pages.size}"
+    return chapterPart
 }
 
 /** 单页：按宽高比占位 + 异步解码；不响应双击与拖动 */
@@ -325,11 +346,11 @@ private fun ComicPageItem(
 /** 话按钮列表（横向滚动，当前话高亮） */
 @Composable
 private fun ChapterButtons(
-    chapters: List<com.demo.core.model.ComicChapter>,
+    chapters: List<ComicChapter>,
     selectedIndex: Int,
     onSelect: (Int) -> Unit
 ) {
-    androidx.compose.foundation.lazy.LazyRow(
+    LazyRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -344,37 +365,31 @@ private fun ChapterButtons(
     }
 }
 
-/** 右下角「下一话」：滚到当前话最后一张时出现 */
+/** 话按钮 */
 @Composable
-private fun BoxScope.NextChapterButton(
-    title: String,
-    onClick: () -> Unit
-) {
+private fun BoxScope.ChapterButton(
+    onClick: () -> Unit,
+    text: String,
+    align: Alignment = Alignment.CenterStart,
+){
     Surface(
         onClick = onClick,
         shape = CircleShape,
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.92f),
         contentColor = MaterialTheme.colorScheme.onPrimary,
         modifier = Modifier
-            .align(Alignment.CenterEnd)
-            .padding(end = 12.dp)
-    ) {
+            .align(align)
+    ){
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "下一话",
+                text = text,
                 style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Center
-            )
-            Spacer(Modifier.size(4.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelSmall,
-                maxLines = 1,
-                modifier = Modifier.padding(end = 2.dp)
             )
         }
     }
 }
+

@@ -22,6 +22,8 @@ sealed interface Json {
     fun bool(key: String, fallback: Boolean = false): Boolean =
         ((this as? Obj)?.fields?.get(key) as? Bool)?.value ?: fallback
     fun any(key: String): Json? = (this as? Obj)?.fields?.get(key)
+
+    fun has(key: String):Boolean = (this as? Obj)?.fields?.containsKey(key) ?: false
 }
 
 object MiniJson {

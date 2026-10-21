@@ -101,11 +101,11 @@ fun SearchScreen(
             }
 
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 108.dp),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
+                columns = GridCells.Adaptive(minSize = 108.dp), // 列数
+                contentPadding = PaddingValues(16.dp), // 列间距
+                verticalArrangement = Arrangement.spacedBy(12.dp), // 垂直间距
+                horizontalArrangement = Arrangement.spacedBy(12.dp), // 水平间距
+                modifier = Modifier.fillMaxSize() // 填充剩余空间
             ) {
                 if (state.searchResults.isEmpty()) {
                     item(span = { GridItemSpan(maxLineSpan) }) {

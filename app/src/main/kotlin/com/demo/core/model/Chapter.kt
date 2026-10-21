@@ -26,4 +26,18 @@ sealed interface BookBlock {
     data class Image(val src: String, val alt: String = "") : BookBlock
     data class Quote(val text: String) : BookBlock
     object Break : BookBlock
+
+    /**
+     * 拷贝文本，用于修改标题、段落文本
+     * @param newText 新文本
+     */
+    fun copyText(newText: String): BookBlock {
+        return when (this) {
+            is Heading -> Heading(newText, level)
+            is Paragraph -> Paragraph(newText)
+            is Image -> Image(src, newText)
+            is Quote -> Quote(newText)
+            else -> this
+        }
+    }
 }

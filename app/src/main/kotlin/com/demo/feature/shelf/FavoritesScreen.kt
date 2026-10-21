@@ -37,9 +37,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 import com.demo.core.model.BookType
 import com.demo.core.ui.components.AppBackdrop
-import com.demo.core.ui.components.BookCoverCard
 import com.demo.core.ui.components.EmptyState
 import com.demo.core.ui.components.SectionHeader
+import com.demo.core.ui.components.BookRow
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
 
@@ -123,41 +123,44 @@ fun FavoritesScreen(
                 ) {
                     if (state.sections.continueBooks.isNotEmpty()) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
-                            BookRow(
-                                title = "继续阅读",
-                                books = state.sections.continueBooks,
-                                onBookClick = { onBookClick(it.id) }
-                            )
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                SectionHeader(title = "继续阅读")
+                                BookRow(
+                                    books = state.sections.continueBooks,
+                                    onBookClick = { onBookClick(it.id) }
+                                )
+                            }
                         }
                     }
                     if (state.sections.recentBooks.isNotEmpty()) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
-                            BookRow(
-                                title = "最近添加",
-                                books = state.sections.recentBooks,
-                                onBookClick = { onBookClick(it.id) }
-                            )
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                SectionHeader(title = "最近添加")
+                                BookRow(
+                                    books = state.sections.recentBooks,
+                                    onBookClick = { onBookClick(it.id) }
+                                )
+                            }
                         }
                     }
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        SectionHeader(title = "我的收藏")
-                    }
-                    items(state.favoriteBooks, key = { it.id }, contentType = { "book" }) { book ->
-                        BookCoverCard(
-                            book = book,
-                            onClick = { onBookClick(book.id) },
-                            onLongClick = { viewModel.unfavorite(book.id) }
-                        )
-                    }
-                    if (state.favoriteBooks.isEmpty() && !state.isLoading) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            EmptyState(
-                                message = "还没有收藏，长按书架封面即可收藏",
-                                actionText = null,
-                                onAction = null
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            SectionHeader(title = "我的收藏")
+                            if (state.favoriteBooks.isEmpty() && !state.isLoading) {
+                                EmptyState(
+                                    message = "还没有收藏，长按书架封面即可收藏",
+                                    actionText = null,
+                                    onAction = null
+                                )
+                            }
+                            BookRow(
+                                books = state.favoriteBooks,
+                                onBookClick = { onBookClick(it.id) },
+                                onBookLongClick = { book -> viewModel.unfavorite(book.id) },
                             )
                         }
                     }
+                    
                     if (state.isLoading && state.favoriteBooks.isEmpty()) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             Box(

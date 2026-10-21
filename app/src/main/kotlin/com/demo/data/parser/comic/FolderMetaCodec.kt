@@ -1,4 +1,4 @@
-package com.demo.data.parser
+package com.demo.data.parser.comic
 
 import com.demo.core.model.ComicChapter
 
