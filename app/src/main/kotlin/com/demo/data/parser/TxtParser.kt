@@ -214,7 +214,7 @@ class TxtParser(
             val end = (offset + chunk).coerceAtMost(size)
             chapters.add(Chapter(
                 index = index,
-                title = "分卷 ${index + 1}}",
+                title = "第${index + 1}卷",
                 startOffset = offset,
                 endOffset = if (end >= size) -1L else end
             ))

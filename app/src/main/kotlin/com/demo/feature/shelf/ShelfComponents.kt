@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import com.demo.core.model.Book
 import com.demo.core.model.BookGroup
 import com.demo.core.model.BuiltInGroup
-import com.demo.core.model.ThemeMode
 
 import com.demo.core.ui.components.CoverSkeleton
 import com.demo.core.ui.glass.GlassIconButton
@@ -140,10 +139,15 @@ fun SkeletonRow(count: Int = 4) {
     }
 }
 
-/** 顶部操作区：主题切换 + 设置 */
+/**
+ * 顶部操作区：主题切换 + 设置
+ *
+ * @param darkNow 当前**实际生效**的深浅（跟随系统时也已折算），
+ *                图标与点击行为都以它为准，保证点一次必换肤。
+ */
 @Composable
 fun TopBarActions(
-    themeMode: ThemeMode,
+    darkNow: Boolean,
     onToggleTheme: () -> Unit,
     onSettings: () -> Unit
 ) {
@@ -151,11 +155,7 @@ fun TopBarActions(
         GlassIconButton(onClick = onToggleTheme, modifier = Modifier.size(36.dp)) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
-                    imageVector = when (themeMode) {
-                        ThemeMode.DARK -> Icons.Default.DarkMode
-                        ThemeMode.LIGHT -> Icons.Default.LightMode
-                        ThemeMode.SYSTEM -> Icons.Default.DarkMode
-                    },
+                    imageVector = if (darkNow) Icons.Default.DarkMode else Icons.Default.LightMode,
                     contentDescription = "切换主题",
                     modifier = Modifier.size(18.dp)
                 )

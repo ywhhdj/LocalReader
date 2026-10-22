@@ -12,15 +12,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+import com.demo.core.common.util.MemoryPressure
 import com.demo.core.common.util.VolumeSplitter
 import com.demo.core.model.AppSettings
 import com.demo.core.model.Book
 import com.demo.core.model.BookBlock
 import com.demo.core.model.BookType
 import com.demo.core.model.Chapter
+import com.demo.core.model.TtsTimbre
 
 import com.demo.domain.repository.NovelContent
 import com.demo.domain.repository.ProgressRepository
@@ -28,6 +31,7 @@ import com.demo.domain.repository.ReaderRepository
 import com.demo.domain.repository.SettingsRepository
 import com.demo.domain.repository.TtsEngine
 import com.demo.domain.repository.TtsState
+import com.demo.domain.repository.TtsVoice
 import com.demo.domain.usecase.GetBookUseCase
 import com.demo.domain.usecase.OpenNovelUseCase
 import com.demo.domain.usecase.ReadingSessionUseCase
@@ -45,7 +49,9 @@ data class NovelReaderUiState(
     val canPrev: Boolean = false,
     val canNext: Boolean = false,
     /** 朗读状态 */
-    val tts: TtsState = TtsState()
+    val tts: TtsState = TtsState(),
+    /** 朗读会话是否激活：开始朗读后置 true，点击关闭后回到 false（暂停期间也保持 true，进度球不消失） */
+    val ttsActive: Boolean = false,
 )
 
 /**
@@ -65,10 +71,17 @@ class NovelReaderViewModel(
     private val _uiState = MutableStateFlow(NovelReaderUiState())
     val uiState: StateFlow<NovelReaderUiState> = _uiState.asStateFlow()
 
+    /** 朗读进度 0f..1f（关闭朗读时清零） */
+    private val _ttsProgress = MutableStateFlow(0f)
+    val ttsProgress: StateFlow<Float> = _ttsProgress.asStateFlow()
+
     private var content: NovelContent? = null
     private var sessionId: Long = 0L
     private var sessionStartAt: Long = 0L
     private var bookId: Long = 0L
+
+    /** 内存紧张时释放章节缓存的订阅；onCleared 里取消注册 */
+    private var unregisterMemoryPressure: (() -> Unit)? = null
 
     /**
      * 章节内容缓存：最多 10 章，且总字符数受 [MAX_CACHE_CHARS] 限制。
@@ -117,6 +130,11 @@ class NovelReaderViewModel(
     private val flushScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     init {
+        // 内存紧张时优先让出可再生的章节缓存（当前页 blocks 仍在 UI state 里，不影响阅读）
+        unregisterMemoryPressure = MemoryPressure.register {
+            chapterCache.clear()
+            cachedChars = 0
+        }
         viewModelScope.launch {
             settingsRepository.observe().collectLatest { settings ->
                 _uiState.update { it.copy(settings = settings) }
@@ -137,6 +155,10 @@ class NovelReaderViewModel(
                     tts.chunkCount > 0 && tts.chunkIndex >= tts.chunkCount
                 wasSpeaking = tts.speaking
                 _uiState.update { it.copy(tts = tts) }
+                // 环形进度：按已读句数折算；句数未知时回落 0，避免显示成 100%
+                _ttsProgress.value =
+                    if (tts.chunkCount > 0) (tts.chunkIndex.toFloat() / tts.chunkCount).coerceIn(0f, 1f)
+                    else 0f
                 if (finished && _uiState.value.settings.ttsAutoNext && _uiState.value.canNext) {
                     nextChapter()
                     // 等待新章节内容渲染完成后再继续朗读
@@ -178,6 +200,8 @@ class NovelReaderViewModel(
                 }
                 sessionId = session.start(book.id, BookType.NOVEL)
                 sessionStartAt = System.currentTimeMillis()
+                // 预热 TTS 引擎：避免首次点击「朗读」时才初始化导致卡顿
+                ttsEngine.prewarm()
                 loadChapterInternal(index)
             }.onFailure { e ->
                 _uiState.update { it.copy(loading = false, error = e.message ?: "打开失败") }
@@ -190,7 +214,9 @@ class NovelReaderViewModel(
         if (index !in chapters.indices) return
         // 同时收起目录抽屉与设置面板，避免两者叠在一起
         _uiState.update { it.copy(chapterIndex = index, showToc = false, showSettings = false) }
-        viewModelScope.launch { loadChapterInternal(index) }
+        viewModelScope.launch { 
+            loadChapterInternal(index) 
+        }
     }
 
     fun nextChapter() = jumpToChapter(_uiState.value.chapterIndex + 1)
@@ -216,8 +242,12 @@ class NovelReaderViewModel(
             val book = _uiState.value.book ?: return
             openNovel(book).also { content = it }
         }
-        val raw = runCatching { opened.loadChapter(index) }
-            .getOrDefault(listOf(BookBlock.Paragraph("（章节加载失败）")))
+        // 章节解析（读文件 / 解 zip）走 IO 线程
+        // 大章节会阻塞排版造成切章掉帧甚至 ANR。
+        val raw = withContext(Dispatchers.IO) {
+            runCatching { opened.loadChapter(index) }
+                .getOrDefault(listOf(BookBlock.Paragraph("（章节加载失败）")))
+        }
         // 双保险：解析器已去掉重复标题行，这里再兜一层（含卷名写法）
         val chapter = chaptersOf().getOrNull(index)
         val blocks = if (chapter == null) raw else {
@@ -225,7 +255,7 @@ class NovelReaderViewModel(
                 raw,
                 listOf(chapter.title, VolumeSplitter.displayTitle(chapter))
             )
-        }
+        }.let { splitParagraphLines(it) }
         putChapter(index, blocks)
         _uiState.update {
             it.copy(
@@ -268,22 +298,46 @@ class NovelReaderViewModel(
     private fun startTts() {
         val blocks = _uiState.value.blocks
         if (blocks.isEmpty()) return
-        val text = buildString {
-            blocks.forEach { block ->
-                when (block) {
-                    is BookBlock.Paragraph -> append(block.text).append('\n')
-                    is BookBlock.Heading -> append(block.text).append('\n')
-                    is BookBlock.Quote -> append(block.text).append('\n')
-                    is BookBlock.Image -> Unit
-                    BookBlock.Break -> append('\n')
+        viewModelScope.launch {
+            val text = withContext(Dispatchers.Default) {
+                buildString {
+                    blocks.forEach { block ->
+                        when (block) {
+                            is BookBlock.Paragraph -> append(block.text).append('\n')
+                            is BookBlock.Heading -> append(block.text).append('\n')
+                            is BookBlock.Quote -> append(block.text).append('\n')
+                            is BookBlock.Image -> Unit
+                            BookBlock.Break -> append('\n')
+                        }
+                    }
                 }
             }
-        }
-        viewModelScope.launch {
             ttsEngine.setRate(_uiState.value.settings.ttsRate)
             ttsEngine.setPitch(_uiState.value.settings.ttsPitch)
             ttsEngine.speak(text)
         }
+    }
+
+    /** 悬浮球入口：开始朗读当前章节 */
+    fun startTtsFromFab() {
+        _uiState.update { it.copy(ttsActive = true) }
+        startTts()
+    }
+
+    /** 暂停（系统 TTS 无 pause，内部以 stop + 记录句位实现） */
+    fun pauseTts() = ttsEngine.pause()
+
+    /** 从暂停处继续 */
+    fun resumeTts() = ttsEngine.resume()
+
+    /**
+     * 结束朗读并清空进度：回到右下角「朗读」悬浮球。
+     * 与 [stopTts] 的区别是会额外把播放位置清零（关闭按钮用这个）。
+     */
+    fun cancelTts() {
+        ttsEngine.stop()
+        _ttsProgress.value = 0f
+        _uiState.update { it.copy(ttsActive = false, tts = TtsState(available = it.tts.available)) }
     }
 
     fun stopTts() = ttsEngine.stop()
@@ -295,7 +349,32 @@ class NovelReaderViewModel(
 
     fun setTtsPitch(pitch: Float) {
         ttsEngine.setPitch(pitch)
-        updateSettings { it.copy(ttsPitch = pitch) }
+        updateSettings { 
+            it.copy(ttsPitch = pitch) 
+        }
+    }
+
+    /** 音色预设：落到音调 + 语速并持久化（不下载任何语音包） */
+    fun setTtsTimbre(timbre: TtsTimbre) {
+        ttsEngine.setPitch(timbre.pitch)
+        ttsEngine.setRate(timbre.rate)
+        updateSettings { 
+            it.copy(ttsTimbre = timbre, ttsPitch = timbre.pitch, ttsRate = timbre.rate) 
+        }
+    }
+
+    /** 打开系统「文字转语音」设置（用户在那里下载语音包） */
+    fun openSystemTtsSettings() = ttsEngine.openSystemSettings()
+
+    /** 系统语音列表（引擎未就绪时为空，UI 会提示） */
+    fun ttsVoices(): List<TtsVoice> = runCatching { 
+        ttsEngine.availableVoices()
+    }.getOrDefault(emptyList())
+
+    /** 选择系统语音 */
+    fun setTtsVoice(name: String) {
+        ttsEngine.setVoice(name)
+        updateSettings { it.copy(ttsVoiceName = name) }
     }
 
     /** 目录抽屉与设置面板互斥：同时展开会叠在一起，且点章跳转后应自动收起 */
@@ -310,7 +389,9 @@ class NovelReaderViewModel(
     }
 
     fun updateSettings(transform: (AppSettings) -> AppSettings) {
-        viewModelScope.launch { settingsRepository.update(transform) }
+        viewModelScope.launch { 
+            settingsRepository.update(transform)
+        }
     }
 
     /** 退出前强制落盘最近一次滚动位置（走 flushScope，viewModelScope 此时已取消） */
@@ -319,7 +400,9 @@ class NovelReaderViewModel(
         if (state.chapters.isEmpty() || bookId <= 0L) return
         val progress = ((state.chapterIndex + 1).toFloat() / state.chapters.size).coerceAtMost(1f)
         flushScope.launch {
-            runCatching { progressRepository.saveNovel(bookId, state.chapterIndex, 0, progress) }
+            runCatching { 
+                progressRepository.saveNovel(bookId, state.chapterIndex, 0, progress)
+            }
         }
     }
 
@@ -332,10 +415,14 @@ class NovelReaderViewModel(
 
     override fun onCleared() {
         super.onCleared()
+        unregisterMemoryPressure?.invoke()
+        unregisterMemoryPressure = null
         runCatching { ttsEngine.stop() }
         flushProgress()
         flushScope.launch {
-            runCatching { session.end(sessionId, sessionStartAt, BookType.NOVEL) }
+            runCatching { 
+                session.end(sessionId, sessionStartAt, BookType.NOVEL)
+            }
         }
         content?.close()
         content = null

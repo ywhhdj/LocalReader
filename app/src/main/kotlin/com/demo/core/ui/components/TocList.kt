@@ -4,7 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -17,6 +21,71 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 import com.demo.core.common.util.VolumeSplitter
+import com.demo.core.model.ComicChapter
+
+/**
+ * 漫画话集列表（阅读器目录抽屉 / 详情页话集共用）。
+ *
+ * 与小说目录保持一致的交互：整话一行，点击即跳到该话首页；
+ * 当前话高亮并显示话内页数，便于在长篇里定位。
+ */
+@Composable
+fun ComicTocList(
+    chapters: List<ComicChapter>,
+    currentIndex: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    textColor: Color = Color.Unspecified,
+    highlightColor: Color = MaterialTheme.colorScheme.primary,
+    header: (@Composable () -> Unit)? = null
+) {
+    // 未指定颜色时回落到 onSurface：Color.Unspecified 做 copy(alpha) 会得到不可预期的透明色
+    val bodyColor = if (textColor == Color.Unspecified) MaterialTheme.colorScheme.onSurface else textColor
+
+    Column(modifier.fillMaxSize()) {
+        header?.invoke()
+        if (chapters.isEmpty()) {
+            Text(
+                text = "暂无话集",
+                style = MaterialTheme.typography.bodyMedium,
+                color = bodyColor,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            itemsIndexed(chapters, key = { _, chapter -> chapter.index }) { _, chapter ->
+                val selected = chapter.index == currentIndex
+                val pageCount = chapter.pageCount.coerceAtLeast(chapter.endIndex - chapter.startIndex + 1)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            if (selected) highlightColor.copy(alpha = 0.10f) else Color.Transparent
+                        )
+                        .clickable { onSelect(chapter.index) }
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = chapter.title,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (selected) highlightColor else bodyColor,
+                        maxLines = 2,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "${pageCountSafe(pageCount)}页",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (selected) highlightColor else bodyColor.copy(alpha = 0.6f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun pageCountSafe(count: Int): Int = count.coerceAtLeast(1)
 
 /**
  * 分卷目录列表（小说阅读器目录抽屉 / 书籍详情页目录抽屉共用）。

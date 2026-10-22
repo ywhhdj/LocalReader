@@ -26,10 +26,46 @@ data class PageItem(
 )
 
 /**
+ * 把「块内硬换行」拆成独立段落。
+ *
+ * 为什么必须拆：TextStyle.textIndent 只作用于**段落首行**，而 TXT / 部分 EPUB
+ * 经常整章只解析出一个 block、靠 '\n' 分行（TXT 常见"一行一段"格式）。
+ * 不拆分的话，整章只有第一行会缩进，跨页后续块还会被判成续块 —— 也就是
+ * "只有第一页有缩进、其余页全都没缩进"。
+ *
+ * 拆分后每个自然行都是独立 block：每段各自首行缩进，复制正文依旧不带多余空格。
+ */
+fun splitParagraphLines(blocks: List<BookBlock>): List<BookBlock> {
+    val out = ArrayList<BookBlock>(blocks.size + 16)
+    var changed = false
+    for (block in blocks) {
+        val text = when (block) {
+            is BookBlock.Heading -> block.text
+            is BookBlock.Paragraph -> block.text
+            is BookBlock.Quote -> block.text
+            else -> null
+        }
+        if (text == null || !text.contains('\n')) {
+            out.add(block)
+            continue
+        }
+        val lines = text.split('\n').map { it.trim() }.filter { it.isNotBlank() }
+        if (lines.size <= 1 || out.size + lines.size > MAX_SPLIT_BLOCKS) {
+            out.add(block)
+            continue
+        }
+        changed = true
+        for (line in lines) out.add(block.copyText(line))
+    }
+    return if (changed) out else blocks
+}
+
+/**
  * 将整章 blocks 按 [pageWidth] × [pageHeight] 切成多页。
  *
  * 处理规则：
  * - Paragraph / Quote：可切分（一次测量拿到高度，放不下时用 getLineEnd 找切点）；
+ * - 单段在本页只剩 1 行空间时整体挪到下一页（避免"孤儿行"，也让下一页的段落能正常首行缩进）；
  * - Heading / Image / Break：不可切分，放不下则先 flush 到新页；
  * - Image：独占一页（高度未知，避免估算误差）；
  * - 分页算法不会产生空页（除非整章无内容）。
@@ -85,6 +121,7 @@ fun paginateNovel(
     fun paginateText(block: BookBlock, text: String, isQuote: Boolean) {
         var remaining = text
         var firstChunk = true
+        var splits = 0
         val vPad = if (isQuote) quoteVPad else paragraphVPad
         val hPad = if (isQuote) quoteHPad else 0f
         val contentWidth = (pageWidth - hPad * 2).toInt().coerceAtLeast(1)
@@ -114,6 +151,15 @@ fun paginateNovel(
                         remaining = ""
                     }
                 } else {
+                    // 孤儿行控制：本页只剩 1 行、而该段还有更多行时，整段挪到下一页。
+                    // 1) 观感：页脚单独吊一行很难看；
+                    // 2) 缩进：下一页开头就是完整段落，能正常首行缩进，而不是"续块不缩进"。
+                    if (fitLines < MIN_LINES_ON_PAGE && layout.lineCount > fitLines + 1 &&
+                        current.isNotEmpty() && splits < MAX_SPLITS_PER_BLOCK
+                    ) {
+                        flush()
+                        continue
+                    }
                     val end = layout.getLineEnd(fitLines - 1)
                     val head = remaining.substring(0, end)
                     val tail = remaining.substring(end).trimStart('\n', '\r')
@@ -123,6 +169,7 @@ fun paginateNovel(
                     flush()
                     remaining = tail
                     firstChunk = false
+                    splits++
                 }
             }
         }
@@ -165,6 +212,13 @@ fun paginateNovel(
  */
 fun paragraphIndent(fontSize: Int, isContinuation: Boolean): TextIndent =
     if (isContinuation) TextIndent.None else TextIndent(firstLine = (fontSize * 2).sp)
+
+/** 一个段落留在当前页的最小行数：不足则整段挪到下一页（孤儿行控制） */
+private const val MIN_LINES_ON_PAGE = 2
+/** 单个段落最多切分次数：超长段落（几万字不断行）不至于把分页拖成 O(n²) */
+private const val MAX_SPLITS_PER_BLOCK = 40
+/** 按行拆分后的整章块数上限，避免异常文本生成海量 Composable */
+private const val MAX_SPLIT_BLOCKS = 3000
 
 /** 在当前可用高度内最多能放下多少行（二分查找） */
 private fun fitLines(layout: TextLayoutResult, availableHeight: Float): Int {

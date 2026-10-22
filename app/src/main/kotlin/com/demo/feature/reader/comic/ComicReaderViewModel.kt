@@ -16,8 +16,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 import com.demo.core.common.util.Logger
+import com.demo.core.common.util.MemoryPressure
 import com.demo.core.model.AppSettings
 import com.demo.core.model.Book
 import com.demo.core.model.BookType
@@ -42,6 +44,9 @@ data class ComicReaderUiState(
     val pageIndex: Int = 0,
     /** 话列表（短篇/CBZ/PDF 为 1 话） */
     val chapters: List<ComicChapter> = emptyList(),
+    val showSettings: Boolean = false,
+    /** 话集抽屉（与小说目录同样的交互：点击即跳到该话首页） */
+    val showToc: Boolean = false,
     val chapterIndex: Int = 0,
     val loading: Boolean = true,
     val settings: AppSettings = AppSettings(),
@@ -110,7 +115,16 @@ class ComicReaderViewModel(
      */
     private val flushScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    /** 内存紧张时的释放订阅 */
+    private var unregisterMemoryPressure: (() -> Unit)? = null
+
     init {
+        // 宽高比缓存可再生（缺失时回落到 ComicPage.aspect 占位），先让出它；
+        // 已解析的页路径保留，避免正在看的几页突然变空白。
+        unregisterMemoryPressure = MemoryPressure.register {
+            aspectMap.clear()
+            pageAspectsState.value = emptyMap()
+        }
         viewModelScope.launch {
             settingsRepository.observe().collectLatest { settings ->
                 preload = settings.comicPreload.coerceIn(4, 6)
@@ -189,10 +203,20 @@ class ComicReaderViewModel(
         val state = _uiState.value
         val chapter = state.chapters.getOrNull(index) ?: return
         val target = chapter.startIndex.coerceIn(0, state.pages.lastIndex.coerceAtLeast(0))
-        _uiState.update { it.copy(chapterIndex = index, pageIndex = target) }
+        _uiState.update { it.copy(chapterIndex = index, pageIndex = target, showToc = false) }
         ensureWindow(target)
         _scrollRequest.value = PageScrollRequest(target, ++scrollToken)
         viewModelScope.launch { commitProgress(target) }
+    }
+
+    /** 话集抽屉：与设置面板 / 底部栏互斥，点话后自动收起 */
+    fun toggleToc(show: Boolean? = null) = _uiState.update {
+        val next = show ?: !it.showToc
+        it.copy(showToc = next,showSettings = if (next) false else it.showSettings)
+    }
+    fun toggleSettings(show: Boolean? = null)= _uiState.update {
+        val next = show ?: !it.showSettings
+        it.copy(showSettings = next, showToc = if (next) false else it.showToc)
     }
 
     /** 进入下一话（最后一话时无动作，由 UI 判断显隐） */
@@ -218,11 +242,21 @@ class ComicReaderViewModel(
     /** 相对翻页（音量键等） */
     fun stepPage(delta: Int) = jumpToPage(_uiState.value.pageIndex + delta)
 
+    /**
+     * 进度落库。
+     *
+     * 两点修正：
+     * 1) 去掉原先的 +0.05f 魔法补偿（会让进度虚高 5%，书架百分比对不上实际页数）；
+     * 2) 读到最后一页时进度直接记 1f —— 滑到最后一张底部就算读完，
+     *    不再差最后一页进不了"已读完成"。
+     */
     private suspend fun commitProgress(index: Int) {
         val total = _uiState.value.pages.size
         if (total <= 0 || bookId <= 0L) return
-        val progress = (((index + 1).toFloat() / total)+0.05f).coerceIn(0f, 1f)
-        runCatching { progressRepository.saveComic(bookId, index, total, progress) }
+        val last = total - 1
+        val safe = index.coerceIn(0, last)
+        val progress = if (safe >= last) 1f else (safe + 1).toFloat() / total.toFloat()
+        runCatching { progressRepository.saveComic(bookId, safe, total, progress) }
     }
 
     /** 仅保留窗口内的解析结果，窗口外从内存移除（磁盘缓存保留） */
@@ -239,11 +273,16 @@ class ComicReaderViewModel(
         windowFrom = from
         windowTo = to
 
-        resolved.keys.toList().filter { it !in from..to }.forEach { resolved.remove(it) }
+        // 用迭代器原地删除：旧实现每次都 toList() 复制一份 key 集合，快速滚动时白白产生垃圾
+        resolved.entries.iterator().let { itr ->
+            while (itr.hasNext()) if (itr.next().key !in from..to) itr.remove()
+        }
         // 宽高比保留更宽的范围（±ASPECT_KEEP），回滚少量页时占位高度仍然准确
         val keepFrom = (center - ASPECT_KEEP).coerceAtLeast(0)
         val keepTo = center + ASPECT_KEEP
-        aspectMap.keys.toList().filter { it !in keepFrom..keepTo }.forEach { aspectMap.remove(it) }
+        aspectMap.entries.iterator().let { itr ->
+            while (itr.hasNext()) if (itr.next().key !in keepFrom..keepTo) itr.remove()
+        }
         pagePaths.value = resolved.toMap()
         pageAspectsState.value = aspectMap.toMap()
 
@@ -251,17 +290,21 @@ class ComicReaderViewModel(
         windowJob = viewModelScope.launch {
             for (i in from..to) {
                 if (resolved.containsKey(i)) continue
-                val path = runCatching { content?.resolvePage(i) }.getOrNull()
-                if (path != null) {
-                    // 先量出宽高比再发布路径：占位与最终图片高度一致，滚动不跳动
-                    val ratio = runCatching { readAspect(path) }.getOrDefault(0f)
-                    if (ratio > 0f) {
-                        aspectMap[i] = ratio
-                        pageAspectsState.value = aspectMap.toMap()
-                    }
-                    resolved[i] = path
-                    pagePaths.value = resolved.toMap()
+                // 解压（zip 条目 / PDF 渲染）与宽高比探测都走 IO 线程：
+                // 这些是磁盘 + 解码重活，放在主线程会直接卡住滚动。
+                val decoded: Pair<String, Float>? = withContext(Dispatchers.IO) {
+                    val path = runCatching { content?.resolvePage(i) }.getOrNull() ?: return@withContext null
+                    path to runCatching { readAspect(path) }.getOrDefault(0f)
                 }
+                if (decoded == null) continue
+                val (path, ratio) = decoded
+                // 先量出宽高比再发布路径：占位与最终图片高度一致，滚动不跳动
+                if (ratio > 0f) {
+                    aspectMap[i] = ratio
+                    pageAspectsState.value = aspectMap.toMap()
+                }
+                resolved[i] = path
+                pagePaths.value = resolved.toMap()
             }
         }
     }
@@ -283,6 +326,8 @@ class ComicReaderViewModel(
 
     override fun onCleared() {
         super.onCleared()
+        unregisterMemoryPressure?.invoke()
+        unregisterMemoryPressure = null
         windowJob?.cancel()
         val lastIndex = _uiState.value.pageIndex
         flushScope.launch {

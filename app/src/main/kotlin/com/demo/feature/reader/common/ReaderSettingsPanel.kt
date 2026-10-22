@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.FormatSize
+import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 
+import com.demo.core.model.PageTurnMode
 import com.demo.core.model.ReaderBackground
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.ReaderShapes
@@ -48,7 +50,12 @@ fun ReaderSettingsPanel(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     showTextSettings: Boolean = true,
-    onOpenToc: (() -> Unit)? = null
+    onOpenToc: (() -> Unit)? = null,
+    /** 非空时显示「翻页动画」选择（仅小说） */
+    pageTurnMode: PageTurnMode? = null,
+    onPageTurn: ((PageTurnMode) -> Unit)? = null,
+    /** 非空时显示「听读设置」入口（仅小说） */
+    onOpenTtsSettings: (() -> Unit)? = null
 ) {
     val color= readerColors(background)
     GlassSurface(
@@ -59,22 +66,48 @@ fun ReaderSettingsPanel(
         shape = ReaderShapes.extraSmall,
     ) {
         Column(Modifier.padding(16.dp)) {
-            // 目录入口：点开抽屉后可直接跳章 / 跳卷
-            if (onOpenToc != null) {
-                FilterChip(
-                    selected = false,
-                    onClick = onOpenToc,
-                    label = { Text("目录", style = MaterialTheme.typography.labelLarge) },
-                    leadingIcon = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.List,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    },
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+            Row(Modifier.fillMaxWidth()){
+                // 目录入口：点开抽屉后可直接跳章 / 跳卷
+                if (onOpenToc != null) {
+                    FilterChip(
+                        selected = false,
+                        onClick = onOpenToc,
+                        label = { Text(
+                            "目录",
+                            style = MaterialTheme.typography.labelLarge
+                        ) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.List,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Spacer(Modifier.width(10.dp))
+                }
+                if (onOpenTtsSettings != null) {
+                    FilterChip(
+                        selected = false,
+                        onClick = onOpenTtsSettings,
+                        label = { Text(
+                            "听读设置",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        ) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.RecordVoiceOver,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
             }
+            
             if (showTextSettings) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.FormatSize, contentDescription = null)
@@ -114,6 +147,20 @@ fun ReaderSettingsPanel(
                         label = { Text(labelOf(bg)) },
                         modifier = Modifier.padding(start = 4.dp)
                     )
+                }
+            }
+            if (pageTurnMode != null && onPageTurn != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("翻页动画", style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.width(8.dp))
+                    PageTurnMode.entries.forEach { mode ->
+                        FilterChip(
+                            selected = mode == pageTurnMode,
+                            onClick = { onPageTurn(mode) },
+                            label = { Text(mode.label) },
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {

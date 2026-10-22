@@ -175,13 +175,22 @@ class ShelfViewModel(
         _uiState.update { it.copy(gridMode = mode) }
     }
 
+    /**
+     * 搜索：每次输入都会取消上一次未完成的查询。
+     *
+     * 旧实现每次输入都新开一个协程，先发的慢查询会后返回并覆盖新关键词的结果，
+     * 快速打字后结果经常"串台"。这里用同一个 Job 串行化 + 300ms 防抖。
+     */
+    private var searchJob: kotlinx.coroutines.Job? = null
+
     fun search(keyword: String) {
         _uiState.update { it.copy(keyword = keyword) }
-        viewModelScope.launch {
-            if (keyword.isBlank()) {
-                _uiState.update { it.copy(searchResults = emptyList()) }
-                return@launch
-            }
+        searchJob?.cancel()
+        if (keyword.isBlank()) {
+            _uiState.update { it.copy(searchResults = emptyList()) }
+            return
+        }
+        searchJob = viewModelScope.launch {
             kotlinx.coroutines.delay(300)
             val results = searchBooks(keyword, 100)
             _uiState.update { it.copy(searchResults = results) }
@@ -212,16 +221,20 @@ class ShelfViewModel(
         _uiState.update { it.copy(scan = null) }
     }
 
-    fun toggleTheme() {
-        viewModelScope.launch {
-            val current = _uiState.value.settings.themeMode
-            val next = when (current) {
-                ThemeMode.SYSTEM -> ThemeMode.LIGHT
-                ThemeMode.LIGHT -> ThemeMode.DARK
-                ThemeMode.DARK -> ThemeMode.SYSTEM
-            }
-            updateSettings { it.copy(themeMode = next) }
-        }
+    /**
+     * 顶栏主题按钮：按「当前实际深浅」翻转，点一次必定换肤。
+     *
+     * 旧实现在 SYSTEM / LIGHT / DARK 三态间循环：当系统当前是浅色时，
+     * SYSTEM → LIGHT 这一步视觉上没有任何变化，用户就得多点一次才看到效果。
+     * 这里由 UI 传入当前实际是否深色，直接切成相反的显式模式。
+     */
+    fun toggleTheme(currentDark: Boolean) {
+        setTheme(if (currentDark) ThemeMode.LIGHT else ThemeMode.DARK)
+    }
+
+    /** 直接指定主题（设置页三态选择、恢复「跟随系统」） */
+    fun setTheme(mode: ThemeMode) {
+        viewModelScope.launch { updateSettings { it.copy(themeMode = mode) } }
     }
 
     fun enterSelection(id: Long) = _uiState.update { it.copy(selection = it.selection + id) }

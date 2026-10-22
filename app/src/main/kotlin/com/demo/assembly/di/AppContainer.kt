@@ -35,8 +35,6 @@ import com.demo.domain.usecase.ToggleFavoriteUseCase
 import com.demo.domain.usecase.UpdateProgressUseCase
 import com.demo.domain.usecase.UpdateSettingsUseCase
 
-import com.demo.domain.repository.TtsEngine
-
 import com.demo.feature.detail.DetailViewModel
 import com.demo.feature.profile.ProfileViewModel
 import com.demo.feature.reader.comic.ComicReaderViewModel
@@ -47,7 +45,7 @@ import com.demo.feature.shelf.OnlineSearchViewModel
 import com.demo.feature.shelf.ShelfViewModel
 
 /**
- * 手写 DI 容器：创建顺序 数据库 → 仓储 → 用例 → ViewModel。
+ * DI 容器：创建顺序 数据库 → 仓储 → 用例 → ViewModel。
  */
 class AppContainer(context: Context) : ViewModelProvider.Factory {
 
@@ -88,47 +86,88 @@ class AppContainer(context: Context) : ViewModelProvider.Factory {
 
     val settingsRepository = repos.settingsRepository
     val bookCacheDir = repos.bookCacheDir
-    val ttsEngine: TtsEngine = repos.ttsEngine
+    val ttsEngine = repos.ttsEngine
     val bookSourceRepository = repos.bookSourceRepository
     val safScanner = repos.safScanner
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when (modelClass) {
         ShelfViewModel::class.java -> ShelfViewModel(
-            loadHomeSections, loadShelfPage, observeGroups, observeSettings, updateSettings,
-            searchBooks, importBooks, createGroup, toggleFavorite, moveToGroup, deleteBooks
+            loadHomeSections,
+            loadShelfPage,
+            observeGroups,
+            observeSettings,
+            updateSettings,
+            searchBooks,
+            importBooks,
+            createGroup,
+            toggleFavorite,
+            moveToGroup,
+            deleteBooks
         ) as T
 
         FavoritesViewModel::class.java -> FavoritesViewModel(
-            loadHomeSections, loadShelfPage, observeSettings, toggleFavorite, deleteBooks
+            loadHomeSections,
+            loadShelfPage,
+            observeSettings,
+            toggleFavorite,
+            deleteBooks
         ) as T
 
         OnlineSearchViewModel::class.java -> OnlineSearchViewModel(
-            onlineSources, onlineSearch, onlineChapters, repos.bookSourceRepository,
-            importBooks, observeSettings
+            onlineSources,
+            onlineSearch,
+            onlineChapters,
+            repos.bookSourceRepository,
+            importBooks,
+            observeSettings
         ) as T
 
         DetailViewModel::class.java -> DetailViewModel(
-            getBook, observeGroups, toggleFavorite, moveToGroup, deleteBooks,
-            updateProgress, repos.readerRepository
+            getBook,
+            observeGroups,
+            toggleFavorite,
+            moveToGroup,
+            deleteBooks,
+            updateProgress,
+            repos.readerRepository
         ) as T
 
         NovelReaderViewModel::class.java -> NovelReaderViewModel(
-            getBook, openNovel, repos.readerRepository, repos.progressRepository,
-            repos.settingsRepository, session, repos.ttsEngine
+            getBook,
+            openNovel,
+            repos.readerRepository,
+            repos.progressRepository,
+            repos.settingsRepository,
+            session,
+            repos.ttsEngine
         ) as T
 
         ComicReaderViewModel::class.java -> ComicReaderViewModel(
-            getBook, openComic, repos.progressRepository, repos.settingsRepository, session
+            getBook,
+            openComic,
+            repos.progressRepository,
+            repos.settingsRepository,
+            session
         ) as T
 
         ProfileViewModel::class.java -> ProfileViewModel(
-            getStats, repos.statsRepository, observeSettings, updateSettings
+            getStats,
+            repos.statsRepository,
+            observeSettings,
+            updateSettings
         ) as T
 
         SettingsViewModel::class.java -> SettingsViewModel(
-            observeSettings, updateSettings, repos.storageRepository,
-            testSync, backupNow, listBackups, restoreBackup, exportSnapshot, importSnapshot,
+            observeSettings,
+            updateSettings,
+            repos.storageRepository,
+            testSync,
+            backupNow,
+            listBackups,
+            restoreBackup,
+            exportSnapshot,
+            importSnapshot,
             onlineSources
         ) as T
 

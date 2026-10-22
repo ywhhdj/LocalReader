@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -73,6 +74,7 @@ import com.demo.core.model.Book
 import com.demo.core.model.BookType
 import com.demo.core.model.GridMode
 import com.demo.core.model.SortOrder
+import com.demo.core.model.ThemeMode
 import com.demo.core.ui.components.AppBackdrop
 import com.demo.core.ui.components.BookCoverCard
 import com.demo.core.ui.components.EmptyState
@@ -99,6 +101,7 @@ fun ShelfScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val darkNow = isDarkTheme(state.settings.themeMode)
     val gridState = rememberLazyGridState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -140,8 +143,8 @@ fun ShelfScreen(
                     },
                     actions = {
                         TopBarActions(
-                            themeMode = state.settings.themeMode,
-                            onToggleTheme = viewModel::toggleTheme,
+                            darkNow = darkNow,
+                            onToggleTheme = {  viewModel.toggleTheme(darkNow) },
                             onSettings = onSettings
                         )
                     }
@@ -311,6 +314,17 @@ fun ShelfScreen(
             }
         )
     }
+}
+
+/**
+ * 当前实际生效的深浅：跟随系统时按系统深色模式折算。
+ * 顶栏图标与点击行为都以此为准，避免 SYSTEM → LIGHT 这一步"点了没反应"。
+ */
+@Composable
+private fun isDarkTheme(mode: ThemeMode): Boolean = when (mode) {
+    ThemeMode.LIGHT -> false
+    ThemeMode.DARK -> true
+    ThemeMode.SYSTEM -> isSystemInDarkTheme()
 }
 
 // 网格模式切换按钮 + 下拉菜单

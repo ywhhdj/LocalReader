@@ -59,6 +59,16 @@ class FileScanner(
     var stopped = false
     var lastEmit = 0L
 
+    /** 按已入库书籍的 SAF URI 回收孤儿物化目录 */
+    suspend fun reclaimSafCache() {
+      val active = withContext(Dispatchers.IO) {
+        runCatching { 
+          bookDao.allSourceUris()
+        }.getOrDefault(emptyList())
+      }.filter { it.isNotBlank() }.toSet()
+      safScanner.cleanOrphans(active)
+    }
+
     suspend fun flush() {
       if (pending.isEmpty()) return
       withContext(Dispatchers.IO) {
@@ -263,6 +273,10 @@ class FileScanner(
     }
 
     flush()
+    // SAF 物化缓存回收：导入时 SAF 目录会被整份复制到内部存储（漫画可达数百 MB），
+    // 而物化目录此前只增不减（cleanOrphans 从未被调用）。扫描结束后按已入库书籍的
+    // sourceUri 保留有效目录，其余（失败重试残留 / 已删除书籍 / 改名目录）全部清掉。
+    runCatching { reclaimSafCache() }
     delay(10)
     post(
       ScanProgress(

@@ -88,6 +88,10 @@ interface BookDao {
     @Query("SELECT file_path FROM books")
     suspend fun allPaths(): List<String>
 
+    /** 已入库书籍的 SAF 源 URI：用于回收孤儿物化缓存 */
+    @Query("SELECT source_uri FROM books WHERE source_uri IS NOT NULL AND source_uri != ''")
+    suspend fun allSourceUris(): List<String>
+
     /** 全量导出（备份） */
     @Query("SELECT * FROM books ORDER BY id ASC")
     suspend fun all(): List<BookEntity>

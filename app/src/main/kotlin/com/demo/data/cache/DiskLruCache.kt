@@ -11,7 +11,13 @@ import java.util.concurrent.ConcurrentHashMap
 class DiskLruCache(
     private val dir: File,
     private val maxCount: Int,
-    private val maxBytes: Long = Long.MAX_VALUE
+    private val maxBytes: Long = Long.MAX_VALUE,
+    /**
+     * 条目是否递归统计。
+     * 漫画页缓存的 key 形如 "bookId/xxx.webp"（按书分目录），
+     * 非递归时顶层只看到"书目录"：既永远数不到条目上限，淘汰时又会整本书一起删掉。
+     */
+    private val recursive: Boolean = false
 ) {
 
     private val accessMap = ConcurrentHashMap<String, Long>()
@@ -50,20 +56,22 @@ class DiskLruCache(
         val now = System.currentTimeMillis()
         if (!force && now - lastTrimAt < TRIM_INTERVAL_MS) return
         lastTrimAt = now
-        val entries = dir.listFiles()?.toMutableList() ?: return
+        val entries = listEntries()
         var total = entries.sumOf { sizeOf(it) }
         sizeCache = total
         sizeAt = now
         if (entries.size <= maxCount && total <= maxBytes) return
 
         val targetCount = (maxCount * 0.8).toInt().coerceAtLeast(1)
-        val sorted = entries.sortedBy { accessMap[it.name] ?: it.lastModified().toLong() * 1_000_000L }
+        // 用与 touch 一致的相对路径 key 排序，否则永远回退到 lastModified，
+        // LRU 名存实亡（访问过的页面也会被当成最旧的删掉）
+        val sorted = entries.sortedBy { accessMap[relativeKey(it)] ?: it.lastModified().toLong() * 1_000_000L }
         var remaining = entries.size
         for (f in sorted) {
             if (remaining <= targetCount && total <= maxBytes * 0.8) break
             val len = sizeOf(f)
             if (deleteOf(f)) {
-                accessMap.remove(f.name)
+                accessMap.remove(relativeKey(f))
                 total -= len
                 remaining--
             }
@@ -73,7 +81,7 @@ class DiskLruCache(
 
     @Synchronized
     fun clear() {
-        dir.listFiles()?.forEach { deleteOf(it) }
+        listEntries().forEach { deleteOf(it) }
         accessMap.clear()
         sizeCache = 0L
         sizeAt = System.currentTimeMillis()
@@ -87,7 +95,7 @@ class DiskLruCache(
      */
     fun size(force: Boolean = false): Long {
         if (force) {
-            val v = dir.listFiles()?.sumOf { sizeOf(it) } ?: 0L
+            val v = listEntries().sumOf { sizeOf(it) }
             sizeCache = v
             sizeAt = System.currentTimeMillis()
             return v
@@ -96,6 +104,26 @@ class DiskLruCache(
         if (cached >= 0 && System.currentTimeMillis() - sizeAt < SIZE_TTL_MS) return cached
         return size(force = true)
     }
+
+    /**
+     * 参与统计/淘汰的条目列表。
+     * [recursive] = true 时按实际缓存文件为单位（漫画页：bookId/xxx.webp），
+     * 否则按顶层条目（封面：xxx.webp）。
+     */
+    private fun listEntries(): MutableList<File> {
+        val top = dir.listFiles() ?: return mutableListOf()
+        if (!recursive) return top.toMutableList()
+        val out = ArrayList<File>(top.size * 8)
+        for (f in top) {
+            if (f.isDirectory) f.listFiles()?.forEach { out.add(it) }
+            else out.add(f)
+        }
+        return out
+    }
+
+    /** 与 [touch] 使用的 key 对齐：相对缓存根目录的路径 */
+    private fun relativeKey(f: File): String =
+        f.absolutePath.removePrefix(dir.absolutePath).trimStart('/')
 
     private companion object {
         /** 整理节流间隔 */

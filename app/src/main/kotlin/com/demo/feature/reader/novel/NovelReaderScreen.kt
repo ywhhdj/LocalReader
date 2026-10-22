@@ -11,29 +11,22 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Settings
@@ -47,7 +40,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,38 +49,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.ui.graphics.Color
 
 import coil.compose.AsyncImage
 
 import com.demo.core.common.util.VolumeSplitter
 import com.demo.core.model.BookBlock
-import com.demo.core.model.Book
 import com.demo.core.model.Chapter
-import com.demo.core.model.ReaderBackground
 import com.demo.core.ui.components.VolumeTocList
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.ReaderShapes
-import com.demo.feature.reader.common.ReaderSettingsPanel
 import com.demo.core.ui.theme.SheetShape
-import com.demo.core.ui.components.AppSlider
+import com.demo.feature.reader.common.KeepScreenOnEffect
+import com.demo.feature.reader.common.ReaderProgressBar
+import com.demo.feature.reader.common.ReaderTapZone
+import com.demo.feature.reader.common.ReaderTocDrawer
+import com.demo.feature.reader.common.ReaderTopBar
 import com.demo.feature.reader.common.ReaderColors
+import com.demo.feature.reader.common.ReaderSettingsPanel
 import com.demo.feature.reader.common.readerColors
-
-/** 底部翻页热区：宽高占比 */
-private const val TAP_ZONE_WIDTH_RATIO = 0.32f
-private const val TAP_ZONE_HEIGHT_RATIO = 0.22f
+import com.demo.feature.reader.common.rememberReaderInsets
 
 /** 内容左右内边距 */
 private val ContentHorizontalPadding = 20.dp
@@ -102,16 +87,20 @@ fun NovelReaderScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showChrome by remember { mutableStateOf(false) }
     var pageIndex by remember { mutableIntStateOf(0) }
+    val ttsProgress by viewModel.ttsProgress.collectAsStateWithLifecycle()
+    var showTtsSettings by remember { mutableStateOf(false) }
     var forward by remember { mutableStateOf(true) }
-    val colors = readerColors(state.settings.readerBackground)
-    val view = LocalView.current
-    val currentChapter = state.chapters.getOrNull(state.chapterIndex)
-    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-
-    LaunchedEffect(state.settings.keepScreenOn) {
-        view.keepScreenOn = state.settings.keepScreenOn
+    /** 朗读会话是否激活（朗读中 / 已暂停都算，保证进度球不闪） */
+    val ttsActive = state.ttsActive
+    /** 系统语音列表：只在打开听读设置时取一次，避免每次重组都遍历引擎语音 */
+    val ttsVoices = remember(showTtsSettings) {
+        if (showTtsSettings) viewModel.ttsVoices() else emptyList()
     }
+    val colors = readerColors(state.settings.readerBackground)
+    val currentChapter = state.chapters.getOrNull(state.chapterIndex)
+    val insets = rememberReaderInsets()
+
+    KeepScreenOnEffect(state.settings.keepScreenOn)
 
     // 章节切换 → 回到该章首页
     LaunchedEffect(state.chapterIndex) {
@@ -129,7 +118,6 @@ fun NovelReaderScreen(
         return
     }
 
-    // 注意：必须用 BoxWithConstraints 提供 maxWidth/maxHeight 与 BoxScope.align
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
@@ -142,7 +130,7 @@ fun NovelReaderScreen(
             (maxWidth - ContentHorizontalPadding * 2).toPx().toInt().coerceAtLeast(1)
         }
         val pageHeightPx = with(density) {
-            (maxHeight - topInset - bottomInset).toPx().toInt().coerceAtLeast(1)
+            (maxHeight - insets.top - insets.bottom).toPx().toInt().coerceAtLeast(1)
         }
 
         // 合成：章节标题 + 本章 blocks
@@ -171,9 +159,11 @@ fun NovelReaderScreen(
             )
         }
 
-        if (pageIndex > pages.lastIndex) {
-            pageIndex = pages.lastIndex.coerceAtLeast(0)
+        // 字号/行距变化后页数会变少，副作用里把越界页码收回
+        LaunchedEffect(pages.size) {
+            if (pageIndex > pages.lastIndex) pageIndex = pages.lastIndex.coerceAtLeast(0)
         }
+        val safePageIndex = pageIndex.coerceIn(0, pages.lastIndex.coerceAtLeast(0))
 
         fun goNext() {
             forward = true
@@ -187,27 +177,20 @@ fun NovelReaderScreen(
             else if (state.canPrev) viewModel.prevChapter()
         }
 
-        // ---------- 当前页内容（含左右滑动手势） ----------
-        AnimatedContent(
-            targetState = pageIndex,
-            transitionSpec = {
-                if (forward) {
-                    (slideInHorizontally(tween(220)) { it } + fadeIn(tween(220)))
-                        .togetherWith(slideOutHorizontally(tween(220)) { -it } + fadeOut(tween(220)))
-                } else {
-                    (slideInHorizontally(tween(220)) { -it } + fadeIn(tween(220)))
-                        .togetherWith(slideOutHorizontally(tween(220)) { it } + fadeOut(tween(220)))
-                }
-            },
+        // ---------- 当前页内容（含左右滑动手势 + 可切换的翻页动画） ----------
+        PageTurnContainer(
+            pageIndex = safePageIndex,
+            forward = forward,
+            mode = state.settings.pageTurnMode,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
                     start = ContentHorizontalPadding,
                     end = ContentHorizontalPadding,
-                    top = topInset,
-                    bottom = bottomInset
+                    top = insets.top,
+                    bottom = insets.bottom
                 )
-                .pointerInput(pageIndex, pages.size) {
+                .pointerInput(safePageIndex, pages.size) {
                     var accumulated = 0f
                     detectHorizontalDragGestures(
                         onDragStart = { accumulated = 0f },
@@ -226,7 +209,11 @@ fun NovelReaderScreen(
                 }
                 // 轻点：切换顶栏 / 底栏
                 .pointerInput(Unit) {
-                    detectTapGestures(onTap = { showChrome = !showChrome })
+                    detectTapGestures(onTap = {
+                        showChrome = !showChrome
+                        viewModel.toggleSettings(false)
+                        viewModel.toggleToc(false) 
+                    })
                 }
         ) { idx ->
             val page = pages.getOrNull(idx)
@@ -243,73 +230,43 @@ fun NovelReaderScreen(
             }
         }
 
-        // ---------- 左下：上一页 / 上一章 ----------
-        val canPrevPage = pageIndex > 0
-        TapZone(
+        // ---------- 左下 / 右下热区 ----------
+        val canPrevPage = safePageIndex > 0
+        ReaderTapZone(
             alignment = Alignment.BottomStart,
             enabled = !showChrome && !state.showToc && !state.showSettings &&
                 (canPrevPage || state.canPrev),
             label = if (canPrevPage) "上一页" else "上一章",
-            colors = colors,
+            textColor = colors.text,
             onClick = { goPrev() }
         )
 
-        // ---------- 右下：下一页 / 下一章 ----------
-        val canNextPage = pageIndex < pages.lastIndex
-        TapZone(
+        val canNextPage = safePageIndex < pages.lastIndex
+        ReaderTapZone(
             alignment = Alignment.BottomEnd,
             enabled = !showChrome && !state.showToc && !state.showSettings &&
                 (canNextPage || state.canNext),
             label = if (canNextPage) "下一页" else "下一章",
-            colors = colors,
+            textColor = colors.text,
             onClick = { goNext() }
         )
 
-        // ---------- 顶栏 ----------
-        AnimatedVisibility(
+        // ---------- 顶栏（通用） ----------
+        ReaderTopBar(
             visible = showChrome,
-            enter = slideInVertically { -it },
-            exit = slideOutVertically { -it },
-            modifier = Modifier.align(Alignment.TopCenter)
-        ) {
-            GlassSurface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
-                backgroundColor = colors.background
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(WindowInsets.statusBars.asPaddingValues())
-                        .padding(horizontal = 8.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                    Text(
-                        text = state.book?.title.orEmpty(),
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1,
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(onClick = viewModel::toggleTts) {
-                        Icon(
-                            if (state.tts.speaking) Icons.Default.Stop else Icons.Default.RecordVoiceOver,
-                            contentDescription = "朗读",
-                            tint = if (state.tts.speaking) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    IconButton(onClick = viewModel::toggleToc) {
-                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = "目录")
-                    }
-                    IconButton(onClick = viewModel::toggleSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "设置")
-                    }
+            title = state.book?.title.orEmpty(),
+            onBack = onBack,
+            modifier = Modifier.align(Alignment.TopCenter),
+            backgroundColor = colors.background,
+            actions = {
+                IconButton(onClick = viewModel::toggleToc) {
+                    Icon(Icons.AutoMirrored.Filled.List, contentDescription = "目录")
+                }
+                IconButton(onClick = viewModel::toggleSettings) {
+                    Icon(Icons.Default.Settings, contentDescription = "设置")
                 }
             }
-        }
+        )
 
         // ---------- 底栏 ----------
         AnimatedVisibility(
@@ -331,161 +288,108 @@ fun NovelReaderScreen(
                     Text(
                         text = chapterAndPageLabel(
                             currentChapter, state.chapterIndex, state.chapters.size,
-                            pageIndex, pages.size
+                            safePageIndex, pages.size
                         ),
                         style = MaterialTheme.typography.labelMedium
                     )
-                    if (state.chapters.size > 1) {
-                        // 拖动过程中只更新本地值，松手才跳章：避免拖动时连续解析每一章
-                        var chapterSlider by remember(state.chapters.size) {
-                            mutableFloatStateOf((state.chapterIndex + 1).toFloat())
-                        }
-                        LaunchedEffect(state.chapterIndex) {
-                            chapterSlider = (state.chapterIndex + 1).toFloat()
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "上一章",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .clickable {
-                                        if (state.canPrev) {
-                                            chapterSlider--
-                                            viewModel.prevChapter()
-                                        }
-                                    }
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                            AppSlider(
-                                value = chapterSlider,
-                                onValueChange = { chapterSlider = it },
-                                onValueChangeFinished = {
-                                    viewModel.jumpToChapter(chapterSlider.toInt() - 1)
-                                },
-                                valueRange = 1f..state.chapters.size.toFloat(),
-                                modifier = Modifier.weight(1f),
-                                steps = (state.chapters.size - 2).coerceAtLeast(0),
-                                rounded=true,
-                            )
-                            Text(
-                                text = "下一章",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .clickable {
-                                        if (state.canNext) {
-                                            chapterSlider++
-                                            viewModel.nextChapter()
-                                        }
-                                    }
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        // ---------- 目录抽屉 ----------
-        AnimatedVisibility(
-            visible = state.showToc,
-            enter = slideInHorizontally { -it },
-            exit = slideOutHorizontally { -it }
-        ) {
-            Box(Modifier.fillMaxSize()) {
-                // 遮罩在下层：只负责点空白处关闭
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        //遮罩无色
-                        .background(Color.Transparent)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { viewModel.toggleToc(false) }
-                )
-                Column(
-                    Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(0.7f)
-                        .background(colors.background)
-                ) {
-                    VolumeTocList(
-                        entries = VolumeSplitter.tocEntries(state.chapters),
-                        currentIndex = state.chapterIndex,
-                        textColor = colors.text,
-                        onSelect = { index ->
-                            viewModel.jumpToChapter(index)
-                            viewModel.toggleToc(false)
-                        },
-                        header = {
-                            Text(
-                                "目录",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = colors.text,
-                                modifier = Modifier.padding(16.dp)
-                            )
-                        }
+                    // 章节进度条（通用）：拖动本地值，松手跳章
+                    ReaderProgressBar(
+                        current = state.chapterIndex,
+                        count = state.chapters.size,
+                        hasPrev = state.canPrev,
+                        hasNext = state.canNext,
+                        onPrev = viewModel::prevChapter,
+                        onNext = viewModel::nextChapter,
+                        onSeek = { viewModel.jumpToChapter(it) }
                     )
                 }
             }
         }
 
-        // ---------- 朗读控制条 ----------
+        // ---------- 目录抽屉（通用外壳 + 小说专用列表） ----------
+        ReaderTocDrawer(
+            visible = state.showToc,
+            background = colors.background,
+            onDismiss = { viewModel.toggleToc(false) }
+        ) {
+            VolumeTocList(
+                entries = VolumeSplitter.tocEntries(state.chapters),
+                currentIndex = state.chapterIndex,
+                textColor = colors.text,
+                onSelect = { index ->
+                    viewModel.jumpToChapter(index)
+                    viewModel.toggleToc(false)
+                },
+                header = {
+                    Text(
+                        "目录",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = colors.text,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            )
+        }
+
+        // ---------- 右下角「朗读」悬浮球（朗读中隐藏，改由左下角进度球接管） ----------
         AnimatedVisibility(
-            visible = state.tts.speaking || state.tts.error != null,
+            visible = !ttsActive,
+            enter = fadeIn(tween(180)),
+            exit = fadeOut(tween(180)),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 72.dp)
+        ) {
+            TtsFab(onClick = viewModel::startTtsFromFab)
+        }
+
+        // ---------- 左下角「朗读进度」悬浮球 ----------
+        AnimatedVisibility(
+            visible = ttsActive,
+            enter = slideInHorizontally { -it } + fadeIn(),
+            exit = slideOutHorizontally { -it } + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 16.dp, bottom = 72.dp)
+        ) {
+            TtsProgressOrb(
+                title = state.book?.title.orEmpty(),
+                coverPath = state.book?.coverPath,
+                progress = ttsProgress,
+                playing = state.tts.speaking,
+                onTogglePlay = { 
+                    if (state.tts.speaking) viewModel.pauseTts() 
+                    else viewModel.resumeTts() 
+                },
+                onClose = viewModel::cancelTts
+            )
+        }
+
+        // ---------- 听读设置 ----------
+        AnimatedVisibility(
+            visible = showTtsSettings,
             enter = slideInVertically { it },
             exit = slideOutVertically { it },
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-            GlassSurface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                shape = ReaderShapes.large,
-                backgroundColor = colors.background
-            ) {
-                Column(Modifier.padding(12.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = state.tts.error ?: "朗读中 ${state.tts.progressText}",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.weight(1f),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        TextButton(onClick = viewModel::stopTts) { 
-                            Text("停止")
-                        }
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("语速", style = MaterialTheme.typography.labelSmall)
-                        Spacer(Modifier.height(6.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                "0.5x",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            AppSlider(
-                                value = state.settings.ttsRate,
-                                onValueChange = viewModel::setTtsRate,
-                                valueRange = 0.5f..2.0f,
-                                modifier = Modifier.weight(1f),
-                                rounded=true,
-                            )
-                            Text(
-                                "2.0x",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-            }
+            TtsSettingsPanel(
+                rate = state.settings.ttsRate,
+                pitch = state.settings.ttsPitch,
+                timbre = state.settings.ttsTimbre,
+                autoNext = state.settings.ttsAutoNext,
+                voices = ttsVoices,
+                voiceName = state.settings.ttsVoiceName,
+                onRate = viewModel::setTtsRate,
+                onPitch = viewModel::setTtsPitch,
+                onTimbre = viewModel::setTtsTimbre,
+                onAutoNext = { viewModel.updateSettings { s -> s.copy(ttsAutoNext = it) } },
+                onVoice = viewModel::setTtsVoice,
+                onOpenSystemTts = {
+                    viewModel.openSystemTtsSettings()
+                    showTtsSettings = false
+                },
+                onDismiss = { showTtsSettings = false }
+            )
         }
 
         // ---------- 设置面板 ----------
@@ -509,6 +413,13 @@ fun NovelReaderScreen(
                 onBackground = { viewModel.updateSettings { s -> s.copy(readerBackground = it) } },
                 onKeepScreenOn = { viewModel.updateSettings { s -> s.copy(keepScreenOn = it) } },
                 onVolumeTurn = { viewModel.updateSettings { s -> s.copy(volumeKeyTurnPage = it) } },
+                pageTurnMode = state.settings.pageTurnMode,
+                onPageTurn = { viewModel.updateSettings { s -> s.copy(pageTurnMode = it) } },
+                onOpenTtsSettings = {
+                    // 关掉阅读设置面板再开听读设置，避免两块面板叠在一起
+                    viewModel.toggleSettings(false)
+                    showTtsSettings = true
+                },
                 // 设置面板里的目录入口：关闭面板并拉出目录抽屉，点章即跳转
                 onOpenToc = {
                     viewModel.toggleSettings(false)
@@ -540,50 +451,10 @@ private fun chapterAndPageLabel(
     }
 }
 
-/** 左下 / 右下角热区 */
-@Composable
-private fun BoxScope.TapZone(
-    alignment: Alignment,
-    enabled: Boolean,
-    label: String,
-    colors: ReaderColors,
-    onClick: () -> Unit
-) {
-    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    Box(
-        modifier = Modifier
-            .fillMaxWidth(TAP_ZONE_WIDTH_RATIO)
-            .fillMaxHeight(TAP_ZONE_HEIGHT_RATIO)
-            .align(alignment)
-            .padding(bottom = bottomInset)
-            .then(
-                if (enabled) {
-                    Modifier.pointerInput(onClick) {
-                        detectTapGestures(onTap = { onClick() })
-                    }
-                } else Modifier
-            )
-    ) {
-        if (enabled) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.text.copy(alpha = 0.25f),
-                modifier = Modifier
-                    .align(
-                        if (alignment == Alignment.BottomStart) Alignment.BottomStart
-                        else Alignment.BottomEnd
-                    )
-                    .padding(12.dp)
-            )
-        }
-    }
-}
-
 /**
  * 单块渲染。
- * 首行缩进由 TextStyle.textIndent 承担（与分页测量同一套规则），
- * [isContinuation] 为 true 表示本块是从上一页延续而来，不缩进。
+ * 首行缩进由 TextStyle.textIndent 承担（与分页测量同一套规则）；
+ * [isContinuation] 为 true 表示本块从上一页延续而来，不缩进。
  */
 @Composable
 private fun BlockView(
@@ -638,6 +509,6 @@ private fun BlockView(
                 .fillMaxWidth()
                 .padding(vertical = 10.dp)
         )
-        BookBlock.Break -> Spacer(Modifier.height(12.dp))
+        BookBlock.Break -> androidx.compose.foundation.layout.Spacer(Modifier.height(12.dp))
     }
 }

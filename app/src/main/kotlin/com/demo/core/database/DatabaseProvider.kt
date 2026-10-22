@@ -20,6 +20,10 @@ object DatabaseProvider {
     private fun build(context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, Constants.DB_NAME)
             .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
-            .fallbackToDestructiveMigration()
+            // 升级：走登记过的 Migration；缺迁移时让 Room 直接抛错暴露问题，
+            // 而不是静默清库（书籍、进度、分组、阅读会话会一次性全丢）。
+            // 降级（老版本装回）才允许破坏性重建。
+            .addMigrations(*com.demo.core.database.migration.MIGRATIONS)
+            .fallbackToDestructiveMigrationOnDowngrade()
             .build()
 }

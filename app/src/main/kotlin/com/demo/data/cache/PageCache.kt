@@ -14,10 +14,13 @@ import java.io.File
  */
 class PageCache(filesDir: File) {
 
+    // 页缓存按 "bookId/xxx.webp" 存放（便于按书清理），因此必须递归统计：
+    // 否则顶层只看到书目录，条目上限形同虚设，且淘汰时会整本书一起删掉。
     private val cache = DiskLruCache(
         dir = File(filesDir, Constants.PAGE_CACHE_DIR),
         maxCount = Constants.PAGE_CACHE_MAX_COUNT,
-        maxBytes = 256L * 1024 * 1024
+        maxBytes = 256L * 1024 * 1024,
+        recursive = true
     )
 
     private fun bookDir(bookId: Long): File = File(cache.dir(), bookId.toString())

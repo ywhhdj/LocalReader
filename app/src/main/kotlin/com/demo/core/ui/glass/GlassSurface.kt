@@ -88,18 +88,18 @@ fun GlassIconButton(
     )
 }
 
-/** 半透明填充（用于列表项内，避免列表滚动中的实时模糊开销） */
-@Composable
-fun SoftSurface(
-    modifier: Modifier = Modifier,
-    shape: Shape = ReaderShapes.extraSmall,
-    alpha: Float = 0.10f,
-    content: @Composable () -> Unit
-) {
-    val tint = MaterialTheme.colorScheme.onSurface
-    Box(
-        modifier = modifier
-            .clip(shape)
-            .background(tint.copy(alpha = alpha), shape)
-    ) { content() }
-}
+// /** 半透明填充（用于列表项内，避免列表滚动中的实时模糊开销） */
+// @Composable
+// fun SoftSurface(
+//     modifier: Modifier = Modifier,
+//     shape: Shape = ReaderShapes.extraSmall,
+//     alpha: Float = 0.10f,
+//     content: @Composable () -> Unit
+// ) {
+//     val tint = MaterialTheme.colorScheme.onSurface
+//     Box(
+//         modifier = modifier
+//             .clip(shape)
+//             .background(tint.copy(alpha = alpha), shape)
+//     ) { content() }
+// }

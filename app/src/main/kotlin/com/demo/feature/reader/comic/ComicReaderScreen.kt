@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,65 +16,60 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.clickable
 
 import coil.compose.AsyncImage
 
+import com.demo.core.model.ComicChapter
+import com.demo.core.ui.components.ComicTocList
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.ReaderShapes
-import com.demo.feature.reader.common.ReaderSettingsPanel
 import com.demo.core.ui.theme.SheetShape
-import com.demo.core.model.ComicChapter
-import com.demo.core.ui.components.AppSlider
+import com.demo.feature.reader.common.KeepScreenOnEffect
+import com.demo.feature.reader.common.ReaderProgressBar
+import com.demo.feature.reader.common.ReaderSettingsPanel
+import com.demo.feature.reader.common.ReaderTocDrawer
+import com.demo.feature.reader.common.ReaderTopBar
+import com.demo.feature.reader.common.readerColors
+import com.demo.feature.reader.common.rememberReaderInsets
 
-/**
- * 漫画阅读器（固定竖向连续滚动）
- * - 话：顶部/底部提供话按钮列表，点击加载该话页面；
- * - 滚到当前话最后一张时，右侧出现「下一话」按钮；
- * - 图片按宽高比占位、异步解码，不支持双击放大与拖动（避免误触与额外内存）；
- * - 顶部/底部留出状态栏与导航栏空间，与首页视觉一致。
- */
+/** 判定"已滚到底部"的容差（px） */
+private const val BOTTOM_TOLERANCE_PX = 12
+
 @Composable
 fun ComicReaderScreen(
     viewModel: ComicReaderViewModel,
@@ -84,31 +80,22 @@ fun ComicReaderScreen(
     val paths by viewModel.paths.collectAsStateWithLifecycle()
     val aspects by viewModel.pageAspects.collectAsStateWithLifecycle()
     val scroll by viewModel.scrollRequest.collectAsStateWithLifecycle()
-    val view = LocalView.current
     val pages = state.pages
     val range = state.chapterRange
-    var showSettings by remember { mutableStateOf(false) }
+    val insets = rememberReaderInsets()
 
-    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-
-    LaunchedEffect(state.settings.keepScreenOn) {
-        view.keepScreenOn = state.settings.keepScreenOn
-    }
+    KeepScreenOnEffect(state.settings.keepScreenOn)
 
     val listState = rememberLazyListState(
         initialFirstVisibleItemIndex = (state.pageIndex - range.first).coerceAtLeast(0)
     )
 
-    // 切话 / 跳转：滚动到目标页
     LaunchedEffect(scroll?.token) {
         val target = scroll?.index ?: return@LaunchedEffect
         val offset = (target - range.first).coerceAtLeast(0)
         runCatching { listState.scrollToItem(offset) }
     }
 
-    // 当前可见的页面是否已到该话开头
-    // 注意：LazyColumn 只渲染「当前话」的页，index 是话内偏移，判定要用 0 而不是全局索引
     val atChapterStart by remember {
         derivedStateOf {
             val visibleFirst = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: 0
@@ -116,7 +103,6 @@ fun ComicReaderScreen(
         }
     }
 
-    // 当前可见的最后一页是否已到该话末尾
     val atChapterEnd by remember {
         derivedStateOf {
             val visibleLast = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
@@ -125,8 +111,22 @@ fun ComicReaderScreen(
         }
     }
 
-    LaunchedEffect(listState.firstVisibleItemIndex, range.first) {
-        val global = (range.first + listState.firstVisibleItemIndex)
+    val scrolledToBottom by remember {
+        derivedStateOf {
+            val info = listState.layoutInfo
+            val last = info.visibleItemsInfo.lastOrNull() ?: return@derivedStateOf false
+            last.index >= info.totalItemsCount - 1 &&
+                last.offset + last.size <= info.viewportEndOffset + BOTTOM_TOLERANCE_PX
+        }
+    }
+
+    LaunchedEffect(listState.firstVisibleItemIndex, scrolledToBottom, range.first) {
+        val localIndex = if (scrolledToBottom) {
+            (listState.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)
+        } else {
+            listState.firstVisibleItemIndex.coerceAtLeast(0)
+        }
+        val global = (range.first + localIndex)
             .coerceAtMost(state.pages.lastIndex.coerceAtLeast(0))
         viewModel.onPageChanged(global)
     }
@@ -144,9 +144,8 @@ fun ComicReaderScreen(
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(top = topInset, bottom = bottomInset)
+                contentPadding = PaddingValues(top = insets.top, bottom = insets.bottom)
             ) {
-                // 用 count + key 而非 range.toList()：避免每次重组都新建整段索引列表
                 items(
                     count = range.count(),
                     key = { offset -> range.first + offset }
@@ -161,69 +160,76 @@ fun ComicReaderScreen(
             }
         }
 
-        // 到当前话开头 → 左下角出现「上一话」
         if (state.hasPrevChapter && atChapterStart) {
             ChapterButton(
                 onClick = viewModel::prevChapter,
-                text="上一话",
+                text = "上一话",
                 align = Alignment.CenterStart
             )
         }
-
-        // 到当前话末尾 → 右下角出现「下一话」
         if (state.hasNextChapter && atChapterEnd) {
             ChapterButton(
                 onClick = viewModel::nextChapter,
-                text="下一话",
+                text = "下一话",
                 align = Alignment.CenterEnd
             )
         }
 
-        AnimatedVisibility(
+        // ---------- 顶栏（通用） ----------
+        ReaderTopBar(
             visible = state.showOverlay,
-            enter = slideInVertically { -it },
-            exit = slideOutVertically { -it },
-            modifier = Modifier.align(Alignment.TopCenter)
+            title = state.book?.title.orEmpty(),
+            subtitle = chapterPositionText(state),
+            onBack = onBack,
+            modifier = Modifier.align(Alignment.TopCenter),
+            actions = {
+                if (state.chapters.size > 1) {
+                    IconButton(onClick = viewModel::toggleToc) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.List,
+                            contentDescription = "目录",
+                            tint = if (state.showToc) MaterialTheme.colorScheme.primary
+                            else LocalContentColor.current
+                        )
+                    }
+                }
+                IconButton(onClick = viewModel::toggleSettings ) {
+                    Icon(Icons.Default.Settings, contentDescription = "设置")
+                }
+            }
+        )
+
+        // ---------- 目录抽屉（通用外壳 + 漫画专用列表） ----------
+        ReaderTocDrawer(
+            visible = state.showToc,
+            background = readerColors(state.settings.readerBackground).background,
+            onDismiss = { viewModel.toggleToc(false) }
         ) {
-            GlassSurface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(WindowInsets.statusBars.asPaddingValues())
-                ) {
+            ComicTocList(
+                chapters = state.chapters,
+                currentIndex = state.chapterIndex,
+                onSelect = { index -> viewModel.selectChapter(index) },
+                header = {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp),
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = state.book?.title.orEmpty(),
-                                style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1
-                            )
-                            Text(
-                                text = chapterPositionText(state),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                maxLines = 1
-                            )
-                        }
-                        IconButton(onClick = { showSettings = true }) {
-                            Icon(Icons.Default.Settings, contentDescription = "设置")
+                        Text(
+                            text = "话集 · 共 ${state.chapters.size} 话",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        TextButton(onClick = { viewModel.toggleToc(false) }) {
+                            Text("关闭")
                         }
                     }
                 }
-            }
+            )
         }
 
+        // ---------- 底栏 ----------
         AnimatedVisibility(
             visible = state.showOverlay,
             enter = slideInVertically { it },
@@ -232,7 +238,7 @@ fun ComicReaderScreen(
         ) {
             GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
-                shape =  SheetShape
+                shape = SheetShape
             ) {
                 Column(
                     modifier = Modifier
@@ -240,59 +246,18 @@ fun ComicReaderScreen(
                         .padding(WindowInsets.navigationBars.asPaddingValues())
                         .padding(12.dp)
                 ) {
-                    if (pages.size > 1) {
-                        // 拖动时只更新本地值，松手才真正跳转：
-                        // 逐帧 jumpToPage 会产生大量滚动请求与进度写库
-                        var sliderValue by remember(pages.size) {
-                            mutableFloatStateOf((state.pageIndex + 1).toFloat())
-                        }
-                        LaunchedEffect(state.pageIndex) {
-                            sliderValue = (state.pageIndex + 1).toFloat()
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "上一话",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .clickable { 
-                                        if(state.hasPrevChapter){
-                                            viewModel.prevChapter()
-                                        }
-                                    }
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                            AppSlider(
-                                value = sliderValue,
-                                onValueChange = { sliderValue = it },
-                                onValueChangeFinished = {
-                                    viewModel.jumpToPage(
-                                        (sliderValue.toInt() - 1).coerceIn(0, pages.lastIndex)
-                                    )
-                                },
-                                valueRange = 1f..pages.size.toFloat(),
-                                steps = (pages.size - 2).coerceAtLeast(0),
-                                modifier = Modifier.weight(1f),
-                                rounded=true,
-                            )
-                            Text(
-                                text = "下一话",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .clickable {
-                                        if(state.hasNextChapter){
-                                            viewModel.nextChapter()
-                                        }
-                                    }
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-                    // 话按钮列表：多话时展示，点击加载对应话
+                    // 页进度条（通用）：拖动本地值，松手跳页
+                    ReaderProgressBar(
+                        current = state.pageIndex,
+                        count = pages.size,
+                        hasPrev = state.hasPrevChapter,
+                        hasNext = state.hasNextChapter,
+                        onPrev = viewModel::prevChapter,
+                        onNext = viewModel::nextChapter,
+                        onSeek = { viewModel.jumpToPage(it) },
+                        prevLabel = "上一话",
+                        nextLabel = "下一话"
+                    )
                     if (state.chapters.size > 1) {
                         ChapterButtons(
                             chapters = state.chapters,
@@ -304,11 +269,14 @@ fun ComicReaderScreen(
             }
         }
 
+        // ---------- 设置面板（已通用） ----------
         AnimatedVisibility(
-            visible = showSettings,
+            visible = state.showSettings,
             enter = slideInVertically { it },
             exit = slideOutVertically { it },
-            modifier = Modifier.align(Alignment.BottomCenter)
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
         ) {
             ReaderSettingsPanel(
                 fontSize = state.settings.fontSize,
@@ -321,9 +289,12 @@ fun ComicReaderScreen(
                 onBackground = { viewModel.updateSettings { s -> s.copy(readerBackground = it) } },
                 onKeepScreenOn = { viewModel.updateSettings { s -> s.copy(keepScreenOn = it) } },
                 onVolumeTurn = { viewModel.updateSettings { s -> s.copy(volumeKeyTurnPage = it) } },
-                // 漫画没有正文排版，隐藏字号 / 行距，避免误改小说阅读设置
                 showTextSettings = false,
-                onDismiss = { showSettings = false }
+                onOpenToc = {
+                    viewModel.toggleSettings(false)
+                    viewModel.toggleToc(true)
+                },
+                onDismiss = { viewModel.toggleSettings(false) }
             )
         }
     }
@@ -335,7 +306,8 @@ private fun chapterPositionText(state: ComicReaderUiState): String {
     val inChapter = (state.pageIndex - (chapter?.startIndex ?: 0) + 1).coerceAtLeast(1)
     val total = state.pages.size.coerceAtLeast(1)
     val chapterPart = if (state.chapters.size > 1 && chapter != null) {
-        "${chapter.title} · $inChapter/${chapter.pageCount.coerceAtLeast(1)} · "
+        val chapterPages = (chapter.endIndex - chapter.startIndex + 1).coerceAtLeast(1)
+        "${chapter.title} · $inChapter/$chapterPages · "
     } else ""
     return "${chapterPart}${state.pageIndex + 1}/$total"
 }
@@ -368,7 +340,6 @@ private fun ComicPageItem(
                 }
             }
         } else if (aspect > 0.05f) {
-            // 已知宽高比：用固定高度约束，避免 LazyColumn 无界高度导致按原图尺寸解码（省内存）
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -414,21 +385,20 @@ private fun ChapterButtons(
     }
 }
 
-/** 话按钮 */
+/** 上一话 / 下一话圆形按钮 */
 @Composable
 private fun BoxScope.ChapterButton(
     onClick: () -> Unit,
     text: String,
-    align: Alignment = Alignment.CenterStart,
-){
+    align: Alignment = Alignment.CenterStart
+) {
     Surface(
         onClick = onClick,
         shape = CircleShape,
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.92f),
         contentColor = MaterialTheme.colorScheme.onPrimary,
-        modifier = Modifier
-            .align(align)
-    ){
+        modifier = Modifier.align(align)
+    ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -441,4 +411,3 @@ private fun BoxScope.ChapterButton(
         }
     }
 }
-

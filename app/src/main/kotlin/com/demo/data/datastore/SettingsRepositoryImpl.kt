@@ -16,6 +16,8 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.demo.core.model.AppSettings
 import com.demo.core.model.ComicDirection
 import com.demo.core.model.PageFitMode
+import com.demo.core.model.PageTurnMode
+import com.demo.core.model.TtsTimbre
 import com.demo.core.model.ReaderBackground
 import com.demo.core.model.ThemeMode
 import com.demo.domain.repository.SettingsRepository
@@ -50,10 +52,14 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
         val SCAN_FILES = intPreferencesKey("scan_files")
         val SKIP_HIDDEN = booleanPreferencesKey("skip_hidden")
         val SCAN_DIRS = stringSetPreferencesKey("scan_dirs")
+        // 翻页动画
+        val PAGE_TURN = stringPreferencesKey("page_turn_mode")
         // TTS
         val TTS_RATE = floatPreferencesKey("tts_rate")
         val TTS_PITCH = floatPreferencesKey("tts_pitch")
         val TTS_AUTO_NEXT = booleanPreferencesKey("tts_auto_next")
+        val TTS_TIMBRE = stringPreferencesKey("tts_timbre")
+        val TTS_VOICE = stringPreferencesKey("tts_voice")
         // WebDAV
         val WEBDAV_URL = stringPreferencesKey("webdav_url")
         val WEBDAV_USER = stringPreferencesKey("webdav_user")
@@ -93,9 +99,12 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
             p[Keys.SCAN_FILES] = next.scanMaxFiles
             p[Keys.SKIP_HIDDEN] = next.skipHidden
             p[Keys.SCAN_DIRS] = next.scanDirs.toSet()
+            p[Keys.PAGE_TURN] = next.pageTurnMode.value
             p[Keys.TTS_RATE] = next.ttsRate
             p[Keys.TTS_PITCH] = next.ttsPitch
             p[Keys.TTS_AUTO_NEXT] = next.ttsAutoNext
+            p[Keys.TTS_TIMBRE] = next.ttsTimbre.value
+            p[Keys.TTS_VOICE] = next.ttsVoiceName
             p[Keys.WEBDAV_URL] = next.webdavUrl
             p[Keys.WEBDAV_USER] = next.webdavUser
             p[Keys.WEBDAV_PASSWORD] = next.webdavPassword
@@ -126,9 +135,12 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
         scanMaxFiles = this[Keys.SCAN_FILES] ?: 20_000,
         skipHidden = this[Keys.SKIP_HIDDEN] ?: true,
         scanDirs = (this[Keys.SCAN_DIRS] ?: emptySet()).toList(),
+        pageTurnMode = PageTurnMode.from(this[Keys.PAGE_TURN]),
         ttsRate = this[Keys.TTS_RATE] ?: 1.0f,
         ttsPitch = this[Keys.TTS_PITCH] ?: 1.0f,
         ttsAutoNext = this[Keys.TTS_AUTO_NEXT] ?: true,
+        ttsTimbre = TtsTimbre.from(this[Keys.TTS_TIMBRE]),
+        ttsVoiceName = this[Keys.TTS_VOICE] ?: "",
         webdavUrl = this[Keys.WEBDAV_URL] ?: "",
         webdavUser = this[Keys.WEBDAV_USER] ?: "",
         webdavPassword = this[Keys.WEBDAV_PASSWORD] ?: "",

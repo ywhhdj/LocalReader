@@ -11,10 +11,9 @@ import com.demo.core.common.util.Logger
 import com.demo.assembly.di.AppContainer
 import com.demo.assembly.di.ImageLoaderFactory
 
-//enum 类型枚举
+//构建配置
 object BuildConfig {
-    const val DEBUG = false
-    const val PROD = true
+    val DEBUG = false
 }
 
 class App : Application() {
