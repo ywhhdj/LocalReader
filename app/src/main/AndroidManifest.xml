@@ -7,7 +7,7 @@
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"
     />
-    <!-- Android 13+ 媒体权限（READ_EXTERNAL_STORAGE 已被拆分） -->
+    <!-- Android 13+ 媒体权限-->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />

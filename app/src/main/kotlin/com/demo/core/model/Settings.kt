@@ -4,23 +4,32 @@ import com.demo.core.common.util.Constants
 
 /** 主题模式（core-model 定义，供 domain/data/UI 共用） */
 enum class ThemeMode(val value: String) {
-    SYSTEM("SYSTEM"), LIGHT("LIGHT"), DARK("DARK");
+    SYSTEM("SYSTEM"),
+    LIGHT("LIGHT"), 
+    DARK("DARK");
 
     companion object {
         fun from(value: String?): ThemeMode =
-            entries.firstOrNull { it.value.equals(value, ignoreCase = true) } ?: SYSTEM
+            entries.firstOrNull { 
+                it.value.equals(value, ignoreCase = true)
+            } ?: SYSTEM
     }
 }
 
 /** 小说阅读背景 */
 enum class ReaderBackground(val value: String) {
-    PAPER("PAPER"), CREAM("CREAM"), NIGHT("NIGHT"), GREEN("GREEN");
+    PAPER("PAPER"),
+    CREAM("CREAM"), // 奶油
+    NIGHT("NIGHT"),
+    GREEN("GREEN");
 
     companion object {
         fun from(value: String?): ReaderBackground =
             entries.firstOrNull { it.value.equals(value, ignoreCase = true) } ?: PAPER
     }
 }
+
+
 
 /**
  * 全局设置（DataStore 持久化）
@@ -32,8 +41,8 @@ data class AppSettings(
     val nickname: String = "阅读者",
     // 小说
     val fontSize: Int = 14,
-    val lineHeightMultiplier: Float = 2.2f,
-    val letterSpacing: Float = 1.0f,
+    val lineHeightMultiplier: Float = 4.2f,
+    val letterSpacing: Float = 0.0f,
     val readerBackground: ReaderBackground = ReaderBackground.PAPER,
     val keepScreenOn: Boolean = false,
     val volumeKeyTurnPage: Boolean = false,

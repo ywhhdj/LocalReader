@@ -101,7 +101,7 @@ fun SearchScreen(
             }
 
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 108.dp), // 列数
+                columns = GridCells.Fixed(3), // 列数
                 contentPadding = PaddingValues(16.dp), // 列间距
                 verticalArrangement = Arrangement.spacedBy(12.dp), // 垂直间距
                 horizontalArrangement = Arrangement.spacedBy(12.dp), // 水平间距

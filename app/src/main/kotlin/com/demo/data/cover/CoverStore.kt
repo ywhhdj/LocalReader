@@ -58,6 +58,7 @@ class CoverStore(filesDir: File) {
     fun delete(sourceKey: String) {
         val f = cache.file(keyFor(sourceKey))
         if (f.exists()) f.delete()
+        cache.invalidateSize()
     }
 
     fun clear() = cache.clear()

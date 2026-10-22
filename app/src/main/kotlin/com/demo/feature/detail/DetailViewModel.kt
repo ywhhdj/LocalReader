@@ -10,11 +10,14 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+import com.demo.core.common.util.VolumeSplitter
 import com.demo.core.model.Book
 import com.demo.core.model.BookGroup
+import com.demo.core.model.BookType
 import com.demo.core.model.Chapter
 
 import com.demo.domain.repository.ReaderRepository
+import com.demo.domain.repository.chaptersOrSingle
 import com.demo.domain.usecase.GetBookUseCase
 import com.demo.domain.usecase.MoveToGroupUseCase
 import com.demo.domain.usecase.ObserveGroupsUseCase
@@ -24,9 +27,11 @@ import com.demo.domain.usecase.UpdateProgressUseCase
 
 data class DetailUiState(
     val book: Book? = null,
+    /** 小说：章节（已补卷）；漫画：话集 */
     val chapters: List<Chapter> = emptyList(),
     val groups: List<BookGroup> = emptyList(),
     val isLoading: Boolean = true,
+    val chaptersLoading: Boolean = false,
     val message: String? = null,
     val deleted: Boolean = false
 )
@@ -52,9 +57,14 @@ class DetailViewModel(
         }
     }
 
+    /** 目录已加载过的书籍 id，避免重复打开 epub/zip 解析整本目录 */
+    private var chaptersLoadedFor: Long = -1L
+
     /** 由导航参数驱动加载，避免 ViewModel 构造依赖外部参数 */
-    fun load(bookId: Long,chapter: Int?) {
-        if (bookId <= 0L || _uiState.value.book?.id == bookId) return
+    fun load(bookId: Long) {
+        if (bookId <= 0L) return
+        if (bookId == chaptersLoadedFor) return
+        chaptersLoadedFor = bookId
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val book = getBook(bookId)
@@ -63,13 +73,40 @@ class DetailViewModel(
         }
     }
 
-    private suspend fun loadChapters(book: Book) {
-        if (book.type != com.demo.core.model.BookType.NOVEL) return
-        runCatching {
-            readerRepository.openNovel(book).use { content ->
-                _uiState.update { it.copy(chapters = content.chapters) }
-            }
+    /** 从阅读器返回后刷新进度 / 收藏等字段（不重复解析目录） */
+    fun refresh() {
+        val bookId = _uiState.value.book?.id ?: return
+        viewModelScope.launch {
+            val fresh = getBook(bookId) ?: return@launch
+            _uiState.update { it.copy(book = fresh) }
         }
+    }
+
+    /**
+     * 目录与话集：
+     * - 小说：章节列表（补齐分卷，供目录按卷分组显示）；
+     * - 漫画：话列表（短篇 / CBZ / PDF 为 1 话，文件夹按子目录分话）。
+     */
+    private suspend fun loadChapters(book: Book) {
+        _uiState.update { it.copy(chaptersLoading = true, chapters = emptyList()) }
+        val chapters = runCatching {
+            when (book.type) {
+                BookType.NOVEL -> readerRepository.openNovel(book).use { content ->
+                    VolumeSplitter.apply(content.chapters)
+                }
+                BookType.COMIC -> readerRepository.openComic(book).use { content ->
+                    content.chaptersOrSingle().map { chapter ->
+                        Chapter(
+                            index = chapter.index,
+                            title = if (chapter.pageCount > 0) {
+                                "${chapter.title}（${chapter.pageCount} 页）"
+                            } else chapter.title
+                        )
+                    }
+                }
+            }
+        }.getOrDefault(emptyList())
+        _uiState.update { it.copy(chapters = chapters, chaptersLoading = false) }
     }
 
     fun toggleFavorite() {

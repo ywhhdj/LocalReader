@@ -38,7 +38,6 @@ fun GlassBottomBar(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         GlassSurface(
             modifier = Modifier.fillMaxWidth(),

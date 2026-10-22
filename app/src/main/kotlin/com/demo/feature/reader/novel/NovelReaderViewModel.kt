@@ -70,8 +70,41 @@ class NovelReaderViewModel(
     private var sessionStartAt: Long = 0L
     private var bookId: Long = 0L
 
-    private val chapterCache = object : LinkedHashMap<Int, List<BookBlock>>(12, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, List<BookBlock>>?): Boolean = size > 10
+    /**
+     * 章节内容缓存：最多 10 章，且总字符数受 [MAX_CACHE_CHARS] 限制。
+     * 只按章数限制时，几章超长章节就能吃掉几十 MB，这里双上限控制内存。
+     */
+    private val chapterCache = LinkedHashMap<Int, List<BookBlock>>(12, 0.75f, true)
+    private var cachedChars = 0
+
+    private fun putChapter(index: Int, blocks: List<BookBlock>) {
+        val old = chapterCache.put(index, blocks)
+        if (old != null) cachedChars -= charsOf(old)
+        cachedChars += charsOf(blocks)
+        // 访问序：迭代器头部即最久未使用的章节
+        val iterator = chapterCache.entries.iterator()
+        while (chapterCache.size > MAX_CACHE_CHAPTERS ||
+            (cachedChars > MAX_CACHE_CHARS && chapterCache.size > 1)
+        ) {
+            if (!iterator.hasNext()) break
+            val eldest = iterator.next()
+            cachedChars -= charsOf(eldest.value)
+            iterator.remove()
+        }
+    }
+
+    private fun charsOf(blocks: List<BookBlock>): Int {
+        var total = 0
+        for (block in blocks) {
+            total += when (block) {
+                is BookBlock.Heading -> block.text.length
+                is BookBlock.Paragraph -> block.text.length
+                is BookBlock.Quote -> block.text.length
+                is BookBlock.Image -> 0
+                BookBlock.Break -> 0
+            }
+        }
+        return total
     }
 
     /** 滚动位置 → 节流合并写库（滚动时不再每个索引都落一次 DB） */
@@ -118,8 +151,14 @@ class NovelReaderViewModel(
         }
     }
 
-    fun load(id: Long) {
-        if (id <= 0L || id == bookId) return
+    /**
+     * 打开小说。
+     * @param startChapter 指定起始章节（详情页目录跳转）；null 表示按阅读进度继续
+     */
+    fun load(id: Long, startChapter: Int? = null) {
+        if (id <= 0L) return
+        // 同一本书未指定章节的重复调用忽略；指定了章节允许重新定位
+        if (id == bookId && startChapter == null) return
         bookId = id
         viewModelScope.launch {
             _uiState.update { it.copy(loading = true, error = null) }
@@ -129,7 +168,11 @@ class NovelReaderViewModel(
                 content?.close()
                 content = opened
                 val progress = progressRepository.get(id)
-                val index = progress?.chapterIndex?.coerceAtLeast(0) ?: 0
+                val last = opened.chapters.lastIndex.coerceAtLeast(0)
+                val index = when {
+                    startChapter != null -> startChapter.coerceIn(0, last)
+                    else -> (progress?.chapterIndex ?: 0).coerceIn(0, last)
+                }
                 _uiState.update {
                     it.copy(book = book, chapters = opened.chapters, chapterIndex = index, loading = false)
                 }
@@ -145,7 +188,8 @@ class NovelReaderViewModel(
     fun jumpToChapter(index: Int) {
         val chapters = _uiState.value.chapters
         if (index !in chapters.indices) return
-        _uiState.update { it.copy(chapterIndex = index, showToc = false) }
+        // 同时收起目录抽屉与设置面板，避免两者叠在一起
+        _uiState.update { it.copy(chapterIndex = index, showToc = false, showSettings = false) }
         viewModelScope.launch { loadChapterInternal(index) }
     }
 
@@ -156,12 +200,15 @@ class NovelReaderViewModel(
 
     private companion object {
         const val PROGRESS_THROTTLE_MS = 500L
+        /** 章节缓存：章数上限与总字符上限（约 60 万字，约数十 MB 以内） */
+        const val MAX_CACHE_CHAPTERS = 10
+        const val MAX_CACHE_CHARS = 600_000
     }
 
     private suspend fun loadChapterInternal(index: Int) {
         val cached = chapterCache[index]
         if (cached != null) {
-            _uiState.update { it.copy(blocks = cached, loading = false) }
+            _uiState.update { it.copy(blocks = cached, loading = false, canPrev = index > 0, canNext = index < it.chapters.lastIndex) }
             return
         }
         _uiState.update { it.copy(loading = true) }
@@ -179,7 +226,7 @@ class NovelReaderViewModel(
                 listOf(chapter.title, VolumeSplitter.displayTitle(chapter))
             )
         }
-        chapterCache[index] = blocks
+        putChapter(index, blocks)
         _uiState.update {
             it.copy(
                 blocks = blocks,
@@ -251,8 +298,16 @@ class NovelReaderViewModel(
         updateSettings { it.copy(ttsPitch = pitch) }
     }
 
-    fun toggleToc(show: Boolean? = null) = _uiState.update { it.copy(showToc = show ?: !it.showToc) }
-    fun toggleSettings(show: Boolean? = null) = _uiState.update { it.copy(showSettings = show ?: !it.showSettings) }
+    /** 目录抽屉与设置面板互斥：同时展开会叠在一起，且点章跳转后应自动收起 */
+    fun toggleToc(show: Boolean? = null) = _uiState.update {
+        val next = show ?: !it.showToc
+        it.copy(showToc = next, showSettings = if (next) false else it.showSettings)
+    }
+
+    fun toggleSettings(show: Boolean? = null) = _uiState.update {
+        val next = show ?: !it.showSettings
+        it.copy(showSettings = next, showToc = if (next) false else it.showToc)
+    }
 
     fun updateSettings(transform: (AppSettings) -> AppSettings) {
         viewModelScope.launch { settingsRepository.update(transform) }
@@ -285,5 +340,6 @@ class NovelReaderViewModel(
         content?.close()
         content = null
         chapterCache.clear()
+        cachedChars = 0
     }
 }

@@ -93,6 +93,7 @@ class PdfComicParser(
             else listOf(ComicChapter(
                 index = 0,
                 title = ComicChapter.SINGLE_TITLE,
+                pageCount = pageCount,
                 startIndex = 0,
                 endIndex = pageCount - 1
             ))

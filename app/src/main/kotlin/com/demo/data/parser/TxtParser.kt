@@ -22,8 +22,7 @@ import java.nio.charset.Charset
 /**
  * TXT 解析：编码探测 → 按常见章节标题正则切分 → 按字节区间惰性读取。
  *
- * 1. 章节定位改用**字节偏移**保存，阅读时用 InputStream#skip 直接定位（旧实现用字符 skip，
- *    大文件翻到后面章节会逐字符扫描，卡顿数十秒）。
+ * 1. 章节定位改用字节偏移保存，阅读时用 InputStream#skip 直接定位
  * 2. 第一个标题之前的内容补一章（前言/简介不再丢失）。
  * 3. 20KB 兜底切分改为按文件实际大小切分，不再用 length/2 估算导致末章空白。
  * 4. 生成文字占位封面，书架不再出现空白卡片；作者缺省"未知"。
@@ -41,7 +40,7 @@ class TxtParser(
     private val patterns = listOf(
         Regex("""^\s*第\s*[0-9零一二三四五六七八九十百千万两]+\s*[章节節回卷篇部集].{0,40}$"""),
         Regex("""^\s*(Chapter|CHAPTER|chapter|CHAPTIR)\s*[0-9IVXLC]+.{0,40}$"""),
-        Regex("""^\s*(序章|序言|前言|楔子|引子|尾声|后记|後記|番外|终章|終章|简介|內容簡介).{0,30}$"""),
+        Regex("""^\s*(序章|序言|前言|楔子|引子|尾声|后记|後記|番外|终章|終章|(?:內容)?[简簡]介).{0,30}$"""),
         Regex("""^\s*(卷[0-9零一二三四五六七八九十百千万]+).{0,40}$"""),
     )
 
@@ -50,8 +49,6 @@ class TxtParser(
         /** 单章最大读取字节（约 2MB，超长章节截断保护） */
         const val MAX_CHAPTER_BYTES = 2 * 1024 * 1024
     }
-    // 注意：原来的 companion object 里已经有一个 MAX_CHAPTER_BYTES，
-    // 把 HEAD_SNIFF_BYTES 加进去即可，别重复声明。
 
     /** 作者：落家小沫 / 作 者：xxx / Author: xxx */
     private val AUTHOR_REGEX = Regex(
@@ -126,9 +123,9 @@ class TxtParser(
         if (!file.exists() || file.length() <= 0L) return null
         val charset = EncodingDetector.detect(file)
         val chapters = splitChapters(file, charset)
-        val sniffed = sniffHeader(file, charset)              // ← 新增
+        val sniffed = sniffHeader(file, charset)  
         val fileTitle = FileUtil.humanTitle(file.name)
-        val title = sniffed.title.ifBlank { fileTitle }       // 正文标题优先，兜底文件名
+        val title = fileTitle.ifBlank { sniffed.title }       // 文件名优先，正文标题兜底
         val author = sniffed.author.ifBlank { "未知作者" }
         val cover = runCatching {
             coverStore?.save(textCoverFactory.create(title, "TXT"), file.absolutePath)
@@ -163,8 +160,8 @@ class TxtParser(
         runCatching {
             scanLines(file, charset) { text, start, byteLen ->
                 totalBytes = start + byteLen
-                val trimmed = text.trim()
-                if (trimmed.length <= 40 && patterns.any { it.matches(trimmed) }) {
+                val trimmed = text.trim().replace("\uFEFF", "").replace("\u200B", "")
+                if (trimmed.length in 1..40 && patterns.any { it.matches(trimmed) }) {
                     titles.add(start to trimmed)
                 }
             }
@@ -178,7 +175,7 @@ class TxtParser(
             chapters.add(
                 Chapter(
                     index = 0,
-                    title = "开头",
+                    title = "前言",
                     startOffset = 0L,
                     endOffset = titles.first().first
                 )
@@ -216,11 +213,12 @@ class TxtParser(
         while (offset < size) {
             val end = (offset + chunk).coerceAtMost(size)
             chapters.add(Chapter(
-                index = index++,
-                title = "第 $index 部分",
+                index = index,
+                title = "分卷 ${index + 1}}",
                 startOffset = offset,
                 endOffset = if (end >= size) -1L else end
             ))
+            index++
             offset = end
         }
         return chapters
@@ -270,7 +268,12 @@ class TxtParser(
             val text = readRange(chapter)
             if (text.isBlank()) return listOf(BookBlock.Paragraph("（空章节）"))
             val displayTitle = VolumeSplitter.displayTitle(chapter)
+            val titleCandidates = listOf(chapter.title, displayTitle)
+                .map { it.trim().trim('\u3000', '\uFEFF', ' ', '\r', '\n') }
+                .filter { it.isNotBlank() }
+                .distinct()
             val blocks = ArrayList<BookBlock>()
+            var first = true
             text.split(Regex("""\n\s*\n+"""))
                 .asSequence()
                 .map { it.trim() }
@@ -278,7 +281,14 @@ class TxtParser(
                 .forEach { paragraph ->
                     // 段内换行保留（观感：换行显示），仅折叠行尾多余空格
                     val body = paragraph.replace(Regex("""[ \t　]+"""), " ")
-                    blocks.add(BookBlock.Paragraph(body))
+                     if (first) {
+                        first = false
+                        // 1) 整段 == 标题 → 整段丢弃
+                        if (titleCandidates.any { it == body }) {
+                            return@forEach
+                        }
+                    }
+                    if (body.isNotBlank()) blocks.add(BookBlock.Paragraph(body))
                 }
             if (blocks.isEmpty()) blocks.add(BookBlock.Paragraph(text.trim()))
             // 顶部已单独显示章节名，正文里再来一遍的标题行去掉

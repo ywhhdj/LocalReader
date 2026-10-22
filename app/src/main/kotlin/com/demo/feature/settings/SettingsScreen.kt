@@ -17,7 +17,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,6 +44,7 @@ import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
 import com.demo.core.ui.theme.CardShape
 import com.demo.domain.codec.BookSourceCodec
+import com.demo.core.ui.components.AppSlider
 
 @Composable
 fun SettingsScreen(
@@ -147,7 +147,7 @@ fun SettingsScreen(
                         "语速：${"%.1f".format(state.settings.ttsRate)}x",
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    Slider(
+                    AppSlider(
                         value = state.settings.ttsRate,
                         onValueChange = viewModel::setTtsRate,
                         valueRange = 0.5f..2.0f,
@@ -157,7 +157,7 @@ fun SettingsScreen(
                         "音调：${"%.1f".format(state.settings.ttsPitch)}",
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    Slider(
+                    AppSlider(
                         value = state.settings.ttsPitch,
                         onValueChange = viewModel::setTtsPitch,
                         valueRange = 0.5f..2.0f,
@@ -202,7 +202,7 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(top = 8.dp)
                         )
-                        Slider(
+                        AppSlider(
                             value = state.settings.scanMaxDepth.toFloat(),
                             onValueChange = { viewModel.setScanDepth(it.toInt()) },
                             valueRange = 1f..8f,
@@ -426,7 +426,7 @@ fun SettingsScreen(
                             "预加载页数：${state.settings.comicPreload}",
                             style = MaterialTheme.typography.bodyMedium
                         )
-                        Slider(
+                        AppSlider(
                             value = state.settings.comicPreload.toFloat(),
                             onValueChange = { viewModel.setComicPreload(it.toInt()) },
                             valueRange = 4f..6f,

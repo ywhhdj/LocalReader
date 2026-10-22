@@ -68,10 +68,14 @@ fun ImportDialog(
     Dialog(onDismissRequest = onDismiss) {
         GlassSurface(
             shape = ReaderShapes.small,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.05f),
         ) {
             Column(Modifier.padding(20.dp)) {
-                Text("导入本地书籍", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    "导入本地书籍",
+                    style = MaterialTheme.typography.titleMedium
+                )
                 Text(
                     "支持 EPUB / TXT / PDF / CBZ / ZIP / 图片文件夹",
                     style = MaterialTheme.typography.labelSmall,

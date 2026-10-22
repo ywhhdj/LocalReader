@@ -42,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,6 +56,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.clickable
 
 import coil.compose.AsyncImage
 
@@ -63,6 +65,7 @@ import com.demo.core.ui.theme.ReaderShapes
 import com.demo.feature.reader.common.ReaderSettingsPanel
 import com.demo.core.ui.theme.SheetShape
 import com.demo.core.model.ComicChapter
+import com.demo.core.ui.components.AppSlider
 
 /**
  * 漫画阅读器（固定竖向连续滚动）
@@ -105,10 +108,11 @@ fun ComicReaderScreen(
     }
 
     // 当前可见的页面是否已到该话开头
+    // 注意：LazyColumn 只渲染「当前话」的页，index 是话内偏移，判定要用 0 而不是全局索引
     val atChapterStart by remember {
         derivedStateOf {
             val visibleFirst = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: 0
-            visibleFirst <= range.first
+            visibleFirst <= 0
         }
     }
 
@@ -237,15 +241,56 @@ fun ComicReaderScreen(
                         .padding(12.dp)
                 ) {
                     if (pages.size > 1) {
-                        Slider(
-                            value = (state.pageIndex + 1).toFloat(),
-                            onValueChange = { target ->
-                                viewModel.jumpToPage((target.toInt() - 1).coerceIn(0, pages.lastIndex))
-                            },
-                            valueRange = 1f..pages.size.toFloat(),
-                            steps = (pages.size - 2).coerceAtLeast(0),
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        // 拖动时只更新本地值，松手才真正跳转：
+                        // 逐帧 jumpToPage 会产生大量滚动请求与进度写库
+                        var sliderValue by remember(pages.size) {
+                            mutableFloatStateOf((state.pageIndex + 1).toFloat())
+                        }
+                        LaunchedEffect(state.pageIndex) {
+                            sliderValue = (state.pageIndex + 1).toFloat()
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "上一话",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .clickable { 
+                                        if(state.hasPrevChapter){
+                                            viewModel.prevChapter()
+                                        }
+                                    }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                            AppSlider(
+                                value = sliderValue,
+                                onValueChange = { sliderValue = it },
+                                onValueChangeFinished = {
+                                    viewModel.jumpToPage(
+                                        (sliderValue.toInt() - 1).coerceIn(0, pages.lastIndex)
+                                    )
+                                },
+                                valueRange = 1f..pages.size.toFloat(),
+                                steps = (pages.size - 2).coerceAtLeast(0),
+                                modifier = Modifier.weight(1f),
+                                rounded=true,
+                            )
+                            Text(
+                                text = "下一话",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .clickable {
+                                        if(state.hasNextChapter){
+                                            viewModel.nextChapter()
+                                        }
+                                    }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
                     }
                     // 话按钮列表：多话时展示，点击加载对应话
                     if (state.chapters.size > 1) {
@@ -276,19 +321,23 @@ fun ComicReaderScreen(
                 onBackground = { viewModel.updateSettings { s -> s.copy(readerBackground = it) } },
                 onKeepScreenOn = { viewModel.updateSettings { s -> s.copy(keepScreenOn = it) } },
                 onVolumeTurn = { viewModel.updateSettings { s -> s.copy(volumeKeyTurnPage = it) } },
+                // 漫画没有正文排版，隐藏字号 / 行距，避免误改小说阅读设置
+                showTextSettings = false,
                 onDismiss = { showSettings = false }
             )
         }
     }
 }
 
+/** 顶部：话名 · 话内页码 / 话内总页 · 全书页码 / 全书总页 */
 private fun chapterPositionText(state: ComicReaderUiState): String {
     val chapter = state.chapters.getOrNull(state.chapterIndex)
     val inChapter = (state.pageIndex - (chapter?.startIndex ?: 0) + 1).coerceAtLeast(1)
+    val total = state.pages.size.coerceAtLeast(1)
     val chapterPart = if (state.chapters.size > 1 && chapter != null) {
-        "${chapter.title} · $inChapter/${chapter.pageCount} · "
+        "${chapter.title} · $inChapter/${chapter.pageCount.coerceAtLeast(1)} · "
     } else ""
-    return chapterPart
+    return "${chapterPart}${state.pageIndex + 1}/$total"
 }
 
 /** 单页：按宽高比占位 + 异步解码；不响应双击与拖动 */

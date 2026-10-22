@@ -55,6 +55,13 @@ fun paginateNovel(
         fontSize = fontSize.sp,
         lineHeight = (fontSize * lineHeightMultiplier).sp
     )
+    /**
+     * 段落首行缩进：交给 TextStyle.textIndent，而不是往文本里塞全角空格。
+     * 文本塞空格会让复制正文带出多余字符、续页出现"半截缩进"、字号变化时缩进宽度不跟随。
+     */
+    val indentStyle = baseStyle.copy(
+        textIndent = TextIndent(firstLine = (fontSize * 2).sp)
+    )
     val headingStyle = baseStyle.copy(
         fontSize = (fontSize + 2).sp,
         fontWeight = FontWeight.Bold
@@ -74,28 +81,27 @@ fun paginateNovel(
         used = 0f
     }
 
-    /** 可切分文本：Paragraph / Quote 共用，缩进用全角空格前缀而不是 TextIndent */
+    /** 可切分文本：Paragraph / Quote 共用；缩进由 [indentStyle] 承担，续页不再缩进 */
     fun paginateText(block: BookBlock, text: String, isQuote: Boolean) {
         var remaining = text
         var firstChunk = true
-        // 引用不加缩进；普通段落首块加两个全角空格
-        val indentPrefix = if (isQuote) "" else "\u3000\u3000"
         val vPad = if (isQuote) quoteVPad else paragraphVPad
         val hPad = if (isQuote) quoteHPad else 0f
         val contentWidth = (pageWidth - hPad * 2).toInt().coerceAtLeast(1)
 
         while (remaining.isNotEmpty()) {
-            val display = if (firstChunk) indentPrefix + remaining else remaining
+            // 引用不缩进；段落只有首块缩进，跨页续块与正文保持一致（不加缩进符）
+            val style = if (!isQuote && firstChunk) indentStyle else baseStyle
             val availableHeight = (pageHeight - used - vPad).coerceAtLeast(0f)
             val layout = measurer.measure(
-                text = AnnotatedString(display),
-                style = baseStyle,
+                text = AnnotatedString(remaining),
+                style = style,
                 constraints = Constraints(maxWidth = contentWidth)
             )
             val blockHeight = layout.size.height.toFloat() + vPad
 
             if (blockHeight <= pageHeight - used || (availableHeight <= 0f && current.isEmpty())) {
-                current.add(PageItem(block.copyText(display), isContinuation = !firstChunk))
+                current.add(PageItem(block.copyText(remaining), isContinuation = !firstChunk))
                 used += blockHeight
                 remaining = ""
             } else {
@@ -104,13 +110,13 @@ fun paginateNovel(
                     if (current.isNotEmpty()) {
                         flush()
                     } else {
-                        current.add(PageItem(block.copyText(display), isContinuation = !firstChunk))
+                        current.add(PageItem(block.copyText(remaining), isContinuation = !firstChunk))
                         remaining = ""
                     }
                 } else {
                     val end = layout.getLineEnd(fitLines - 1)
-                    val head = display.substring(0, end)
-                    val tail = display.substring(end).trimStart('\n', '\r')
+                    val head = remaining.substring(0, end)
+                    val tail = remaining.substring(end).trimStart('\n', '\r')
                     if (head.isNotEmpty()) {
                         current.add(PageItem(block.copyText(head), isContinuation = !firstChunk))
                     }
@@ -152,6 +158,13 @@ fun paginateNovel(
     flush()
     return pages.ifEmpty { listOf(NovelPage(emptyList())) }
 }
+
+/**
+ * 渲染侧使用的段落首行缩进，必须与分页测量时的 [paginateNovel] 保持一致：
+ * 段落首块缩进两个字符，跨页续块不缩进（否则续页看起来像新段落）。
+ */
+fun paragraphIndent(fontSize: Int, isContinuation: Boolean): TextIndent =
+    if (isContinuation) TextIndent.None else TextIndent(firstLine = (fontSize * 2).sp)
 
 /** 在当前可用高度内最多能放下多少行（二分查找） */
 private fun fitLines(layout: TextLayoutResult, availableHeight: Float): Int {

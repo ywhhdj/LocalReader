@@ -49,7 +49,7 @@ object FolderMetaCodec {
             val end = p[2].toIntOrNull() ?: return@mapIndexedNotNull null
             ComicChapter(
                 index=index,
-                title=p[0].ifBlank { "第 ${index + 1} 话" },
+                title=p[0].ifBlank { "${index + 1}" },
                 startIndex=start, 
                 endIndex=end
             )

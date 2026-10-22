@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import com.demo.core.model.AppSettings
 import com.demo.core.model.Book
 import com.demo.core.model.BookFilter
+import com.demo.core.model.GridMode
 import com.demo.core.model.BookGroup
 import com.demo.core.model.BookType
 import com.demo.core.model.BuiltInGroup
@@ -39,6 +40,7 @@ data class ShelfUiState(
     val selectedGroupId: Long = BuiltInGroup.ALL,
     val typeFilter: BookType? = null,
     val sortOrder: SortOrder = SortOrder.LAST_READ,
+    val gridMode : GridMode= GridMode.THREE,
     val gridBooks: List<Book> = emptyList(),
     val page: Int = 0,
     val canLoadMore: Boolean = true,
@@ -106,8 +108,15 @@ class ShelfViewModel(
         else -> Triple(state.selectedGroupId, state.typeFilter, false)
     }
 
+    /**
+     * 分页加载。
+     * 用独立的 Job 串行化：快速切换分组 / 排序时，旧请求的结果不会覆盖新条件的结果。
+     */
+    private var pageJob: kotlinx.coroutines.Job? = null
+
     fun loadPage(page: Int) {
-        viewModelScope.launch {
+        pageJob?.cancel()
+        pageJob = viewModelScope.launch {
             val state = _uiState.value
             val (groupId, type, fav) = filtersFor(state)
             val books = loadShelfPage(
@@ -138,6 +147,7 @@ class ShelfViewModel(
     }
 
     fun selectGroup(groupId: Long) {
+        if (groupId == _uiState.value.selectedGroupId) return
         _uiState.update {
             it.copy(selectedGroupId = groupId, page = 0, gridBooks = emptyList(), canLoadMore = true)
         }
@@ -145,6 +155,7 @@ class ShelfViewModel(
     }
 
     fun setTypeFilter(type: BookType?) {
+        if (type == _uiState.value.typeFilter) return
         _uiState.update {
             it.copy(typeFilter = type, page = 0, gridBooks = emptyList(), canLoadMore = true)
         }
@@ -157,6 +168,11 @@ class ShelfViewModel(
             it.copy(sortOrder = order, page = 0, gridBooks = emptyList(), canLoadMore = true)
         }
         loadPage(0)
+    }
+
+    fun setGridMode(mode: GridMode) {
+        if (mode == _uiState.value.gridMode) return
+        _uiState.update { it.copy(gridMode = mode) }
     }
 
     fun search(keyword: String) {

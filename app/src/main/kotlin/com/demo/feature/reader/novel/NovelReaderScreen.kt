@@ -14,7 +14,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -31,8 +30,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
@@ -45,19 +42,18 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -68,16 +64,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.graphics.Color
 
 import coil.compose.AsyncImage
 
 import com.demo.core.common.util.VolumeSplitter
 import com.demo.core.model.BookBlock
+import com.demo.core.model.Book
 import com.demo.core.model.Chapter
 import com.demo.core.model.ReaderBackground
+import com.demo.core.ui.components.VolumeTocList
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.ReaderShapes
 import com.demo.feature.reader.common.ReaderSettingsPanel
+import com.demo.core.ui.theme.SheetShape
+import com.demo.core.ui.components.AppSlider
+import com.demo.feature.reader.common.ReaderColors
+import com.demo.feature.reader.common.readerColors
 
 /** 底部翻页热区：宽高占比 */
 private const val TAP_ZONE_WIDTH_RATIO = 0.32f
@@ -95,6 +102,7 @@ fun NovelReaderScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showChrome by remember { mutableStateOf(false) }
     var pageIndex by remember { mutableIntStateOf(0) }
+    var forward by remember { mutableStateOf(true) }
     val colors = readerColors(state.settings.readerBackground)
     val view = LocalView.current
     val currentChapter = state.chapters.getOrNull(state.chapterIndex)
@@ -168,10 +176,13 @@ fun NovelReaderScreen(
         }
 
         fun goNext() {
+            forward = true
             if (pageIndex < pages.lastIndex) pageIndex++
             else if (state.canNext) viewModel.nextChapter()
         }
+
         fun goPrev() {
+            forward = false
             if (pageIndex > 0) pageIndex--
             else if (state.canPrev) viewModel.prevChapter()
         }
@@ -180,16 +191,12 @@ fun NovelReaderScreen(
         AnimatedContent(
             targetState = pageIndex,
             transitionSpec = {
-                if (targetState > initialState) {
-                    (slideInHorizontally(animationSpec = tween(220)) { it } + fadeIn(tween(220)))
-                        .togetherWith(
-                            slideOutHorizontally(animationSpec = tween(220)) { -it } + fadeOut(tween(220))
-                        )
+                if (forward) {
+                    (slideInHorizontally(tween(220)) { it } + fadeIn(tween(220)))
+                        .togetherWith(slideOutHorizontally(tween(220)) { -it } + fadeOut(tween(220)))
                 } else {
-                    (slideInHorizontally(animationSpec = tween(220)) { -it } + fadeIn(tween(220)))
-                        .togetherWith(
-                            slideOutHorizontally(animationSpec = tween(220)) { it } + fadeOut(tween(220))
-                        )
+                    (slideInHorizontally(tween(220)) { -it } + fadeIn(tween(220)))
+                        .togetherWith(slideOutHorizontally(tween(220)) { it } + fadeOut(tween(220)))
                 }
             },
             modifier = Modifier
@@ -244,7 +251,7 @@ fun NovelReaderScreen(
                 (canPrevPage || state.canPrev),
             label = if (canPrevPage) "上一页" else "上一章",
             colors = colors,
-            onClick = { if (canPrevPage) pageIndex-- else viewModel.prevChapter() }
+            onClick = { goPrev() }
         )
 
         // ---------- 右下：下一页 / 下一章 ----------
@@ -255,7 +262,7 @@ fun NovelReaderScreen(
                 (canNextPage || state.canNext),
             label = if (canNextPage) "下一页" else "下一章",
             colors = colors,
-            onClick = { if (canNextPage) pageIndex++ else viewModel.nextChapter() }
+            onClick = { goNext() }
         )
 
         // ---------- 顶栏 ----------
@@ -267,7 +274,8 @@ fun NovelReaderScreen(
         ) {
             GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+                shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
+                backgroundColor = colors.background
             ) {
                 Row(
                     modifier = Modifier
@@ -312,7 +320,8 @@ fun NovelReaderScreen(
         ) {
             GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                shape = SheetShape,
+                backgroundColor = colors.background
             ) {
                 Column(
                     Modifier
@@ -327,13 +336,55 @@ fun NovelReaderScreen(
                         style = MaterialTheme.typography.labelMedium
                     )
                     if (state.chapters.size > 1) {
-                        Slider(
-                            value = (state.chapterIndex + 1).toFloat(),
-                            onValueChange = { viewModel.jumpToChapter(it.toInt() - 1) },
-                            valueRange = 1f..state.chapters.size.toFloat(),
-                            steps = (state.chapters.size - 2).coerceAtLeast(0),
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        // 拖动过程中只更新本地值，松手才跳章：避免拖动时连续解析每一章
+                        var chapterSlider by remember(state.chapters.size) {
+                            mutableFloatStateOf((state.chapterIndex + 1).toFloat())
+                        }
+                        LaunchedEffect(state.chapterIndex) {
+                            chapterSlider = (state.chapterIndex + 1).toFloat()
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "上一章",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .clickable {
+                                        if (state.canPrev) {
+                                            chapterSlider--
+                                            viewModel.prevChapter()
+                                        }
+                                    }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                            AppSlider(
+                                value = chapterSlider,
+                                onValueChange = { chapterSlider = it },
+                                onValueChangeFinished = {
+                                    viewModel.jumpToChapter(chapterSlider.toInt() - 1)
+                                },
+                                valueRange = 1f..state.chapters.size.toFloat(),
+                                modifier = Modifier.weight(1f),
+                                steps = (state.chapters.size - 2).coerceAtLeast(0),
+                                rounded=true,
+                            )
+                            Text(
+                                text = "下一章",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .clickable {
+                                        if (state.canNext) {
+                                            chapterSlider++
+                                            viewModel.nextChapter()
+                                        }
+                                    }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -345,29 +396,43 @@ fun NovelReaderScreen(
             enter = slideInHorizontally { -it },
             exit = slideOutHorizontally { -it }
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(300.dp)
-                    .background(colors.background.copy(alpha = 0.98f))
-                    .clickable(enabled = true, onClick = {})
-            ) {
-                TocList(
-                    entries = VolumeSplitter.tocEntries(state.chapters),
-                    currentIndex = state.chapterIndex,
-                    colors = colors,
-                    onSelect = { index ->
-                        viewModel.jumpToChapter(index)
-                        showChrome = false
-                    }
+            Box(Modifier.fillMaxSize()) {
+                // 遮罩在下层：只负责点空白处关闭
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        //遮罩无色
+                        .background(Color.Transparent)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { viewModel.toggleToc(false) }
                 )
+                Column(
+                    Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.7f)
+                        .background(colors.background)
+                ) {
+                    VolumeTocList(
+                        entries = VolumeSplitter.tocEntries(state.chapters),
+                        currentIndex = state.chapterIndex,
+                        textColor = colors.text,
+                        onSelect = { index ->
+                            viewModel.jumpToChapter(index)
+                            viewModel.toggleToc(false)
+                        },
+                        header = {
+                            Text(
+                                "目录",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = colors.text,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                    )
+                }
             }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.25f))
-                    .clickable { viewModel.toggleToc(false) }
-            )
         }
 
         // ---------- 朗读控制条 ----------
@@ -381,25 +446,43 @@ fun NovelReaderScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp),
-                shape = ReaderShapes.large
+                shape = ReaderShapes.large,
+                backgroundColor = colors.background
             ) {
                 Column(Modifier.padding(12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = state.tts.error ?: "朗读中 ${state.tts.progressText}",
                             style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        TextButton(onClick = viewModel::stopTts) { Text("停止") }
+                        TextButton(onClick = viewModel::stopTts) { 
+                            Text("停止")
+                        }
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("语速", style = MaterialTheme.typography.labelSmall)
-                        Slider(
-                            value = state.settings.ttsRate,
-                            onValueChange = viewModel::setTtsRate,
-                            valueRange = 0.5f..2.0f,
-                            modifier = Modifier.weight(1f)
-                        )
+                        Spacer(Modifier.height(6.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "0.5x",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            AppSlider(
+                                value = state.settings.ttsRate,
+                                onValueChange = viewModel::setTtsRate,
+                                valueRange = 0.5f..2.0f,
+                                modifier = Modifier.weight(1f),
+                                rounded=true,
+                            )
+                            Text(
+                                "2.0x",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
@@ -410,7 +493,10 @@ fun NovelReaderScreen(
             visible = state.showSettings,
             enter = slideInVertically { it },
             exit = slideOutVertically { it },
-            modifier = Modifier.align(Alignment.BottomCenter)
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 0.dp)
         ) {
             ReaderSettingsPanel(
                 fontSize = state.settings.fontSize,
@@ -423,6 +509,11 @@ fun NovelReaderScreen(
                 onBackground = { viewModel.updateSettings { s -> s.copy(readerBackground = it) } },
                 onKeepScreenOn = { viewModel.updateSettings { s -> s.copy(keepScreenOn = it) } },
                 onVolumeTurn = { viewModel.updateSettings { s -> s.copy(volumeKeyTurnPage = it) } },
+                // 设置面板里的目录入口：关闭面板并拉出目录抽屉，点章即跳转
+                onOpenToc = {
+                    viewModel.toggleSettings(false)
+                    viewModel.toggleToc(true)
+                },
                 onDismiss = { viewModel.toggleSettings(false) }
             )
         }
@@ -489,60 +580,10 @@ private fun BoxScope.TapZone(
     }
 }
 
-/** 目录：卷标题 + 卷内章节 */
-@Composable
-private fun TocList(
-    entries: List<VolumeSplitter.TocEntry>,
-    currentIndex: Int,
-    colors: ReaderColors,
-    onSelect: (Int) -> Unit
-) {
-    Column(Modifier.fillMaxSize()) {
-        Text(
-            "目录",
-            style = MaterialTheme.typography.titleMedium,
-            color = colors.text,
-            modifier = Modifier.padding(16.dp)
-        )
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            itemsIndexed(entries, key = { index, _ -> index }) { _, entry ->
-                when (entry) {
-                    is VolumeSplitter.TocEntry.Volume -> Text(
-                        text = entry.title,
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = colors.text,
-                        maxLines = 2,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 10.dp)
-                    )
-                    is VolumeSplitter.TocEntry.Item -> {
-                        val selected = entry.chapter.index == currentIndex
-                        Text(
-                            text = VolumeSplitter.displayTitle(entry.chapter),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = if (selected) MaterialTheme.colorScheme.primary else colors.text,
-                            maxLines = 1,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
-                                    else Color.Transparent
-                                )
-                                .clickable { onSelect(entry.chapter.index) }
-                                .padding(horizontal = 16.dp, vertical = 10.dp)
-                                .padding(start = 16.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
 /**
  * 单块渲染。
- * 缩进已写入文本前缀（全角空格），[isContinuation] 仅为调用兼容保留，不参与渲染。
+ * 首行缩进由 TextStyle.textIndent 承担（与分页测量同一套规则），
+ * [isContinuation] 为 true 表示本块是从上一页延续而来，不缩进。
  */
 @Composable
 private fun BlockView(
@@ -550,7 +591,7 @@ private fun BlockView(
     fontSize: Int,
     lineHeight: Float,
     colors: ReaderColors,
-    @Suppress("UNUSED_PARAMETER") isContinuation: Boolean = false
+    isContinuation: Boolean = false
 ) {
     when (block) {
         is BookBlock.Heading -> SelectionContainer {
@@ -572,7 +613,8 @@ private fun BlockView(
                     color = colors.text,
                     fontSize = fontSize.sp,
                     lineHeight = (fontSize * lineHeight).sp,
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Start,
+                    textIndent = paragraphIndent(fontSize, isContinuation)
                 ),
                 modifier = Modifier.padding(vertical = 6.dp)
             )
@@ -597,23 +639,5 @@ private fun BlockView(
                 .padding(vertical = 10.dp)
         )
         BookBlock.Break -> Spacer(Modifier.height(12.dp))
-    }
-}
-
-data class ReaderColors(val background: Color, val text: Color)
-
-@Composable
-fun readerColors(background: ReaderBackground): ReaderColors {
-    val bg = MaterialTheme.colorScheme.background
-    val dark = (bg.red + bg.green + bg.blue) / 3f < 0.5f
-    return when (background) {
-        ReaderBackground.CREAM -> ReaderColors(Color(0xFFF6EFE2), Color(0xFF3B3226))
-        ReaderBackground.GREEN -> ReaderColors(Color(0xFFE8F0E3), Color(0xFF2E3A2A))
-        ReaderBackground.NIGHT -> ReaderColors(Color(0xFF12141A), Color(0xFFC7CBD1))
-        ReaderBackground.PAPER -> if (dark) {
-            ReaderColors(Color(0xFF15181E), Color(0xFFD6DAE0))
-        } else {
-            ReaderColors(Color(0xFFFAFAFA), Color(0xFF23262B))
-        }
     }
 }

@@ -156,7 +156,11 @@ fun ProfileScreen(
                     viewModel.clearHistory()
                 }) { Text("清空") }
             },
-            dismissButton = { TextButton(onClick = { showClearConfirm = false }) { Text("取消") } }
+            dismissButton = { 
+                TextButton(
+                    onClick = { showClearConfirm = false }
+                ) { Text("取消") } 
+            }
         )
     }
 }

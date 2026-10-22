@@ -19,6 +19,8 @@ data class BookFilter(
     }
 }
 
+
+
 enum class SortOrder {
     LAST_READ, RECENT_ADDED, TITLE, PROGRESS;
 

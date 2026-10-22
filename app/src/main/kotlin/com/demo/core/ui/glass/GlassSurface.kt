@@ -29,7 +29,9 @@ fun GlassSurface(
     tintAlpha: Float? = null,
     blurRadiusDp: Int? = null,
     onClick: (() -> Unit)? = null,
-    alignment:Alignment = Alignment.Center,
+    alignment: Alignment = Alignment.Center,
+    /** 非 Unspecified 时，在玻璃层下方先铺一层纯色背景，完全挡住底层内容 */
+    backgroundColor: Color = Color.Unspecified,
     content: @Composable () -> Unit
 ) {
     val config = LocalGlassConfig.current
@@ -50,6 +52,11 @@ fun GlassSurface(
         Box(
             modifier = modifier
                 .clip(shape)
+                .then(
+                    if (backgroundColor != Color.Unspecified)
+                        Modifier.background(backgroundColor, shape)
+                    else Modifier
+                )
                 .glass(
                     shape = shape,
                     tint = tint,

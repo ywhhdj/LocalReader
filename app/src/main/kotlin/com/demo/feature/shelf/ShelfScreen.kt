@@ -1,30 +1,49 @@
 package com.demo.feature.shelf
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.DriveFileMove
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.automirrored.filled.ViewList
+import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -38,30 +57,36 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.ModalBottomSheet
 
-import kotlinx.coroutines.launch
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 
 import com.demo.core.model.Book
+import com.demo.core.model.BookType
+import com.demo.core.model.GridMode
+import com.demo.core.model.SortOrder
 import com.demo.core.ui.components.AppBackdrop
 import com.demo.core.ui.components.BookCoverCard
 import com.demo.core.ui.components.EmptyState
 import com.demo.core.ui.components.GlassSearchBar
-import com.demo.core.ui.glass.GlassIconButton
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
-import com.demo.core.model.SortOrder
-import com.demo.core.model.BookType
+import com.demo.core.ui.theme.CoverPlaceholderA
+import com.demo.core.ui.theme.CoverPlaceholderB
 import com.demo.core.ui.theme.ReaderShapes
-import com.demo.feature.shelf.FilterIconButton
 import com.demo.domain.repository.ScanProgress
+import com.demo.feature.shelf.FilterIconButton
+
+
+import kotlinx.coroutines.launch
 
 @Composable
 fun ShelfScreen(
@@ -85,14 +110,13 @@ fun ShelfScreen(
         derivedStateOf { gridState.firstVisibleItemIndex > 0 || gridState.firstVisibleItemScrollOffset > 8 }
     }
 
-    // 分页：距列表尾部 8 项时加载下一页
     val needLoadMore by remember {
         derivedStateOf {
             val last = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             last >= state.gridBooks.size - 8 && state.gridBooks.isNotEmpty()
         }
     }
-    LaunchedEffect(needLoadMore) {
+    LaunchedEffect(needLoadMore, state.gridBooks.size, state.canLoadMore) {
         if (needLoadMore) viewModel.loadMore()
     }
 
@@ -138,6 +162,11 @@ fun ShelfScreen(
                         filterActive = state.filterActive,
                         modifier = Modifier.weight(1f)
                     )
+                    // 新增：网格模式切换按钮（位于筛选左侧）
+                    GridModeButton(
+                        mode = state.gridMode,
+                        onSelect = viewModel::setGridMode
+                    )
                     FilterIconButton(
                         active = state.filterActive,
                         onClick = { showFilterSheet = true }
@@ -154,7 +183,12 @@ fun ShelfScreen(
                 }
 
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 108.dp),
+                    // ★ 列数跟随 gridMode
+                    columns = when (state.gridMode) {
+                        GridMode.TWO -> GridCells.Fixed(2)
+                        GridMode.THREE -> GridCells.Fixed(3)
+                        GridMode.LIST -> GridCells.Fixed(1)
+                    },
                     state = gridState,
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 96.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -178,13 +212,24 @@ fun ShelfScreen(
                             )
                         }
                     }
+
                     items(state.gridBooks, key = { it.id }, contentType = { "book" }) { book ->
-                        BookCoverCard(
-                            book = book,
-                            selected = book.id in state.selection,
-                            onClick = { onBookClick(book.id) },
-                            onLongClick = { viewModel.toggleSelection(book.id) }
-                        )
+                        if (state.gridMode == GridMode.LIST) {
+                            // 详细列表用横向行卡片
+                            BookListCard(
+                                book = book,
+                                selected = book.id in state.selection,
+                                onClick = { onBookClick(book.id) },
+                                onLongClick = { viewModel.toggleSelection(book.id) }
+                            )
+                        } else {
+                            BookCoverCard(
+                                book = book,
+                                selected = book.id in state.selection,
+                                onClick = { onBookClick(book.id) },
+                                onLongClick = { viewModel.toggleSelection(book.id) }
+                            )
+                        }
                     }
                 }
             }
@@ -268,6 +313,139 @@ fun ShelfScreen(
     }
 }
 
+// 网格模式切换按钮 + 下拉菜单
+@Composable
+private fun GridModeButton(
+    mode: GridMode,
+    onSelect: (GridMode) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val icon = when (mode) {
+        GridMode.TWO -> Icons.Default.ViewModule
+        GridMode.THREE -> Icons.Default.GridView
+        GridMode.LIST -> Icons.AutoMirrored.Filled.ViewList
+    }
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                imageVector = icon,
+                contentDescription = "切换视图",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            GridModeMenuItem("两列", GridMode.TWO, mode) { onSelect(it); expanded = false }
+            GridModeMenuItem("三列", GridMode.THREE, mode) { onSelect(it); expanded = false }
+            GridModeMenuItem("详细列表", GridMode.LIST, mode) { onSelect(it); expanded = false }
+        }
+    }
+}
+
+@Composable
+private fun GridModeMenuItem(
+    label: String,
+    target: GridMode,
+    current: GridMode,
+    onClick: (GridMode) -> Unit
+) {
+    DropdownMenuItem(
+        text = { Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            color = if (target == current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+        ) },
+        onClick = { onClick(target) },
+        leadingIcon = {
+            if (target == current) {
+                Icon(Icons.Default.Check, contentDescription = null)
+            }
+        }
+    )
+}
+
+// 详细列表模式的横向行卡片
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun BookListCard(
+    book: Book,
+    selected: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
+) {
+    val context = LocalContext.current
+    val shape = RoundedCornerShape(12.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+            .then(
+                if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, shape)
+                else Modifier
+            )
+            .then(
+                Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            )
+            .padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(width = 56.dp, height = 76.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .background(Brush.linearGradient(listOf(CoverPlaceholderA, CoverPlaceholderB))),
+            contentAlignment = Alignment.Center
+        ) {
+            if (!book.coverPath.isNullOrBlank()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(book.coverPath)
+                        .size(112, 152)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = book.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Text(
+                    text = book.title.trim().firstOrNull()?.toString() ?: "书",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White
+                )
+            }
+        }
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = book.title,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = book.author.ifBlank { book.displayMeta() },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (book.progress > 0f) {
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { book.progress.coerceIn(0f, 1f) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(2.dp)
+                        .clip(RoundedCornerShape(50))
+                )
+            }
+        }
+    }
+}
+
 /** 筛选面板：类型 + 排序 */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -288,21 +466,9 @@ private fun FilterSheet(
             Spacer(Modifier.size(12.dp))
             Text("类型", style = MaterialTheme.typography.labelLarge)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
-                    selected = typeFilter == null,
-                    onClick = { onTypeChange(null) },
-                    label = { Text("全部") }
-                )
-                FilterChip(
-                    selected = typeFilter == BookType.NOVEL,
-                    onClick = { onTypeChange(BookType.NOVEL) },
-                    label = { Text("小说") }
-                )
-                FilterChip(
-                    selected = typeFilter == BookType.COMIC,
-                    onClick = { onTypeChange(BookType.COMIC) },
-                    label = { Text("漫画") }
-                )
+                FilterChip(selected = typeFilter == null, onClick = { onTypeChange(null) }, label = { Text("全部") })
+                FilterChip(selected = typeFilter == BookType.NOVEL, onClick = { onTypeChange(BookType.NOVEL) }, label = { Text("小说") })
+                FilterChip(selected = typeFilter == BookType.COMIC, onClick = { onTypeChange(BookType.COMIC) }, label = { Text("漫画") })
             }
             Spacer(Modifier.size(16.dp))
             Text("排序", style = MaterialTheme.typography.labelLarge)
@@ -350,15 +516,9 @@ private fun SelectionBar(
         ) {
             Text("已选 $count 项", style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.weight(1f))
-            IconButton(onClick = onFavorite) {
-                Icon(Icons.Default.Favorite, contentDescription = "收藏")
-            }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "删除")
-            }
-            IconButton(onClick = onCancel) {
-                Icon(Icons.Default.Close, contentDescription = "取消")
-            }
+            IconButton(onClick = onFavorite) { Icon(Icons.Default.Favorite, contentDescription = "收藏") }
+            IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, contentDescription = "删除") }
+            IconButton(onClick = onCancel) { Icon(Icons.Default.Close, contentDescription = "取消") }
         }
     }
 }

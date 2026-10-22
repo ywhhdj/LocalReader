@@ -10,10 +10,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,10 +27,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderColors
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.ui.unit.Dp
+import androidx.compose.material3.ExperimentalMaterial3Api
 
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.ReaderRadius
 import com.demo.core.model.Book
+
 
 /** 区块标题 + 右侧"更多" */
 @Composable
@@ -46,7 +53,11 @@ fun SectionHeader(
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(title, style = MaterialTheme.typography.titleMedium)
+        Text(
+            title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
         Spacer(Modifier.weight(1f))
         if (actionText != null && onAction != null) {
             Text(
@@ -124,6 +135,7 @@ fun GlassSearchBar(
     }
 }
 
+
 /** 空态 */
 @Composable
 fun EmptyState(
@@ -189,4 +201,90 @@ fun CoverSkeleton(modifier: Modifier = Modifier) {
                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
         )
     }
+}
+
+
+
+/**
+ * 通用 Slider。
+ *
+ * - [rounded] = false（默认）：完全使用 Material3 原生 Slider 样式；
+ * - [rounded] = true：thumb 为圆形（直径 [thumbSize]），track 高度与 thumb 直径一致，
+ *   整体呈现"胶囊轨道 + 圆点"的样式（阅读器章节进度条、TTS 语速等）。
+ *
+ * 依赖 Material3 ≥ 1.2.0（`thumb` / `track` Composable 参数）。
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+    steps: Int = 0,
+    onValueChangeFinished: (() -> Unit)? = null,
+    colors: SliderColors = SliderDefaults.colors(),
+    /** 圆角模式开关：false → Material3 默认；true → 圆形 thumb + 同高胶囊 track */
+    rounded: Boolean = false,
+    /** 圆角模式下 thumb 直径（track 高度自动跟随该值） */
+    thumbSize: Dp = 22.dp,
+) {
+    if (!rounded) {
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = modifier,
+            enabled = enabled,
+            valueRange = valueRange,
+            steps = steps,
+            onValueChangeFinished = onValueChangeFinished,
+            colors = colors,
+        )
+        return
+    }
+
+    // 圆角模式：thumb 与 track 都替换为自定义实现
+    val activeColor = colors.activeTrackColor
+    val inactiveColor = colors.inactiveTrackColor
+    val thumbColor = colors.thumbColor
+
+    Slider(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        enabled = enabled,
+        valueRange = valueRange,
+        steps = steps,
+        onValueChangeFinished = onValueChangeFinished,
+        colors = colors,
+        thumb = {
+            Box(
+                modifier = Modifier
+                    .size(thumbSize)
+                    .background(thumbColor, CircleShape)
+            )
+        },
+        track = { sliderState ->
+            val range = sliderState.valueRange
+            val fraction = if (range.endInclusive > range.start) {
+                ((sliderState.value - range.start) / (range.endInclusive - range.start))
+                    .coerceIn(0f, 1f)
+            } else 0f
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(thumbSize)
+                    .clip(CircleShape)
+                    .background(inactiveColor, CircleShape)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(fraction)
+                        .background(activeColor, CircleShape)
+                )
+            }
+        },
+    )
 }

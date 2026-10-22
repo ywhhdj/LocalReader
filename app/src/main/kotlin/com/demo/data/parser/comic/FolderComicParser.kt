@@ -83,6 +83,7 @@ class FolderComicParser(
             if (end >= start) result.add(ComicChapter(
                 index = index,
                 title = chapter.title,
+                pageCount = end - start + 1,
                 startIndex = start,
                 endIndex = end
             ))
@@ -95,6 +96,7 @@ class FolderComicParser(
         if (total <= 0) emptyList() else listOf(ComicChapter(
             index = 0,
             title = ComicChapter.SINGLE_TITLE,
+            pageCount = total,
             startIndex = 0,
             endIndex = total - 1
         ))

@@ -2,6 +2,7 @@ package com.demo.feature.detail
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,42 +42,77 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.FilterChip
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 
 import coil.compose.AsyncImage
 
 import com.demo.core.common.util.FormatUtil
+import com.demo.core.common.util.VolumeSplitter
 import com.demo.core.model.Book
 import com.demo.core.model.BookType
 import com.demo.core.model.Chapter
 import com.demo.core.ui.components.AppBackdrop
 import com.demo.core.ui.components.CoverSkeleton
+import com.demo.core.ui.components.VolumeTocList
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
 import com.demo.core.ui.theme.ReaderShapes
+import com.demo.core.ui.theme.ChipShape
+import com.demo.core.ui.theme.SheetShape
+
+/** 详情页目录卡片最多预览的章节数，超出走「全部」抽屉 */
+private const val TOC_PREVIEW_COUNT = 20
 
 @Composable
 fun DetailScreen(
     viewModel: DetailViewModel,
     onBack: () -> Unit,
-    /** chapterIndex 为 null：从进度继续；非 null：跳转到指定话 */
+    /** chapterIndex 为 null：从进度继续；非 null：跳转到指定章节 / 指定话 */
     onRead: (Book, Int?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var showTocDrawer by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.deleted) {
         if (state.deleted) onBack()
     }
 
+    // 从阅读器返回时刷新进度、最后阅读时间等字段
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refresh()
+        }
+    }
+
+    val book = state.book
+    val chapters = state.chapters
+
+    Box(modifier = modifier.fillMaxSize()) {
     AppBackdrop {
-        Column(modifier = modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
             GlassTopBar(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -87,21 +124,20 @@ fun DetailScreen(
                         text = state.book?.title.orEmpty(),
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 },
                 actions = { DetailMenu(viewModel) }
             )
 
-            if (state.isLoading || state.book == null) {
+            if (state.isLoading || book == null) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CoverSkeleton(modifier = Modifier.width(160.dp))
                 }
                 return@Column
             }
 
-            val book = state.book ?: return@Column
-            val chapters = state.chapters
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
@@ -110,12 +146,73 @@ fun DetailScreen(
                 item { HeaderCard(book, { onRead(book, null) }) }
                 item { MetaCard(book) }
                 item { ActionsCard(book, viewModel) }
-                if(book.type == BookType.COMIC){
-                    item { ComicChaptersCard(chapters) { index -> onRead(book, index) } }
-                }else if(book.type == BookType.NOVEL){
-                    item { NovalChaptersCard(chapters) }
+                if (book.type == BookType.COMIC) {
+                    item {
+                        ComicChaptersCard(
+                            chapters = chapters,
+                            loading = state.chaptersLoading
+                        ) { index -> onRead(book, index) }
+                    }
+                } else if (book.type == BookType.NOVEL) {
+                    item {
+                        NovelTocCard(
+                            chapters = chapters,
+                            loading = state.chaptersLoading,
+                            currentIndex = -1,
+                            onOpenAll = { showTocDrawer = true },
+                            onSelect = { index -> onRead(book, index) }
+                        )
+                    }
                 }
-                
+
+            }
+        }
+    }
+
+        // 目录抽屉：按卷分组，点击即跳转到该章
+        if (showTocDrawer && book != null) {
+            AnimatedVisibility(
+                visible = true,
+                enter = slideInHorizontally { it },
+                exit = slideOutHorizontally { it },
+                modifier = Modifier.align(Alignment.CenterEnd)
+            ) {
+                Box(Modifier.fillMaxSize()) {
+                    // 遮罩在下层：只负责点空白处关闭
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            //遮罩无色
+                            .background(Color.Transparent)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { showTocDrawer = false }
+                    )
+                    GlassSurface(
+                        shape = SheetShape,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(0.7f)
+                    ) {
+                        VolumeTocList(
+                            entries = VolumeSplitter.tocEntries(chapters),
+                            currentIndex = -1,
+                            onSelect = { index ->
+                                showTocDrawer = false
+                                onRead(book, index)
+                            },
+                            header = {
+                                Text(
+                                    "目录",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
+                        )
+                    }
+                }
             }
         }
     }
@@ -206,12 +303,14 @@ private fun HeaderCard(book: Book,  onRead: () -> Unit) {
 
 
 /** 话集卡片：GlassSurface 包裹，内部是逐话可点的 GlassSurface 按钮 */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ComicChaptersCard(
     chapters: List<Chapter>,
+    loading: Boolean = false,
     onOpenChapter: (Int) -> Unit
 ) {
-    if (chapters.isEmpty()) return
+    if (chapters.isEmpty() && !loading) return
     GlassSurface(
         shape = ReaderShapes.extraSmall,
         modifier = Modifier.fillMaxWidth()
@@ -222,26 +321,33 @@ private fun ComicChaptersCard(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
             )
-            LazyColumn(
+            if (chapters.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(72.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                }
+                return@Column
+            }
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 360.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .heightIn(max = 360.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
-                val rows = chapters.chunked(2)
-                itemsIndexed(rows, key = { _, row -> row.firstOrNull()?.index ?: 0 }) { _, row ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        row.forEach { chapter ->
-                            ChapterChip(
-                                chapter = chapter,
-                                modifier = Modifier.weight(1f),
-                                onClick = { onOpenChapter(chapter.index) }
-                            )
-                        }
-                        if (row.size == 1) Spacer(Modifier.weight(1f))
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    chapters.forEach { chapter ->
+                        ChapterChip(
+                            chapter = chapter,
+                            onClick = { onOpenChapter(chapter.index) }
+                        )
                     }
                 }
             }
@@ -256,13 +362,13 @@ private fun ChapterChip(
     onClick: () -> Unit
 ) {
     GlassSurface(
-        shape = ReaderShapes.small,
+        shape = ChipShape,
         tintAlpha = 0.18f,
         onClick = onClick,
         modifier = modifier
     ) {
         Text(
-            text = chapter.title,
+            text = "${chapter.index+1}",
             style = MaterialTheme.typography.labelMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -368,41 +474,80 @@ private fun ActionsCard(book: Book, viewModel: DetailViewModel) {
 }
 
 
-//目录卡片
+/**
+ * 小说目录卡片：按卷分组（卷名加粗 + 卷内章节缩进），点击直接跳到该章；
+ * 章节较多时用「全部」打开右侧抽屉浏览完整目录。
+ */
 @Composable
-private fun NovalChaptersCard(
-    chapters: List<Chapter>
+private fun NovelTocCard(
+    chapters: List<Chapter>,
+    loading: Boolean,
+    currentIndex: Int,
+    onOpenAll: () -> Unit,
+    onSelect: (Int) -> Unit
 ) {
-    if (chapters.isEmpty()) return
+    if (chapters.isEmpty() && !loading) return
     GlassSurface(
         shape = ReaderShapes.extraSmall,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(Modifier.padding(12.dp)) {
-            Text(
-                "目录",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
-            )
-            LazyColumn(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 360.dp),   // 关键：给内层一个高度约束
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                    .padding(top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                itemsIndexed(
-                    items = chapters,
-                    key = { _, c -> c.index }
-                ) { _, chapter ->
+                Text(
+                    "目录",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                if (chapters.size > TOC_PREVIEW_COUNT) {
+                    TextButton(onClick = onOpenAll) { Text("全部 ${chapters.size} 章") }
+                }
+            }
+            if (chapters.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(72.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                }
+                return@Column
+            }
+            val preview = remember(chapters) { chapters.take(TOC_PREVIEW_COUNT) }
+            var lastVolume: String? = null
+            preview.forEach { chapter ->
+                val volume = chapter.volume
+                if (volume.isNotBlank() && volume != lastVolume) {
+                    lastVolume = volume
                     Text(
-                        text = chapter.title,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                        text = volume,
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        maxLines = 2,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp, horizontal = 4.dp)
                     )
                 }
+                val selected = chapter.index == currentIndex
+                Text(
+                    text = VolumeSplitter.displayTitle(chapter),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (selected) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(ReaderShapes.small)
+                        .clickable { onSelect(chapter.index) }
+                        .padding(vertical = 8.dp, horizontal = 4.dp)
+                        .padding(start = if (volume.isBlank()) 0.dp else 16.dp)
+                )
             }
         }
     }

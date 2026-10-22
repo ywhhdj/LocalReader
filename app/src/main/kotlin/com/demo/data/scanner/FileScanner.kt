@@ -101,7 +101,7 @@ class FileScanner(
           // 仅在需要刷新时才回查该条记录（大部分场景不会走到这里）
           val exists = withContext(Dispatchers.IO) { bookDao.byPath(path) }
           val changed = exists != null &&
-              (exists.size_bytes != file.length() || exists.title.isBlank())
+            (exists.size_bytes != file.length() || exists.title.isBlank())
           if (!changed) {
             c.skipped++
             return@runCatching

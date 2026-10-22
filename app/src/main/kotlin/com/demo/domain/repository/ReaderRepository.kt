@@ -31,6 +31,7 @@ fun ComicContent.chaptersOrSingle(): List<ComicChapter> {
     return listOf(ComicChapter(
         index=0,
         title=ComicChapter.SINGLE_TITLE,
+        pageCount=pages.size,
         startIndex=0,
         endIndex=last
     ))

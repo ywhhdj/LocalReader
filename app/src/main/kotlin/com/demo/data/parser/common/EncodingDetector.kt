@@ -1,7 +1,7 @@
 package com.demo.data.parser.common
 
 import java.io.File
-import java.io.FileInputStream
+import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import java.nio.charset.Charset
@@ -10,42 +10,68 @@ import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
 
 /**
- * 文本编码探测：BOM → UTF-8 严格校验 → 多候选打分（GBK/Big5/EUC-KR/Shift_JIS）。
- * 中文场景兜底 GBK，避免整本乱码。
+ * 文本编码探测：BOM → 严格 UTF-8（容忍采样截断）→ 多候选打分。
+ * 中文场景兜底 GB18030（GBK 超集），避免"UTF-8 被当成 GBK"的整本乱码。
  */
 object EncodingDetector {
 
-    private val CANDIDATES = listOf("GBK", "BIG5", "EUC-KR", "Shift_JIS", "ISO-8859-1")
+    /** GB18030 放首位：它是全字节覆盖且兼容 GBK，普通 GBK 文本打分不会低于 GBK */
+    private val CANDIDATES = listOf("GB18030", "GBK", "BIG5", "EUC-KR", "Shift_JIS")
+    
 
     fun detect(file: File, sample: Int = 96 * 1024): Charset {
-        val bytes = readSample(file, sample)
+        var bytes = readAt(file, 0L, sample)
         if (bytes.isEmpty()) return StandardCharsets.UTF_8
 
         detectByBom(bytes)?.let { return it }
+
+        // 头段几乎是 ASCII（版权/目录/空行）时，补采中段，避免"前段英文后面中文"误判
+        if (isMostlyAscii(bytes) && file.length() > sample * 2) {
+            val mid = readAt(file, file.length() / 2, sample / 2)
+            if (mid.isNotEmpty()) bytes = bytes + mid
+        }
+
+        // 严格 UTF-8 校验：容忍采样截断的多字节尾部
         if (isStrictUtf8(bytes)) return StandardCharsets.UTF_8
 
-        var best: Charset = charsetOrNull("GBK") ?: StandardCharsets.UTF_8
+        // 非 UTF-8 → 候选打分
+        var best: Charset = charsetOrNull("GB18030") ?: StandardCharsets.UTF_8
         var bestScore = Int.MIN_VALUE
         for (name in CANDIDATES) {
             val cs = charsetOrNull(name) ?: continue
-            val score = score(bytes, cs)
-            if (score > bestScore) {
-                bestScore = score
+            val s = score(bytes, cs)
+            if (s > bestScore) {
+                bestScore = s
                 best = cs
             }
         }
         return best
     }
 
-    private fun readSample(file: File, sample: Int): ByteArray = try {
-        FileInputStream(file).use { input ->
-            val size = minOf(file.length(), sample.toLong()).toInt()
-            val buf = ByteArray(size)
-            val read = input.read(buf)
+    /** 按偏移读取，循环读满 */
+    private fun readAt(file: File, offset: Long, size: Int): ByteArray = try {
+        RandomAccessFile(file, "r").use { raf ->
+            val len = minOf(file.length() - offset, size.toLong()).coerceAtLeast(0L).toInt()
+            if (len <= 0) return ByteArray(0)
+            raf.seek(offset)
+            val buf = ByteArray(len)
+            var read = 0
+            while (read < len) {
+                val n = raf.read(buf, read, len - read)
+                if (n <= 0) break
+                read += n
+            }
             if (read <= 0) ByteArray(0) else buf.copyOf(read)
         }
     } catch (e: Exception) {
         ByteArray(0)
+    }
+
+    private fun isMostlyAscii(bytes: ByteArray): Boolean {
+        if (bytes.isEmpty()) return true
+        var nonAscii = 0
+        for (b in bytes) if ((b.toInt() and 0xFF) > 0x7F) nonAscii++
+        return nonAscii.toDouble() / bytes.size < 0.01
     }
 
     private fun detectByBom(bytes: ByteArray): Charset? = when {
@@ -58,17 +84,31 @@ object EncodingDetector {
         else -> null
     }
 
-    private fun isStrictUtf8(bytes: ByteArray): Boolean = try {
-        val decoder = StandardCharsets.UTF_8.newDecoder()
-            .onMalformedInput(CodingErrorAction.REPORT)
-            .onUnmappableCharacter(CodingErrorAction.REPORT)
-        decoder.decode(ByteBuffer.wrap(bytes))
-        true
-    } catch (e: Exception) {
-        false
+    /**
+     * 严格 UTF-8：允许末尾最多 3 字节的"不完整多字节序列"。
+     * 采样是按字节截断的，很可能正好切在一个 3 字节汉字的中间。
+     * 若不放宽，UTF-8 文件会被误判为非 UTF-8，然后被当成 GBK 解码 → 整本乱码。
+     */
+    private fun isStrictUtf8(bytes: ByteArray): Boolean {
+        if (bytes.isEmpty()) return true
+        // 依次尝试去掉末尾 0~3 字节
+        for (trim in 0..3) {
+            val len = bytes.size - trim
+            if (len <= 0) return true
+            try {
+                val decoder = StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                decoder.decode(ByteBuffer.wrap(bytes, 0, len))
+                return true
+            } catch (e: Exception) {
+                // 继续尝试更短尾部
+            }
+        }
+        return false
     }
 
-    /** 打分：中文字符 + 常见标点为正向，替换字符为大幅负向 */
+    /** 打分：CJK/中文标点正向，替换符/控制符负向；无 CJK 的候选重罚 */
     private fun score(bytes: ByteArray, charset: Charset): Int = try {
         val decoder: CharsetDecoder = charset.newDecoder()
             .onMalformedInput(CodingErrorAction.REPORT)
@@ -76,16 +116,23 @@ object EncodingDetector {
         val cb: CharBuffer = decoder.decode(ByteBuffer.wrap(bytes))
         var score = 0
         var replacement = 0
+        var cjk = 0
         for (i in 0 until minOf(cb.length, 8192)) {
             val c = cb[i]
             when {
-                c == '�' -> replacement++
-                c in '一'..'龥' -> score += 2
+                c == '\uFFFD' -> replacement++
+                c in '\u4E00'..'\u9FFF' -> { score += 2; cjk++ }
+                c in '\u3040'..'\u30FF' -> { score += 1; cjk++ }  // 日文假名
+                c in '\uAC00'..'\uD7AF' -> { score += 1; cjk++ }  // 韩文
                 c == '，' || c == '。' || c == '、' || c == '；' || c == '：' ||
-                    c == '？' || c == '！' || c == '“' || c == '”' -> score += 3
-                c == ' ' || c == '\n' || c == '\r' -> score += 1
+                    c == '？' || c == '！' || c == '“' || c == '”' ||
+                    c == '《' || c == '》' || c == '（' || c == '）' -> score += 3
+                c == ' ' || c == '\n' || c == '\r' || c == '\t' -> score += 1
+                c.code < 0x20 -> score -= 5  // 控制字符
             }
         }
+        // 中文小说解码后应该出现 CJK；一个 CJK 都没有的候选（如把中文误判成 ISO-8859-1）重罚
+        if (cjk == 0 && bytes.size > 256) score -= 200
         score - replacement * 20
     } catch (e: Exception) {
         Int.MIN_VALUE / 2

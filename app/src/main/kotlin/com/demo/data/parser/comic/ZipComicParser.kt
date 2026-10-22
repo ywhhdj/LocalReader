@@ -83,6 +83,7 @@ class ZipComicParser(
             else listOf(ComicChapter(
                 index = 0,
                 title = ComicChapter.SINGLE_TITLE,
+                pageCount = pages.size,
                 startIndex = 0,
                 endIndex = pages.lastIndex
             ))

@@ -45,6 +45,48 @@ internal class EpubNovelContent(
         }
         val chapterDir = entry.name.substringBeforeLast('/', "")
         val blocks = HtmlExtractor.extract(html) { src -> resolveImageSafe(zf, chapterDir, src) }
+
+        val displayTitle = VolumeSplitter.displayTitle(chapter)
+        val titleCandidates = listOf(chapter.title, displayTitle)
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+
+        // 在 stripTitles 之前，先"剥开"首块里内嵌的章节标题
+        val peeled = blocks.toMutableList()
+        val firstBlock = peeled.firstOrNull()
+        if (firstBlock is BookBlock.Paragraph) {
+            var body = firstBlock.text
+            var changed = false
+            for (t in titleCandidates) {
+                if (body == t) { 
+                    peeled.removeAt(0);
+                    changed = true;
+                    break
+                }
+                if (body.startsWith(t) && body.getOrNull(t.length)?.let { it == '\n' || it == '\r' } == true) {
+                    body = body.substring(t.length).trimStart('\n', '\r', ' ', '\u3000')
+                    if (body.isBlank()) peeled.removeAt(0)
+                    else peeled[0] = BookBlock.Paragraph(body)
+                    changed = true
+                    break
+                }
+            }
+            // 同时支持首块是 Heading 但标题在前、正文串进 Heading 里的场景
+            if (!changed) {
+                for (t in titleCandidates) {
+                    if (body.startsWith(t) && body.length > t.length) {
+                        val rest = body.substring(t.length).trimStart()
+                        if (rest.isNotBlank()) {
+                            peeled.removeAt(0)
+                            peeled.add(0, BookBlock.Paragraph(rest))
+                        }
+                        break
+                    }
+                }
+            }
+        }
+
         VolumeSplitter.stripTitles(blocks, listOf(chapter.title, VolumeSplitter.displayTitle(chapter)))
             .ifEmpty { listOf(BookBlock.Paragraph("（本章无正文内容）")) }
     }.getOrElse { e ->

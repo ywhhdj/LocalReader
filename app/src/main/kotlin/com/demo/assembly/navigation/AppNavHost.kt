@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.Alignment
 
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -59,8 +60,7 @@ fun AppNavHost(
                 onBack = { navController.popBackStack() },
                 onRead = { book, chapter ->
                     val route = if (book.type == BookType.NOVEL) {
-                        // 小说暂不支持按章跳转（NovelReaderViewModel.load 只有 bookId）
-                        ReaderRoute.novel(book.id)
+                        ReaderRoute.novel(book.id, chapter)
                     } else {
                         ReaderRoute.comic(book.id, chapter)
                     }

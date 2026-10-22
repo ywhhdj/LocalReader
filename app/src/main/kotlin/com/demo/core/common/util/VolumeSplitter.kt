@@ -18,7 +18,7 @@ object VolumeSplitter {
 
     /** 卷标记：第X卷 / 第X部 / 卷X */
     private val VOLUME_MARK = Regex(
-        """第\s*[0-9零一二三四五六七八九十百千万两]+\s*[卷部篇集]|卷\s*[0-9零一二三四五六七八九十百千万两]+\s*[卷]?"""
+        """第\s*[0-9零一二三四五六七八九十百千万两]+\s*(?:[卷篇集]|部(?!分))|卷\s*[0-9零一二三四五六七八九十百千万两]+\s*[卷]?"""
     )
     /** 章标记：第X章 / 第X节 / Chapter N */
     private val CHAPTER_MARK = Regex(
@@ -141,6 +141,7 @@ object VolumeSplitter {
 
     /** 归一化：去空白与标点，便于标题比对 */
     fun normalize(text: String): String = text
+        .replace("\uFEFF", "")
         .replace(Regex("""[\s　]+"""), "")
         .replace(Regex("""[，。、！？：；“”‘’（）《》〈〉·—…\-,.!?:;"'()\[\]{}|/\\~`*#]"""), "")
 

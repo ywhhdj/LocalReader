@@ -58,6 +58,7 @@ class PageCache(filesDir: File) {
         if (bookDir.exists()) {
             FileUtil.deleteRecursively(bookDir)
         }
+        cache.invalidateSize()
     }
 
     fun trim() = cache.trim()

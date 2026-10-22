@@ -51,6 +51,7 @@ import com.demo.core.ui.theme.CoverShape
  * - 右上角类型角标
  * - 无封面时用书名首字母生成渐变占位
  */
+
 @Composable
 fun BookCoverCard(
     book: Book,
@@ -102,7 +103,8 @@ fun BookCoverCard(
             style = MaterialTheme.typography.labelLarge,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 6.dp, start = 2.dp, end = 2.dp)
+            modifier = Modifier.padding(top = 6.dp, start = 2.dp, end = 2.dp),
+            color = MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = book.author.ifBlank { book.displayMeta() },
@@ -152,6 +154,7 @@ private fun BoxScope.TypeBadge(type: BookType, modifier: Modifier = Modifier) {
 }
 
 private fun Modifier.widthAdaptive(): Modifier = this.fillMaxWidth()
+
 
 private fun Modifier.bookClickable(
     onClick: () -> Unit,

@@ -46,7 +46,7 @@ fun GlassTopBar(
                 tintAlpha = alpha.coerceIn(0.06f, 0.28f),
                 blurRadius = config.level.blurRadiusDp.dp,
                 strokeAlpha = config.strokeAlpha
-            )
+            ),
     ) {
         Row(
             modifier = Modifier
