@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,15 +21,12 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -55,6 +51,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 
 import com.demo.core.model.ComicChapter
+import com.demo.core.ui.components.AppChipRow
 import com.demo.core.ui.components.ComicTocList
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.ReaderShapes
@@ -193,7 +190,7 @@ fun ComicReaderScreen(
                         )
                     }
                 }
-                IconButton(onClick = viewModel::toggleSettings ) {
+                IconButton(onClick = viewModel::toggleSettings) {
                     Icon(Icons.Default.Settings, contentDescription = "设置")
                 }
             }
@@ -202,7 +199,7 @@ fun ComicReaderScreen(
         // ---------- 目录抽屉（通用外壳 + 漫画专用列表） ----------
         ReaderTocDrawer(
             visible = state.showToc,
-            background = readerColors(state.settings.readerBackground).background,
+            background = readerColors(state.settings.readerBackground),
             onDismiss = { viewModel.toggleToc(false) }
         ) {
             ComicTocList(
@@ -274,9 +271,7 @@ fun ComicReaderScreen(
             visible = state.showSettings,
             enter = slideInVertically { it },
             exit = slideOutVertically { it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
+            modifier = Modifier.align(Alignment.BottomCenter)
         ) {
             ReaderSettingsPanel(
                 fontSize = state.settings.fontSize,
@@ -370,19 +365,16 @@ private fun ChapterButtons(
     selectedIndex: Int,
     onSelect: (Int) -> Unit
 ) {
-    LazyRow(
-        modifier = Modifier.fillMaxWidth(),
+    AppChipRow(
+        options = chapters.map { it.index },
+        selected = selectedIndex,
+        label = { idx -> chapters.first { it.index == idx }.title },
+        onSelect = onSelect,
+        lazy = true,
+        shape = ReaderShapes.small,
+        rowHeight = 48.dp,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(chapters, key = { it.index }) { chapter ->
-            FilterChip(
-                selected = chapter.index == selectedIndex,
-                onClick = { onSelect(chapter.index) },
-                label = { Text(chapter.title, style = MaterialTheme.typography.labelMedium) },
-                shape = ReaderShapes.small
-            )
-        }
-    }
+    )
 }
 
 /** 上一话 / 下一话圆形按钮 */

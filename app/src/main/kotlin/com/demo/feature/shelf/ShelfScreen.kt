@@ -86,6 +86,9 @@ import com.demo.core.ui.theme.CoverPlaceholderB
 import com.demo.core.ui.theme.ReaderShapes
 import com.demo.domain.repository.ScanProgress
 import com.demo.feature.shelf.FilterIconButton
+import com.demo.core.ui.components.AppBookListCard
+import com.demo.core.ui.components.AppChipRow
+import com.demo.core.ui.components.AppLoading
 
 
 import kotlinx.coroutines.launch
@@ -199,11 +202,7 @@ fun ShelfScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     if (state.isLoading && state.gridBooks.isEmpty()) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator()
-                            }
-                        }
+                        item(span = { GridItemSpan(maxLineSpan) }) { AppLoading() }
                     }
 
                     if (state.gridBooks.isEmpty() && !state.isLoading) {
@@ -219,7 +218,7 @@ fun ShelfScreen(
                     items(state.gridBooks, key = { it.id }, contentType = { "book" }) { book ->
                         if (state.gridMode == GridMode.LIST) {
                             // 详细列表用横向行卡片
-                            BookListCard(
+                            AppBookListCard(
                                 book = book,
                                 selected = book.id in state.selection,
                                 onClick = { onBookClick(book.id) },
@@ -479,11 +478,18 @@ private fun FilterSheet(
             Text("筛选", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.size(12.dp))
             Text("类型", style = MaterialTheme.typography.labelLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = typeFilter == null, onClick = { onTypeChange(null) }, label = { Text("全部") })
-                FilterChip(selected = typeFilter == BookType.NOVEL, onClick = { onTypeChange(BookType.NOVEL) }, label = { Text("小说") })
-                FilterChip(selected = typeFilter == BookType.COMIC, onClick = { onTypeChange(BookType.COMIC) }, label = { Text("漫画") })
-            }
+            AppChipRow(
+                options = listOf<BookType?>(null, BookType.NOVEL, BookType.COMIC),
+                selected = typeFilter,
+                label = {
+                    when (it) {
+                        null -> "全部"
+                        BookType.NOVEL -> "小说"
+                        BookType.COMIC -> "漫画"
+                    }
+                },
+                onSelect = onTypeChange
+            )
             Spacer(Modifier.size(16.dp))
             Text("排序", style = MaterialTheme.typography.labelLarge)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

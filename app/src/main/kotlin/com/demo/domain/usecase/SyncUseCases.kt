@@ -1,10 +1,11 @@
 package com.demo.domain.usecase
 
 import com.demo.core.model.AppSettings
-import com.demo.domain.repository.RemoteBackup
-import com.demo.domain.repository.SyncConfig
+import com.demo.core.model.SyncResult
+import com.demo.core.model.SyncConfig
+import com.demo.core.model.RemoteBackup
+
 import com.demo.domain.repository.SyncRepository
-import com.demo.domain.repository.SyncResult
 
 /** 从设置构造同步配置 */
 fun AppSettings.syncConfig(): SyncConfig = SyncConfig(

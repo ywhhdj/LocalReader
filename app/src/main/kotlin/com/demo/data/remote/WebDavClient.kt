@@ -3,6 +3,8 @@ package com.demo.data.remote
 import com.demo.core.common.util.Logger
 import com.demo.core.common.util.SimpleHttp
 
+import com.demo.core.model.SyncConfig
+
 import java.net.URLEncoder
 
 /**
@@ -19,7 +21,7 @@ class WebDavClient {
         val modifiedAt: Long
     )
 
-    fun baseUrl(config: com.demo.domain.repository.SyncConfig): String {
+    fun baseUrl(config: SyncConfig): String {
         var url = config.url.trim().trimEnd('/')
         val dir = config.remoteDir.trim().trim('/')
         if (dir.isNotEmpty()) url += "/" + dir.split('/').joinToString("/") { encode(it) }

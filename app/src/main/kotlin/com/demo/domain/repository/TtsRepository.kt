@@ -2,31 +2,14 @@ package com.demo.domain.repository
 
 import kotlinx.coroutines.flow.StateFlow
 
-data class TtsState(
-    val available: Boolean = false,
-    val speaking: Boolean = false,
-    /** 当前朗读分片序号（1 起） */
-    val chunkIndex: Int = 0,
-    val chunkCount: Int = 0,
-    val error: String? = null
-) {
-    val progressText: String
-        get() = if (chunkCount > 0) "$chunkIndex/$chunkCount" else ""
-}
-
-/** 系统可用语音（供听读设置里选择；语音包由用户在系统设置中下载） */
-data class TtsVoice(
-    val name: String,
-    val displayName: String,
-    val locale: String = "",
-    val quality: Int = 0
-)
+import com.demo.core.model.TtsState
+import com.demo.core.model.TtsVoice
 
 /**
  * 朗读引擎（TTS）。实现位于 data 层（Android TextToSpeech），
  * 上层只依赖本接口，便于替换/关闭。
  */
-interface TtsEngine {
+interface TtsRepository {
 
     val state: StateFlow<TtsState>
 
@@ -63,6 +46,8 @@ interface TtsEngine {
 
     /** 跳转系统「文字转语音」设置：语音包下载由用户在该处完成 */
     fun openSystemSettings()
+
+    fun launchTtsSettings()
 
     /** 释放引擎（应用退出/不再朗读时调用） */
     fun shutdown()

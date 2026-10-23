@@ -31,10 +31,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.foundation.layout.PaddingValues
 
 import com.demo.core.common.util.StorageAccess
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.ReaderShapes
+import com.demo.core.ui.components.AppDialog
 
 import java.io.File
 
@@ -146,6 +148,8 @@ fun ImportDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f, fill = false),
+                            //固定高度
+                        contentPadding = PaddingValues(vertical = 4.dp),
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         items(savedDirs) { raw ->
@@ -250,29 +254,23 @@ fun CreateGroupDialog(
     onConfirm: (String) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
-    Dialog(onDismissRequest = onDismiss) {
-        GlassSurface(shape = ReaderShapes.large, modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(20.dp)) {
-                Text("新建分组", style = MaterialTheme.typography.titleMedium)
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("分组名称") },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp)
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = onDismiss) { Text("取消") }
-                    TextButton(onClick = { onConfirm(name.trim()) }) { Text("创建") }
-                }
-            }
+    AppDialog(
+        title = "新建分组",
+        onDismiss = onDismiss,
+        content = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("分组名称") },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
+            )
+        },
+        actions = {
+            TextButton(onClick = onDismiss) { Text("取消") }
+            TextButton(onClick = { onConfirm(name.trim()) }) { Text("创建") }
         }
-    }
+    )
 }

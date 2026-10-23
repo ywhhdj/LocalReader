@@ -2,12 +2,24 @@ package com.demo.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
 import com.demo.core.model.AppSettings
 import com.demo.core.model.ThemeMode
+import com.demo.core.model.TtsTimbre
+import com.demo.core.model.TtsVoice
+import com.demo.core.model.SyncResult
+import com.demo.core.model.RemoteBackup
+
 import com.demo.domain.codec.BookSourceCodec
-import com.demo.domain.repository.RemoteBackup
-import com.demo.domain.repository.StorageRepository
-import com.demo.domain.repository.SyncResult
+
+
 import com.demo.domain.usecase.BackupNowUseCase
 import com.demo.domain.usecase.ExportSnapshotUseCase
 import com.demo.domain.usecase.ImportSnapshotUseCase
@@ -18,12 +30,9 @@ import com.demo.domain.usecase.RestoreBackupUseCase
 import com.demo.domain.usecase.TestSyncConnectionUseCase
 import com.demo.domain.usecase.UpdateSettingsUseCase
 import com.demo.domain.usecase.syncConfig
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import com.demo.domain.repository.TtsRepository
+import com.demo.domain.repository.StorageRepository
+
 
 data class SettingsUiState(
   val settings: AppSettings = AppSettings(),
@@ -32,7 +41,8 @@ data class SettingsUiState(
   val safBytes: Long = 0L,
   val backups: List<RemoteBackup> = emptyList(),
   val syncBusy: Boolean = false,
-  val message: String? = null
+  val message: String? = null,
+  val ttsVoices: List<TtsVoice> = emptyList()
 )
 
 class SettingsViewModel(
@@ -45,7 +55,8 @@ class SettingsViewModel(
   private val restoreBackup: RestoreBackupUseCase,
   private val exportSnapshot: ExportSnapshotUseCase,
   private val importSnapshot: ImportSnapshotUseCase,
-  private val onlineSources: OnlineSourcesUseCase
+  private val onlineSources: OnlineSourcesUseCase,
+  private val ttsRepository: TtsRepository,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(SettingsUiState())
@@ -94,6 +105,25 @@ class SettingsViewModel(
   fun setTtsRate(value: Float) = update { it.copy(ttsRate = value.coerceIn(0.5f, 2.0f)) }
   fun setTtsPitch(value: Float) = update { it.copy(ttsPitch = value.coerceIn(0.5f, 2.0f)) }
   fun setTtsAutoNext(enabled: Boolean) = update { it.copy(ttsAutoNext = enabled) }
+  fun refreshTtsVoices() {
+    viewModelScope.launch {
+      val list = runCatching { 
+        ttsRepository.availableVoices()
+      }.getOrDefault(emptyList())
+      _uiState.update { it.copy(ttsVoices = list) }
+    }
+  }
+    fun setTtsTimbre(timbre: TtsTimbre) = viewModelScope.launch {
+    ttsRepository.setPitch(timbre.pitch)
+    ttsRepository.setRate(timbre.rate)
+    updateSettings { it.copy(ttsTimbre = timbre) }
+  }
+  fun setTtsVoice(name: String) = viewModelScope.launch {
+    ttsRepository.setVoice(name)
+    updateSettings { it.copy(ttsVoiceName = name) }
+  }
+  fun openSystemTtsSettings() = ttsRepository.openSystemSettings()
+  fun launchTtsSettings()= ttsRepository.launchTtsSettings()
 
   // ---------- WebDAV ----------
   fun setWebdav(url: String) = update { it.copy(webdavUrl = url.trim()) }

@@ -86,7 +86,7 @@ class AppContainer(context: Context) : ViewModelProvider.Factory {
 
     val settingsRepository = repos.settingsRepository
     val bookCacheDir = repos.bookCacheDir
-    val ttsEngine = repos.ttsEngine
+    val ttsRepository = repos.ttsRepository
     val bookSourceRepository = repos.bookSourceRepository
     val safScanner = repos.safScanner
 
@@ -140,7 +140,7 @@ class AppContainer(context: Context) : ViewModelProvider.Factory {
             repos.progressRepository,
             repos.settingsRepository,
             session,
-            repos.ttsEngine
+            repos.ttsRepository,
         ) as T
 
         ComicReaderViewModel::class.java -> ComicReaderViewModel(
@@ -148,14 +148,14 @@ class AppContainer(context: Context) : ViewModelProvider.Factory {
             openComic,
             repos.progressRepository,
             repos.settingsRepository,
-            session
+            session,
         ) as T
 
         ProfileViewModel::class.java -> ProfileViewModel(
             getStats,
             repos.statsRepository,
             observeSettings,
-            updateSettings
+            updateSettings,
         ) as T
 
         SettingsViewModel::class.java -> SettingsViewModel(
@@ -168,7 +168,8 @@ class AppContainer(context: Context) : ViewModelProvider.Factory {
             restoreBackup,
             exportSnapshot,
             importSnapshot,
-            onlineSources
+            onlineSources,
+            repos.ttsRepository
         ) as T
 
         else -> throw IllegalArgumentException("未知 ViewModel：$modelClass")

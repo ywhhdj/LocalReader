@@ -1,6 +1,5 @@
 package com.demo.feature.reader.novel
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -9,15 +8,12 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,15 +24,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -63,15 +57,13 @@ import com.demo.core.model.BookBlock
 import com.demo.core.model.Chapter
 import com.demo.core.ui.components.VolumeTocList
 import com.demo.core.ui.glass.GlassSurface
-import com.demo.core.ui.theme.ReaderShapes
 import com.demo.core.ui.theme.SheetShape
 import com.demo.feature.reader.common.KeepScreenOnEffect
 import com.demo.feature.reader.common.ReaderProgressBar
+import com.demo.feature.reader.common.ReaderSettingsPanel
 import com.demo.feature.reader.common.ReaderTapZone
 import com.demo.feature.reader.common.ReaderTocDrawer
 import com.demo.feature.reader.common.ReaderTopBar
-import com.demo.feature.reader.common.ReaderColors
-import com.demo.feature.reader.common.ReaderSettingsPanel
 import com.demo.feature.reader.common.readerColors
 import com.demo.feature.reader.common.rememberReaderInsets
 
@@ -96,7 +88,7 @@ fun NovelReaderScreen(
     val ttsVoices = remember(showTtsSettings) {
         if (showTtsSettings) viewModel.ttsVoices() else emptyList()
     }
-    val colors = readerColors(state.settings.readerBackground)
+    val bgColor = readerColors(state.settings.readerBackground)
     val currentChapter = state.chapters.getOrNull(state.chapterIndex)
     val insets = rememberReaderInsets()
 
@@ -110,10 +102,10 @@ fun NovelReaderScreen(
 
     if (state.loading && state.blocks.isEmpty()) {
         Box(
-            modifier.fillMaxSize().background(colors.background),
+            modifier.fillMaxSize().background(bgColor),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = colors.text)
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.onSurface)
         }
         return
     }
@@ -121,7 +113,7 @@ fun NovelReaderScreen(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .background(colors.background)
+            .background(bgColor)
     ) {
         val density = LocalDensity.current
         val textMeasurer = rememberTextMeasurer()
@@ -212,7 +204,7 @@ fun NovelReaderScreen(
                     detectTapGestures(onTap = {
                         showChrome = !showChrome
                         viewModel.toggleSettings(false)
-                        viewModel.toggleToc(false) 
+                        viewModel.toggleToc(false)
                     })
                 }
         ) { idx ->
@@ -223,7 +215,7 @@ fun NovelReaderScreen(
                         block = item.block,
                         fontSize = state.settings.fontSize,
                         lineHeight = state.settings.lineHeightMultiplier,
-                        colors = colors,
+                        color = MaterialTheme.colorScheme.onSurface,
                         isContinuation = item.isContinuation
                     )
                 }
@@ -237,7 +229,7 @@ fun NovelReaderScreen(
             enabled = !showChrome && !state.showToc && !state.showSettings &&
                 (canPrevPage || state.canPrev),
             label = if (canPrevPage) "上一页" else "上一章",
-            textColor = colors.text,
+            textColor = MaterialTheme.colorScheme.onSurface,
             onClick = { goPrev() }
         )
 
@@ -247,7 +239,7 @@ fun NovelReaderScreen(
             enabled = !showChrome && !state.showToc && !state.showSettings &&
                 (canNextPage || state.canNext),
             label = if (canNextPage) "下一页" else "下一章",
-            textColor = colors.text,
+            textColor = MaterialTheme.colorScheme.onSurface,
             onClick = { goNext() }
         )
 
@@ -257,7 +249,7 @@ fun NovelReaderScreen(
             title = state.book?.title.orEmpty(),
             onBack = onBack,
             modifier = Modifier.align(Alignment.TopCenter),
-            backgroundColor = colors.background,
+            backgroundColor = bgColor,
             actions = {
                 IconButton(onClick = viewModel::toggleToc) {
                     Icon(Icons.AutoMirrored.Filled.List, contentDescription = "目录")
@@ -278,7 +270,7 @@ fun NovelReaderScreen(
             GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = SheetShape,
-                backgroundColor = colors.background
+                backgroundColor = bgColor
             ) {
                 Column(
                     Modifier
@@ -309,13 +301,13 @@ fun NovelReaderScreen(
         // ---------- 目录抽屉（通用外壳 + 小说专用列表） ----------
         ReaderTocDrawer(
             visible = state.showToc,
-            background = colors.background,
+            background = bgColor,
             onDismiss = { viewModel.toggleToc(false) }
         ) {
             VolumeTocList(
                 entries = VolumeSplitter.tocEntries(state.chapters),
                 currentIndex = state.chapterIndex,
-                textColor = colors.text,
+                textColor = MaterialTheme.colorScheme.onSurface,
                 onSelect = { index ->
                     viewModel.jumpToChapter(index)
                     viewModel.toggleToc(false)
@@ -324,7 +316,7 @@ fun NovelReaderScreen(
                     Text(
                         "目录",
                         style = MaterialTheme.typography.titleMedium,
-                        color = colors.text,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(16.dp)
                     )
                 }
@@ -338,7 +330,7 @@ fun NovelReaderScreen(
             exit = fadeOut(tween(180)),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 72.dp)
+                .padding(end = 16.dp, bottom = 80.dp)
         ) {
             TtsFab(onClick = viewModel::startTtsFromFab)
         }
@@ -350,16 +342,16 @@ fun NovelReaderScreen(
             exit = slideOutHorizontally { -it } + fadeOut(),
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 16.dp, bottom = 72.dp)
+                .padding(start = 16.dp, bottom = 80.dp)
         ) {
             TtsProgressOrb(
                 title = state.book?.title.orEmpty(),
                 coverPath = state.book?.coverPath,
                 progress = ttsProgress,
                 playing = state.tts.speaking,
-                onTogglePlay = { 
-                    if (state.tts.speaking) viewModel.pauseTts() 
-                    else viewModel.resumeTts() 
+                onTogglePlay = {
+                    if (state.tts.speaking) viewModel.pauseTts()
+                    else viewModel.resumeTts()
                 },
                 onClose = viewModel::cancelTts
             )
@@ -379,6 +371,7 @@ fun NovelReaderScreen(
                 autoNext = state.settings.ttsAutoNext,
                 voices = ttsVoices,
                 voiceName = state.settings.ttsVoiceName,
+                bgColor = bgColor,
                 onRate = viewModel::setTtsRate,
                 onPitch = viewModel::setTtsPitch,
                 onTimbre = viewModel::setTtsTimbre,
@@ -461,7 +454,7 @@ private fun BlockView(
     block: BookBlock,
     fontSize: Int,
     lineHeight: Float,
-    colors: ReaderColors,
+    color: Color,
     isContinuation: Boolean = false
 ) {
     when (block) {
@@ -469,7 +462,7 @@ private fun BlockView(
             Text(
                 text = block.text,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    color = colors.text,
+                    color = color,
                     fontSize = (fontSize + 2).sp,
                     lineHeight = (fontSize * lineHeight).sp,
                     fontWeight = FontWeight.Bold
@@ -481,7 +474,7 @@ private fun BlockView(
             Text(
                 text = block.text,
                 style = MaterialTheme.typography.bodyLarge.copy(
-                    color = colors.text,
+                    color = color,
                     fontSize = fontSize.sp,
                     lineHeight = (fontSize * lineHeight).sp,
                     textAlign = TextAlign.Start,
@@ -493,8 +486,9 @@ private fun BlockView(
         is BookBlock.Quote -> SelectionContainer {
             Text(
                 text = block.text,
+                color = color,
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    color = colors.text.copy(alpha = 0.75f),
+                    color = color.copy(alpha = 0.75f),
                     fontSize = fontSize.sp,
                     lineHeight = (fontSize * lineHeight).sp
                 ),

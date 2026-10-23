@@ -1,23 +1,33 @@
 package com.demo.feature.settings
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoStories
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,32 +35,39 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.runtime.rememberCoroutineScope
+
 import kotlinx.coroutines.launch
 
 import com.demo.core.common.util.Constants
 import com.demo.core.common.util.FormatUtil
 import com.demo.core.common.util.StorageAccess
 import com.demo.core.model.ThemeMode
+import com.demo.core.model.TtsTimbre
 import com.demo.core.ui.components.AppBackdrop
-import com.demo.core.ui.glass.GlassSurface
+import com.demo.core.ui.components.settings.SettingActionRow
+import com.demo.core.ui.components.settings.SettingChipGroup
+import com.demo.core.ui.components.settings.SettingChipLazyRow
+import com.demo.core.ui.components.settings.SettingHint
+import com.demo.core.ui.components.settings.SettingSliderRow
+import com.demo.core.ui.components.settings.SettingSwitchRow
+import com.demo.core.ui.components.settings.SettingsSection
+import com.demo.core.ui.components.settings.SettingTextField
+import com.demo.core.ui.components.settings.VoiceRow
 import com.demo.core.ui.glass.GlassTopBar
-import com.demo.core.ui.theme.CardShape
 import com.demo.domain.codec.BookSourceCodec
-import com.demo.core.ui.components.AppSlider
 
 @Composable
 fun SettingsScreen(
-  viewModel: SettingsViewModel,
-  onBack: () -> Unit,
-  modifier: Modifier = Modifier
+    viewModel: SettingsViewModel,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -62,71 +79,54 @@ fun SettingsScreen(
     val hasAllFiles = remember { StorageAccess.hasAllFilesAccess() }
     val scope = rememberCoroutineScope()
 
+    LaunchedEffect(Unit) { viewModel.refreshTtsVoices() }
     LaunchedEffect(state.message) { if (state.message != null) viewModel.consumeMessage() }
 
     AppBackdrop {
         Column(modifier = modifier.fillMaxSize()) {
-        GlassTopBar(
-            navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-            }
-            },
-            title = { 
-            Text("设置", style = MaterialTheme.typography.titleMedium)
-            }
-        )
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
+            GlassTopBar(
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                title = {
+                    Text("设置", style = MaterialTheme.typography.titleMedium)
+                }
+            )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                // ---------- 外观 ----------
                 item {
-                    SettingsCard("外观") {
-                        Text("主题", style = MaterialTheme.typography.bodyMedium)
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            ThemeMode.entries.forEach { mode ->
-                                FilterChip(
-                                    selected = state.settings.themeMode == mode,
-                                    onClick = { viewModel.setTheme(mode) },
-                                    label = { Text(labelOf(mode)) }
-                                )
-                            }
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "动态取色 (Android 12+)",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Switch(
-                                checked = state.settings.dynamicColor,
-                                onCheckedChange = viewModel::setDynamicColor
-                            )
-                        }
-                        Text(
-                            "液态玻璃强度",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(top = 12.dp)
+                    SettingsSection("外观", icon = Icons.Default.Palette) {
+                        SettingChipGroup(
+                            sectionLabel = "主题",
+                            options = ThemeMode.entries,
+                            selected = state.settings.themeMode,
+                            label = ::labelOf,
+                            onSelect = viewModel::setTheme
                         )
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf("OFF" to "关闭", "LOW" to "弱", "MEDIUM" to "中", "HIGH" to "强")
-                            .forEach { (value, label) ->
-                                FilterChip(
-                                    selected = state.settings.glassLevel == value,
-                                    onClick = { viewModel.setGlassLevel(value) },
-                                    label = { Text(label) }
-                                )
-                            }
-                        }
+                        SettingSwitchRow(
+                            title = "动态取色 (Android 12+)",
+                            checked = state.settings.dynamicColor,
+                            onCheckedChange = viewModel::setDynamicColor
+                        )
+                        SettingChipGroup(
+                            sectionLabel = "液态玻璃强度",
+                            options = listOf("OFF", "LOW", "MEDIUM", "HIGH"),
+                            selected = state.settings.glassLevel,
+                            label = ::glassLabelOf,
+                            onSelect = viewModel::setGlassLevel
+                        )
                     }
                 }
 
+                // ---------- 个人 ----------
                 item {
-                    SettingsCard("个人") {
+                    SettingsSection("个人", icon = Icons.Default.Person) {
                         OutlinedTextField(
                             value = nickname,
                             onValueChange = { nickname = it },
@@ -134,236 +134,227 @@ fun SettingsScreen(
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
-                        Button(
-                            onClick = { viewModel.setNickname(nickname) },
-                            modifier = Modifier.padding(top = 8.dp)
-                        ) { Text("保存昵称") }
-                    }
-                }
-
-                item {
-                    SettingsCard("朗读 (TTS)") {
-                    Text(
-                        "语速：${"%.1f".format(state.settings.ttsRate)}x",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    AppSlider(
-                        value = state.settings.ttsRate,
-                        onValueChange = viewModel::setTtsRate,
-                        valueRange = 0.5f..2.0f,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Text(
-                        "音调：${"%.1f".format(state.settings.ttsPitch)}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    AppSlider(
-                        value = state.settings.ttsPitch,
-                        onValueChange = viewModel::setTtsPitch,
-                        valueRange = 0.5f..2.0f,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                        "读完自动进入下一章",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
-                        )
-                        Switch(
-                        checked = state.settings.ttsAutoNext,
-                        onCheckedChange = viewModel::setTtsAutoNext
-                        )
-                    }
-                    Text(
-                        "朗读使用系统 TTS 引擎，可在小说阅读器顶部「朗读」按钮启动。",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                    }
-                }
-
-                item {
-                    SettingsCard("扫描与目录") {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                if (hasAllFiles) "已获得文件访问权限" else "未获得文件访问权限（Android 11+ 需授权）",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
-                            )
-                            TextButton(
-                                    onClick = { StorageAccess.openAllFilesAccessSettings(context) }
-                            ) { Text("去授权") }
+                        Button(onClick = { viewModel.setNickname(nickname) }) {
+                            Text("保存昵称")
                         }
-                        Text(
-                            "扫描深度：${state.settings.scanMaxDepth}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(top = 8.dp)
+                    }
+                }
+
+                // ---------- 朗读 (TTS) ----------
+                item {
+                    SettingsSection("朗读 (TTS)", icon = Icons.Default.RecordVoiceOver) {
+                        // —— 音色：横向懒加载，固定 56dp ——
+                        SettingChipLazyRow(
+                            sectionLabel = "音色",
+                            options = TtsTimbre.entries.toList(),
+                            selected = state.settings.ttsTimbre,
+                            label = { it.label },
+                            onSelect = viewModel::setTtsTimbre,
+                            rowHeight = 56.dp
                         )
-                        AppSlider(
+                        SettingHint("音色为音调/语速组合，不下载语音包；真正的发声人请在系统「文字转语音」中安装后选择。")
+
+                        // —— 语速 / 音调 ——
+                        SettingSliderRow(
+                            label = "语速",
+                            value = state.settings.ttsRate,
+                            valueRange = 0.5f..2.0f,
+                            onValueChange = viewModel::setTtsRate
+                        ) { "%.1fx".format(it) }
+
+                        SettingSliderRow(
+                            label = "音调",
+                            value = state.settings.ttsPitch,
+                            valueRange = 0.5f..2.0f,
+                            onValueChange = viewModel::setTtsPitch
+                        ) { "%.1f".format(it) }
+
+                        // —— 自动下一章 ——
+                        SettingSwitchRow(
+                            title = "读完自动进入下一章",
+                            checked = state.settings.ttsAutoNext,
+                            onCheckedChange = viewModel::setTtsAutoNext
+                        )
+
+                        // —— 发声人：展开后用竖向懒加载，固定 140dp ——
+                        val voices = state.ttsVoices
+                        var voicesExpanded by rememberSaveable { mutableStateOf(false) }
+                        val currentVoiceLabel = voices
+                            .firstOrNull { it.name == state.settings.ttsVoiceName }
+                            ?.displayName
+                            ?: "系统默认"
+
+                        SettingActionRow(
+                            title = "发声人（系统语音）",
+                            subtitle = "当前：$currentVoiceLabel",
+                            actionText = when {
+                                voices.isEmpty() -> "去下载"
+                                voicesExpanded -> "收起"
+                                else -> "选择"
+                            },
+                            onAction = {
+                                if (voices.isEmpty()) viewModel.launchTtsSettings()
+                                else voicesExpanded = !voicesExpanded
+                            }
+                        )
+
+                        if (voices.isEmpty()) {
+                            SettingHint("未检测到已安装语音（引擎可能仍在初始化），可先使用默认语音。")
+                        } else if (voicesExpanded) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(140.dp),
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                item(key = "__default__") {
+                                    VoiceRow(
+                                        label = "系统默认",
+                                        selected = state.settings.ttsVoiceName.isBlank(),
+                                        onClick = {
+                                            viewModel.setTtsVoice("")
+                                            voicesExpanded = false
+                                        }
+                                    )
+                                }
+                                items(voices, key = { it.name }) { v ->
+                                    VoiceRow(
+                                        label = v.displayName,
+                                        selected = v.name == state.settings.ttsVoiceName,
+                                        onClick = {
+                                            viewModel.setTtsVoice(v.name)
+                                            voicesExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        TextButton(onClick = viewModel::launchTtsSettings ) {
+                            Text("打开系统「文字转语音」设置")
+                        }
+                        SettingHint("朗读使用系统 TTS 引擎，可在小说阅读器顶部「朗读」按钮启动。")
+                    }
+                }
+
+                // ---------- 扫描与目录 ----------
+                item {
+                    SettingsSection("扫描与目录", icon = Icons.Default.Folder) {
+                        SettingActionRow(
+                            title = if (hasAllFiles) "已获得文件访问权限"
+                            else "未获得文件访问权限（Android 11+ 需授权）",
+                            actionText = "去授权",
+                            onAction = { StorageAccess.openAllFilesAccessSettings(context) },
+                            titleMaxLines = 2
+                        )
+                        SettingSliderRow(
+                            label = "扫描深度",
                             value = state.settings.scanMaxDepth.toFloat(),
-                            onValueChange = { viewModel.setScanDepth(it.toInt()) },
                             valueRange = 1f..8f,
-                            steps = 6,
-                            modifier = Modifier.fillMaxWidth()
+                            onValueChange = { viewModel.setScanDepth(it.toInt()) },
+                            steps = 6
+                        ) { it.toInt().toString() }
+                        SettingSwitchRow(
+                            title = "跳过隐藏目录",
+                            checked = state.settings.skipHidden,
+                            onCheckedChange = viewModel::setSkipHidden
                         )
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "跳过隐藏目录",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Switch(
-                                checked = state.settings.skipHidden,
-                                onCheckedChange = viewModel::setSkipHidden
-                            )
-                        }
                         if (state.settings.scanDirs.isNotEmpty()) {
                             Text(
                                 "已保存目录",
                                 style = MaterialTheme.typography.labelLarge,
-                                modifier = Modifier.padding(top = 10.dp)
+                                modifier = Modifier.padding(top = 4.dp)
                             )
                             state.settings.scanDirs.forEach { dir ->
-                                Row(
-                                    Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        dir,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        modifier = Modifier.weight(1f),
-                                        maxLines = 2
-                                    )
-                                    TextButton(onClick = { viewModel.removeScanDir(dir) }) {
-                                        Text("移除")
-                                    }
-                                }
+                                SettingActionRow(
+                                    title = dir,
+                                    actionText = "移除",
+                                    onAction = { viewModel.removeScanDir(dir) },
+                                    titleStyle = MaterialTheme.typography.labelSmall,
+                                    titleMaxLines = 2
+                                )
                             }
                         }
                         OutlinedTextField(
-                                value = newDir,
-                                onValueChange = { newDir = it },
-                                label = { Text("添加目录（绝对路径）") },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                            value = newDir,
+                            onValueChange = { newDir = it },
+                            label = { Text("添加目录（绝对路径）") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
                         )
-                        Button(
-                                onClick = {
-                                    viewModel.addScanDir(newDir.trim())
-                                    newDir = ""
-                                },
-                                modifier = Modifier.padding(top = 8.dp)
-                        ) { Text("添加") }
+                        Button(onClick = {
+                            viewModel.addScanDir(newDir.trim())
+                            newDir = ""
+                        }) { Text("添加") }
                     }
                 }
 
+                // ---------- WebDAV ----------
                 item {
-                    SettingsCard("备份与同步 (WebDAV)") {
-                        Text(
-                            "备份书库元数据、进度与阅读统计；不含书籍文件。默认关闭。",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                        OutlinedTextField(
+                    SettingsSection("备份与同步 (WebDAV)", icon = Icons.Default.Cloud) {
+                        SettingHint("备份书库元数据、进度与阅读统计；不含书籍文件。默认关闭。")
+                        SettingTextField(
                             value = state.settings.webdavUrl,
                             onValueChange = viewModel::setWebdav,
-                            label = { Text("WebDAV 地址") },
-                            placeholder = { Text("https://dav.example.com/") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                            label = "WebDAV 地址",
+                            placeholder = "https://dav.example.com/"
                         )
-                        OutlinedTextField(
+                        SettingTextField(
                             value = state.settings.webdavUser,
                             onValueChange = viewModel::setWebdavUser,
-                            label = { Text("用户名") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                            label = "用户名"
                         )
-                        OutlinedTextField(
+                        SettingTextField(
                             value = state.settings.webdavPassword,
                             onValueChange = viewModel::setWebdavPassword,
-                            label = { Text("密码") },
-                            singleLine = true,
-                            visualTransformation = PasswordVisualTransformation(),
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                            label = "密码",
+                            isPassword = true
                         )
-                        OutlinedTextField(
+                        SettingTextField(
                             value = state.settings.webdavDir,
                             onValueChange = viewModel::setWebdavDir,
-                            label = { Text("远程目录") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                            label = "远程目录"
                         )
-                        Row(
-                            Modifier.fillMaxWidth().padding(top = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "自动备份（进入阅读器时）",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Switch(
-                                checked = state.settings.webdavAutoBackup,
-                                onCheckedChange = viewModel::setWebdavAutoBackup
-                            )
-                        }
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.padding(top = 8.dp)
-                        ) {
-                            Button(onClick = viewModel::testConnection, enabled = !state.syncBusy) {
-                                Text("测试连接")
+                        SettingSwitchRow(
+                            title = "自动备份（进入阅读器时）",
+                            checked = state.settings.webdavAutoBackup,
+                            onCheckedChange = viewModel::setWebdavAutoBackup
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = viewModel::testConnection,
+                                enabled = !state.syncBusy
+                            ) { Text("测试连接") }
+                            Button(
+                                onClick = viewModel::backupNow,
+                                enabled = !state.syncBusy
+                            ) { Text("立即备份") }
+                            TextButton(onClick = viewModel::refreshBackups) {
+                                Text("刷新列表")
                             }
-                            Button(onClick = viewModel::backupNow, enabled = !state.syncBusy) {
-                                Text("立即备份")
-                            }
-                            TextButton(onClick = viewModel::refreshBackups) { Text("刷新列表") }
                         }
                         if (state.settings.lastBackupAt > 0L) {
-                            Text(
-                                "上次备份：${FormatUtil.formatDateTime(state.settings.lastBackupAt)}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                modifier = Modifier.padding(top = 6.dp)
+                            SettingHint(
+                                "上次备份：${FormatUtil.formatDateTime(state.settings.lastBackupAt)}"
                             )
                         }
                         if (state.backups.isNotEmpty()) {
                             Text(
                                 "远端备份",
                                 style = MaterialTheme.typography.labelLarge,
-                                modifier = Modifier.padding(top = 10.dp)
+                                modifier = Modifier.padding(top = 4.dp)
                             )
                             state.backups.take(5).forEach { item ->
-                                Row(
-                                    Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(Modifier.weight(1f)) {
-                                        Text(
-                                            item.name,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            maxLines = 1
-                                        )
-                                        Text(
-                                            "${FormatUtil.formatBytes(item.sizeBytes)} · ${FormatUtil.formatDateTime(item.modifiedAt)}",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
-                                        )
-                                    }
-                                    TextButton(onClick = { viewModel.restore(item.path) }) {
-                                        Text("恢复")
-                                    }
-                                }
+                                SettingActionRow(
+                                    title = item.name,
+                                    subtitle = "${FormatUtil.formatBytes(item.sizeBytes)} · " +
+                                        FormatUtil.formatDateTime(item.modifiedAt),
+                                    actionText = "恢复",
+                                    onAction = { viewModel.restore(item.path) }
+                                )
                             }
                         }
-                        Row(modifier = Modifier.padding(top = 8.dp)) {
+                        Row {
                             TextButton(onClick = viewModel::exportSnapshotToFile) {
                                 Text("导出到本地文件")
                             }
@@ -371,27 +362,17 @@ fun SettingsScreen(
                     }
                 }
 
+                // ---------- 在线书源 ----------
                 item {
-                    SettingsCard("在线书源（默认关闭）") {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "启用在线书源",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Switch(
-                                checked = state.settings.onlineSourceEnabled,
-                                onCheckedChange = viewModel::setOnlineEnabled
-                            )
-                        }
-                        Text(
-                            "关闭时不产生任何网络请求。开启后请自行配置书源规则（仅用于搜索并另存为 TXT 到本地书库）。",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.padding(top = 6.dp)
+                    SettingsSection("在线书源（默认关闭）", icon = Icons.Default.Public) {
+                        SettingSwitchRow(
+                            title = "启用在线书源",
+                            checked = state.settings.onlineSourceEnabled,
+                            onCheckedChange = viewModel::setOnlineEnabled
+                        )
+                        SettingHint(
+                            "关闭时不产生任何网络请求。开启后请自行配置书源规则" +
+                                "（仅用于搜索并另存为 TXT 到本地书库）。"
                         )
                         if (state.settings.onlineSourceEnabled) {
                             OutlinedTextField(
@@ -399,62 +380,66 @@ fun SettingsScreen(
                                 onValueChange = { onlineJson = it },
                                 label = { Text("书源配置 JSON") },
                                 minLines = 6,
-                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                                modifier = Modifier.fillMaxWidth()
                             )
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.padding(top = 8.dp)
-                            ) {
-                                Button(onClick = { viewModel.setOnlineSourceJson(onlineJson) }) {
-                                    Text("保存书源")
-                                }
-                                TextButton(onClick = { 
-                                    scope.launch { 
-                                        onlineJson = BookSourceCodec.templateText(context).orEmpty()
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Button(onClick = {
+                                    viewModel.setOnlineSourceJson(onlineJson)
+                                }) { Text("保存书源") }
+                                TextButton(onClick = {
+                                    scope.launch {
+                                        onlineJson = BookSourceCodec
+                                            .templateText(context).orEmpty()
                                     }
-                                }) {
-                                    Text("填入模板")
-                                }
+                                }) { Text("填入模板") }
                             }
                         }
                     }
                 }
 
+                // ---------- 漫画 ----------
                 item {
-                    SettingsCard("漫画") {
-                        Text(
-                            "预加载页数：${state.settings.comicPreload}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        AppSlider(
+                    SettingsSection("漫画", icon = Icons.Default.AutoStories) {
+                        SettingSliderRow(
+                            label = "预加载页数",
                             value = state.settings.comicPreload.toFloat(),
-                            onValueChange = { viewModel.setComicPreload(it.toInt()) },
                             valueRange = 4f..6f,
-                            steps = 1,
-                            modifier = Modifier.fillMaxWidth()
+                            onValueChange = { viewModel.setComicPreload(it.toInt()) },
+                            steps = 1
+                        ) { it.toInt().toString() }
+                    }
+                }
+
+                // ---------- 存储 ----------
+                item {
+                    SettingsSection("存储", icon = Icons.Default.Storage) {
+                        SettingActionRow(
+                            title = "封面缓存 ${FormatUtil.formatBytes(state.coverBytes)}",
+                            actionText = "清理",
+                            onAction = { viewModel.clearCovers() }
+                        )
+                        SettingActionRow(
+                            title = "页面缓存 ${FormatUtil.formatBytes(state.pageBytes)}",
+                            actionText = "清理",
+                            onAction = { viewModel.clearPages() }
+                        )
+                        SettingActionRow(
+                            title = "目录缓存(SAF) ${FormatUtil.formatBytes(state.safBytes)}",
+                            actionText = "清理",
+                            onAction = { viewModel.clearSafCache() }
                         )
                     }
                 }
 
+                // ---------- 关于 ----------
                 item {
-                    SettingsCard("存储") {
-                        CacheRow("封面缓存", state.coverBytes) { viewModel.clearCovers() }
-                        CacheRow("页面缓存", state.pageBytes) { viewModel.clearPages() }
-                        CacheRow("目录缓存(SAF)", state.safBytes) { viewModel.clearSafCache() }
-                    }
-                }
-
-                item {
-                    SettingsCard("关于") {
+                    SettingsSection("关于", icon = Icons.Default.Info) {
                         Text(
                             "Liquid Reader v${Constants.APP_VERSION}",
                             style = MaterialTheme.typography.bodyMedium
                         )
-                        Text(
-                            "本地小说 / 漫画阅读器 · 支持 EPUB / TXT / PDF / CBZ / ZIP / 图片文件夹",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.padding(top = 6.dp)
+                        SettingHint(
+                            "本地小说 / 漫画阅读器 · 支持 EPUB / TXT / PDF / CBZ / ZIP / 图片文件夹"
                         )
                     }
                 }
@@ -463,35 +448,16 @@ fun SettingsScreen(
     }
 }
 
-@Composable
-private fun CacheRow(label: String, bytes: Long, onClear: () -> Unit) {
-  Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-    Text(
-      "$label ${FormatUtil.formatBytes(bytes)}",
-      style = MaterialTheme.typography.bodyMedium,
-      modifier = Modifier.weight(1f)
-    )
-    TextButton(onClick = onClear) { Text("清理") }
-  }
-}
-
-@Composable
-private fun SettingsCard(title: String, content: @Composable ColumnScope.() -> Unit) {
-  GlassSurface(shape = CardShape, modifier = Modifier.fillMaxWidth()) {
-    Column(
-      modifier = Modifier.padding(16.dp),
-      content = {
-        Text(title, style = MaterialTheme.typography.titleMedium)
-        androidx.compose.foundation.layout.Spacer(Modifier.padding(6.dp))
-        content()
-      }
-    )
-  }
-}
-
-private fun labelOf(mode: ThemeMode): String =
-  when (mode) {
+private fun labelOf(mode: ThemeMode): String = when (mode) {
     ThemeMode.SYSTEM -> "跟随系统"
     ThemeMode.LIGHT -> "浅色"
     ThemeMode.DARK -> "深色"
-  }
+}
+
+private fun glassLabelOf(level: String): String = when (level) {
+    "OFF" -> "关闭"
+    "LOW" -> "弱"
+    "MEDIUM" -> "中"
+    "HIGH" -> "强"
+    else -> level
+}

@@ -1,7 +1,8 @@
-package com.demo.data.tts
+package com.demo.data.repository
 
 import android.content.Context
 import android.content.Intent
+import android.provider.Settings
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -9,10 +10,6 @@ import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
-
-import com.demo.domain.repository.TtsEngine
-import com.demo.domain.repository.TtsState
-import com.demo.domain.repository.TtsVoice
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -22,6 +19,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 
 import java.util.Locale
+
+import com.demo.core.model.TtsState
+import com.demo.core.model.TtsVoice
+
+import com.demo.domain.repository.TtsRepository
 
 /**
  * 系统 TextToSpeech 封装
@@ -38,7 +40,7 @@ import java.util.Locale
  * - TextToSpeech 无 pause API：暂停用 stop + 从当前句续播实现
  * - 音色预设（core.model.TtsTimbre）：以音调/语速组合模拟听感，不下载任何语音包
  */
-class AndroidTtsEngine(context: Context) : TtsEngine {
+class TtsRepositoryImpl(context: Context) : TtsRepository {
 
     private val appContext = context.applicationContext
     private var tts: TextToSpeech? = null
@@ -222,9 +224,20 @@ class AndroidTtsEngine(context: Context) : TtsEngine {
     }
 
     override fun openSystemSettings() {
+        runCatching { 
+            runCatching {
+                appContext.startActivity(
+                    Intent("com.android.settings.TTS_SETTINGS")
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            }
+        }
+    }
+
+    override fun launchTtsSettings() {
         runCatching {
             appContext.startActivity(
-                Intent("com.android.settings.TTS_SETTINGS")
+                Intent(Settings.ACTION_SETTINGS)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
         }

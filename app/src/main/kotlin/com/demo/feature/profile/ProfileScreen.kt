@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,10 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Edit
@@ -48,18 +46,17 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.foundation.layout.RowScope
 
 import com.demo.core.common.util.FormatUtil
 import com.demo.core.model.DayStat
 import com.demo.core.model.ReadingStats
 import com.demo.core.ui.components.AppBackdrop
-import com.demo.core.ui.components.SectionHeader
 import com.demo.core.ui.components.BookRow
+import com.demo.core.ui.components.SectionHeader
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
-import com.demo.core.ui.theme.PrimaryLight
 import com.demo.core.ui.theme.CardShape
+import com.demo.core.ui.theme.PrimaryLight
 import com.demo.core.ui.theme.ReaderShapes
 
 @Composable
@@ -97,12 +94,12 @@ fun ProfileScreen(
                 item { WeekBarCard(state.stats.last7Days) }
                 item { TypeRatioCard(state.stats) }
                 if (state.recentFinished.isNotEmpty()) {
-                    item { 
+                    item {
                         Column(modifier = Modifier.fillMaxWidth()) {
                             SectionHeader(title = "最近读完")
                             BookRow(
                                 books = state.recentFinished,
-                                onBookClick =  { book -> onBookClick(book.id) },
+                                onBookClick = { book -> onBookClick(book.id) }
                             )
                         }
                     }
@@ -156,10 +153,8 @@ fun ProfileScreen(
                     viewModel.clearHistory()
                 }) { Text("清空") }
             },
-            dismissButton = { 
-                TextButton(
-                    onClick = { showClearConfirm = false }
-                ) { Text("取消") } 
+            dismissButton = {
+                TextButton(onClick = { showClearConfirm = false }) { Text("取消") }
             }
         )
     }
@@ -174,7 +169,12 @@ private fun ProfileHeader(nickname: String, stats: ReadingStats) {
                     modifier = Modifier
                         .size(54.dp)
                         .background(
-                            Brush.linearGradient(listOf(PrimaryLight, MaterialTheme.colorScheme.secondary)),
+                            Brush.linearGradient(
+                                listOf(
+                                    PrimaryLight,
+                                    MaterialTheme.colorScheme.secondary
+                                )
+                            ),
                             CircleShape
                         ),
                     contentAlignment = Alignment.Center
@@ -220,7 +220,7 @@ private fun RowScope.StatBlock(label: String, value: String) {
 @Composable
 private fun TodayCard(stats: ReadingStats) {
     GlassSurface(
-        shape = CardShape, 
+        shape = CardShape,
         modifier = Modifier.fillMaxWidth(),
         alignment = Alignment.CenterStart
     ) {
@@ -326,7 +326,9 @@ private fun TypeRatioCard(stats: ReadingStats) {
                     style = stroke
                 )
                 drawArc(
-                    brush = Brush.linearGradient(listOf(primary, primary.copy(alpha = 0.6f))),
+                    brush = Brush.linearGradient(
+                        listOf(primary, primary.copy(alpha = 0.6f))
+                    ),
                     startAngle = -90f,
                     sweepAngle = 360f * novelRatio,
                     useCenter = false,
@@ -334,7 +336,9 @@ private fun TypeRatioCard(stats: ReadingStats) {
                 )
                 if (novelRatio < 1f) {
                     drawArc(
-                        brush = Brush.linearGradient(listOf(secondary, secondary.copy(alpha = 0.6f))),
+                        brush = Brush.linearGradient(
+                            listOf(secondary, secondary.copy(alpha = 0.6f))
+                        ),
                         startAngle = -90f + 360f * novelRatio,
                         sweepAngle = 360f * (1f - novelRatio),
                         useCenter = false,

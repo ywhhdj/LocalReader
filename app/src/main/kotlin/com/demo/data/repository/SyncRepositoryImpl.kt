@@ -25,14 +25,16 @@ import com.demo.data.mapper.toEntity
 import com.demo.data.mapper.toModel
 import com.demo.data.remote.WebDavClient
 
-import com.demo.domain.repository.BackupGroup
-import com.demo.domain.repository.BackupProgress
-import com.demo.domain.repository.BackupSession
-import com.demo.domain.repository.BackupSnapshot
-import com.demo.domain.repository.RemoteBackup
-import com.demo.domain.repository.SyncConfig
+import com.demo.core.model.BackupGroup
+import com.demo.core.model.BackupProgress
+import com.demo.core.model.BackupSession
+import com.demo.core.model.BackupSnapshot
+import com.demo.core.model.RemoteBackup
+import com.demo.core.model.SyncConfig
+import com.demo.core.model.SyncResult
+
 import com.demo.domain.repository.SyncRepository
-import com.demo.domain.repository.SyncResult
+
 
 /**
  * WebDAV 备份同步实现。

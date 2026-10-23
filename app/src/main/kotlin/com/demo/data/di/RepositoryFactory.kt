@@ -22,10 +22,11 @@ import com.demo.data.repository.ReaderRepositoryImpl
 import com.demo.data.repository.StatsRepositoryImpl
 import com.demo.data.repository.StorageRepositoryImpl
 import com.demo.data.repository.SyncRepositoryImpl
+import com.demo.data.repository.TtsRepositoryImpl
+
 import com.demo.data.scanner.FileScanner
 import com.demo.data.scanner.SafScanner
 import com.demo.data.source.BookSourceRepositoryImpl
-import com.demo.data.tts.AndroidTtsEngine
 
 import com.demo.domain.repository.BookRepository
 import com.demo.domain.repository.BookSourceRepository
@@ -37,7 +38,7 @@ import com.demo.domain.repository.SettingsRepository
 import com.demo.domain.repository.StatsRepository
 import com.demo.domain.repository.StorageRepository
 import com.demo.domain.repository.SyncRepository
-import com.demo.domain.repository.TtsEngine
+import com.demo.domain.repository.TtsRepository
 
 /** 数据层全部依赖（供 app 层容器装配） */
 data class Repositories(
@@ -50,7 +51,7 @@ data class Repositories(
     val scannerRepository: ScannerRepository,
     val readerRepository: ReaderRepository,
     val syncRepository: SyncRepository,
-    val ttsEngine: TtsEngine,
+    val ttsRepository: TtsRepository,
     val bookSourceRepository: BookSourceRepository,
     val safScanner: SafScanner,
     val coverStore: CoverStore,
@@ -95,7 +96,7 @@ object RepositoryFactory {
                 groupDao = database.groupDao(),
                 backupDir = backupDir
             ),
-            ttsEngine = AndroidTtsEngine(appContext),
+            ttsRepository = TtsRepositoryImpl(appContext),
             bookSourceRepository = BookSourceRepositoryImpl(settingsRepository, onlineDir),
             safScanner = safScanner,
             coverStore = coverStore,

@@ -42,6 +42,8 @@ import com.demo.core.ui.components.SectionHeader
 import com.demo.core.ui.components.BookRow
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
+import com.demo.core.ui.components.AppChipRow
+import com.demo.core.ui.components.AppLoading
 
 /**
  * 收藏页：继续阅读 / 最近添加 / 收藏网格。
@@ -162,12 +164,7 @@ fun FavoritesScreen(
                     }
                     
                     if (state.isLoading && state.favoriteBooks.isEmpty()) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            Box(
-                                Modifier.fillMaxWidth().padding(32.dp),
-                                contentAlignment = Alignment.Center
-                            ) { CircularProgressIndicator() }
-                        }
+                        item(span = { GridItemSpan(maxLineSpan) }) { AppLoading() }
                     }
                 }
             }

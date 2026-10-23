@@ -57,16 +57,20 @@ fun ReaderSettingsPanel(
     /** 非空时显示「听读设置」入口（仅小说） */
     onOpenTtsSettings: (() -> Unit)? = null
 ) {
-    val color= readerColors(background)
+    val bgColor= readerColors(background)
     GlassSurface(
         modifier = modifier
             .fillMaxWidth()
             .padding(12.dp),
-        backgroundColor= color.background,
+        backgroundColor= bgColor,
         shape = ReaderShapes.extraSmall,
     ) {
         Column(Modifier.padding(16.dp)) {
-            Row(Modifier.fillMaxWidth()){
+            Row(Modifier
+                .fillMaxWidth()
+                //垂直居中
+                
+            ){
                 // 目录入口：点开抽屉后可直接跳章 / 跳卷
                 if (onOpenToc != null) {
                     FilterChip(
@@ -113,7 +117,8 @@ fun ReaderSettingsPanel(
                     Icon(Icons.Default.FormatSize, contentDescription = null)
                     Text("字号 ${fontSize}sp",
                         style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(start = 8.dp)
+                        modifier = Modifier.padding(start = 8.dp),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     AppSlider(
                         value = fontSize.toFloat(),
@@ -126,7 +131,11 @@ fun ReaderSettingsPanel(
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("行距", style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        "行距",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     AppSlider(
                         value = lineHeight,
                         onValueChange = { onLineHeight(it) },
@@ -138,7 +147,11 @@ fun ReaderSettingsPanel(
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("背景", style = MaterialTheme.typography.labelLarge)
+                Text(
+                    "背景", 
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Spacer(Modifier.weight(1f))
                 ReaderBackground.entries.forEach { bg ->
                     FilterChip(
@@ -157,19 +170,30 @@ fun ReaderSettingsPanel(
                         FilterChip(
                             selected = mode == pageTurnMode,
                             onClick = { onPageTurn(mode) },
-                            label = { Text(mode.label) },
+                            label = { Text(
+                                mode.label,
+                                color = MaterialTheme.colorScheme.onSurface
+                            ) },
                             modifier = Modifier.padding(start = 4.dp)
                         )
                     }
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("屏幕常亮", style = MaterialTheme.typography.labelLarge)
+                Text(
+                    "屏幕常亮", 
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Spacer(Modifier.weight(1f))
                 Switch(checked = keepScreenOn, onCheckedChange = onKeepScreenOn)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("音量键翻页", style = MaterialTheme.typography.labelLarge)
+                Text(
+                    "音量键翻页",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
                 Spacer(Modifier.weight(1f))
                 Switch(checked = volumeTurn, onCheckedChange = onVolumeTurn)
             }

@@ -40,7 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 import com.demo.core.ui.components.AppBackdrop
+import com.demo.core.ui.components.AppChipRow
+import com.demo.core.ui.components.AppLoading
 import com.demo.core.ui.components.EmptyState
+import com.demo.core.ui.components.AppListItem
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.glass.GlassTopBar
 import com.demo.core.ui.theme.CardShape
@@ -107,26 +110,18 @@ fun OnlineSearchScreen(
                 }
 
                 if (state.sources.size > 1) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        state.sources.forEach { source ->
-                            FilterChip(
-                                selected = source.id == state.selectedSourceId,
-                                onClick = { viewModel.selectSource(source.id) },
-                                label = { Text(source.name) },
-                                shape = CircleShape
-                            )
-                        }
-                    }
+                    AppChipRow(
+                        options = state.sources,
+                        selected = state.sources.first { it.id == state.selectedSourceId },
+                        label = { it.name },
+                        onSelect = { viewModel.selectSource(it.id) },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
                 }
 
                 if (state.loading) {
                     Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        AppLoading(modifier = Modifier.fillMaxWidth())
                     }
                 }
 
@@ -141,12 +136,16 @@ fun OnlineSearchScreen(
                         }
                     }
                     items(state.results) { book ->
-                        OnlineBookRow(
-                            title = book.title,
-                            author = book.author,
-                            source = book.sourceName,
-                            onClick = { viewModel.openDetail(book) }
-                        )
+                        GlassSurface(shape = CardShape, modifier = Modifier.fillMaxWidth(), onClick = { viewModel.openDetail(book) }) {
+                            AppListItem(
+                                title = book.title,
+                                subtitle = "${book.author.ifBlank { "未知作者" }} · ${book.sourceName}",
+                                titleStyle = MaterialTheme.typography.bodyLarge,
+                                titleMaxLines = 2,
+                                verticalPadding = 14.dp,
+                                horizontalPadding = 14.dp
+                            )
+                        }
                     }
                 }
             }
@@ -208,26 +207,6 @@ fun OnlineSearchScreen(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun OnlineBookRow(
-    title: String,
-    author: String,
-    source: String,
-    onClick: () -> Unit
-) {
-    GlassSurface(shape = CardShape, modifier = Modifier.fillMaxWidth(), onClick = onClick) {
-        Column(Modifier.padding(14.dp)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, maxLines = 2)
-            Text(
-                "${author.ifBlank { "未知作者" }} · $source",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                modifier = Modifier.padding(top = 4.dp)
-            )
         }
     }
 }

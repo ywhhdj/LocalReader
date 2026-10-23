@@ -40,6 +40,7 @@ import com.demo.core.model.BookGroup
 import com.demo.core.model.BuiltInGroup
 
 import com.demo.core.ui.components.CoverSkeleton
+import com.demo.core.ui.components.AppChipRow
 import com.demo.core.ui.glass.GlassIconButton
 import com.demo.core.ui.theme.PrimaryLight
 
@@ -77,24 +78,16 @@ fun GroupChips(
     filterActive: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    LazyRow(
-        modifier = modifier.fillMaxWidth(),
+    AppChipRow(
+        options = groups.map { it.id },
+        selected = selectedId,
+        label = { id -> groups.first { it.id == id }.name },
+        onSelect = onSelect,
+        modifier = modifier,
+        lazy = true,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(groups, key = { it.id }) { group ->
-            FilterChip(
-                selected = group.id == selectedId,
-                onClick = { onSelect(group.id) },
-                label = { Text(group.name) },
-                shape = CircleShape,
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
-        item {
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        trailing = {
             FilterChip(
                 selected = false,
                 onClick = onCreate,
@@ -105,7 +98,7 @@ fun GroupChips(
                 }
             )
         }
-    }
+    )
 }
 
 /** 分组行右侧的筛选入口 */

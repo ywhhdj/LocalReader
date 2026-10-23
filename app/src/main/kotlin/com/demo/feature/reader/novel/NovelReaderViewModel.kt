@@ -3,18 +3,18 @@ package com.demo.feature.reader.novel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 import com.demo.core.common.util.MemoryPressure
 import com.demo.core.common.util.VolumeSplitter
@@ -23,15 +23,16 @@ import com.demo.core.model.Book
 import com.demo.core.model.BookBlock
 import com.demo.core.model.BookType
 import com.demo.core.model.Chapter
+import com.demo.core.model.TtsState
 import com.demo.core.model.TtsTimbre
+import com.demo.core.model.TtsVoice
 
 import com.demo.domain.repository.NovelContent
 import com.demo.domain.repository.ProgressRepository
 import com.demo.domain.repository.ReaderRepository
 import com.demo.domain.repository.SettingsRepository
-import com.demo.domain.repository.TtsEngine
-import com.demo.domain.repository.TtsState
-import com.demo.domain.repository.TtsVoice
+import com.demo.domain.repository.TtsRepository
+
 import com.demo.domain.usecase.GetBookUseCase
 import com.demo.domain.usecase.OpenNovelUseCase
 import com.demo.domain.usecase.ReadingSessionUseCase
@@ -65,7 +66,7 @@ class NovelReaderViewModel(
     private val progressRepository: ProgressRepository,
     private val settingsRepository: SettingsRepository,
     private val session: ReadingSessionUseCase,
-    private val ttsEngine: TtsEngine
+    private val ttsRepository: TtsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NovelReaderUiState())
@@ -138,8 +139,8 @@ class NovelReaderViewModel(
         viewModelScope.launch {
             settingsRepository.observe().collectLatest { settings ->
                 _uiState.update { it.copy(settings = settings) }
-                ttsEngine.setRate(settings.ttsRate)
-                ttsEngine.setPitch(settings.ttsPitch)
+                ttsRepository.setRate(settings.ttsRate)
+                ttsRepository.setPitch(settings.ttsPitch)
             }
         }
         viewModelScope.launch {
@@ -150,7 +151,7 @@ class NovelReaderViewModel(
         }
         viewModelScope.launch {
             var wasSpeaking = false
-            ttsEngine.state.collectLatest { tts ->
+            ttsRepository.state.collectLatest { tts ->
                 val finished = wasSpeaking && !tts.speaking &&
                     tts.chunkCount > 0 && tts.chunkIndex >= tts.chunkCount
                 wasSpeaking = tts.speaking
@@ -164,7 +165,7 @@ class NovelReaderViewModel(
                     // 等待新章节内容渲染完成后再继续朗读
                     var waited = 0
                     while (_uiState.value.loading && waited < 5000) {
-                        kotlinx.coroutines.delay(120)
+                        delay(120)
                         waited += 120
                     }
                     startTts()
@@ -201,7 +202,7 @@ class NovelReaderViewModel(
                 sessionId = session.start(book.id, BookType.NOVEL)
                 sessionStartAt = System.currentTimeMillis()
                 // 预热 TTS 引擎：避免首次点击「朗读」时才初始化导致卡顿
-                ttsEngine.prewarm()
+                ttsRepository.prewarm()
                 loadChapterInternal(index)
             }.onFailure { e ->
                 _uiState.update { it.copy(loading = false, error = e.message ?: "打开失败") }
@@ -214,8 +215,8 @@ class NovelReaderViewModel(
         if (index !in chapters.indices) return
         // 同时收起目录抽屉与设置面板，避免两者叠在一起
         _uiState.update { it.copy(chapterIndex = index, showToc = false, showSettings = false) }
-        viewModelScope.launch { 
-            loadChapterInternal(index) 
+        viewModelScope.launch {
+            loadChapterInternal(index)
         }
     }
 
@@ -234,7 +235,14 @@ class NovelReaderViewModel(
     private suspend fun loadChapterInternal(index: Int) {
         val cached = chapterCache[index]
         if (cached != null) {
-            _uiState.update { it.copy(blocks = cached, loading = false, canPrev = index > 0, canNext = index < it.chapters.lastIndex) }
+            _uiState.update {
+                it.copy(
+                    blocks = cached,
+                    loading = false,
+                    canPrev = index > 0,
+                    canNext = index < it.chapters.lastIndex
+                )
+            }
             return
         }
         _uiState.update { it.copy(loading = true) }
@@ -312,9 +320,9 @@ class NovelReaderViewModel(
                     }
                 }
             }
-            ttsEngine.setRate(_uiState.value.settings.ttsRate)
-            ttsEngine.setPitch(_uiState.value.settings.ttsPitch)
-            ttsEngine.speak(text)
+            ttsRepository.setRate(_uiState.value.settings.ttsRate)
+            ttsRepository.setPitch(_uiState.value.settings.ttsPitch)
+            ttsRepository.speak(text)
         }
     }
 
@@ -325,55 +333,59 @@ class NovelReaderViewModel(
     }
 
     /** 暂停（系统 TTS 无 pause，内部以 stop + 记录句位实现） */
-    fun pauseTts() = ttsEngine.pause()
+    fun pauseTts() = ttsRepository.pause()
 
     /** 从暂停处继续 */
-    fun resumeTts() = ttsEngine.resume()
+    fun resumeTts() = ttsRepository.resume()
 
     /**
      * 结束朗读并清空进度：回到右下角「朗读」悬浮球。
      * 与 [stopTts] 的区别是会额外把播放位置清零（关闭按钮用这个）。
      */
     fun cancelTts() {
-        ttsEngine.stop()
+        ttsRepository.stop()
         _ttsProgress.value = 0f
-        _uiState.update { it.copy(ttsActive = false, tts = TtsState(available = it.tts.available)) }
+        _uiState.update {
+            it.copy(ttsActive = false, tts = TtsState(available = it.tts.available))
+        }
     }
 
-    fun stopTts() = ttsEngine.stop()
+    fun stopTts() = ttsRepository.stop()
 
     fun setTtsRate(rate: Float) {
-        ttsEngine.setRate(rate)
+        ttsRepository.setRate(rate)
         updateSettings { it.copy(ttsRate = rate) }
     }
 
     fun setTtsPitch(pitch: Float) {
-        ttsEngine.setPitch(pitch)
-        updateSettings { 
-            it.copy(ttsPitch = pitch) 
+        ttsRepository.setPitch(pitch)
+        updateSettings {
+            it.copy(ttsPitch = pitch)
         }
     }
 
     /** 音色预设：落到音调 + 语速并持久化（不下载任何语音包） */
     fun setTtsTimbre(timbre: TtsTimbre) {
-        ttsEngine.setPitch(timbre.pitch)
-        ttsEngine.setRate(timbre.rate)
-        updateSettings { 
-            it.copy(ttsTimbre = timbre, ttsPitch = timbre.pitch, ttsRate = timbre.rate) 
+        ttsRepository.setPitch(timbre.pitch)
+        ttsRepository.setRate(timbre.rate)
+        updateSettings {
+            it.copy(ttsTimbre = timbre, ttsPitch = timbre.pitch, ttsRate = timbre.rate)
         }
     }
 
     /** 打开系统「文字转语音」设置（用户在那里下载语音包） */
-    fun openSystemTtsSettings() = ttsEngine.openSystemSettings()
+    fun openSystemTtsSettings() = ttsRepository.openSystemSettings()
+
+    fun launchTtsSettings() = ttsRepository.launchTtsSettings()
 
     /** 系统语音列表（引擎未就绪时为空，UI 会提示） */
-    fun ttsVoices(): List<TtsVoice> = runCatching { 
-        ttsEngine.availableVoices()
+    fun ttsVoices(): List<TtsVoice> = runCatching {
+        ttsRepository.availableVoices()
     }.getOrDefault(emptyList())
 
     /** 选择系统语音 */
     fun setTtsVoice(name: String) {
-        ttsEngine.setVoice(name)
+        ttsRepository.setVoice(name)
         updateSettings { it.copy(ttsVoiceName = name) }
     }
 
@@ -389,7 +401,7 @@ class NovelReaderViewModel(
     }
 
     fun updateSettings(transform: (AppSettings) -> AppSettings) {
-        viewModelScope.launch { 
+        viewModelScope.launch {
             settingsRepository.update(transform)
         }
     }
@@ -400,7 +412,7 @@ class NovelReaderViewModel(
         if (state.chapters.isEmpty() || bookId <= 0L) return
         val progress = ((state.chapterIndex + 1).toFloat() / state.chapters.size).coerceAtMost(1f)
         flushScope.launch {
-            runCatching { 
+            runCatching {
                 progressRepository.saveNovel(bookId, state.chapterIndex, 0, progress)
             }
         }
@@ -417,10 +429,10 @@ class NovelReaderViewModel(
         super.onCleared()
         unregisterMemoryPressure?.invoke()
         unregisterMemoryPressure = null
-        runCatching { ttsEngine.stop() }
+        runCatching { ttsRepository.stop() }
         flushProgress()
         flushScope.launch {
-            runCatching { 
+            runCatching {
                 session.end(sessionId, sessionStartAt, BookType.NOVEL)
             }
         }

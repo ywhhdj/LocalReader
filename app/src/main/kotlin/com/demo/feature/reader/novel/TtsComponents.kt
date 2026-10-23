@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,7 +49,9 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 
 import com.demo.core.model.TtsTimbre
+import com.demo.core.model.TtsVoice
 import com.demo.core.ui.components.AppSlider
+import com.demo.core.ui.components.settings.VoiceRow
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.CoverPlaceholderA
 import com.demo.core.ui.theme.CoverPlaceholderB
@@ -86,10 +89,6 @@ fun TtsFab(
 /**
  * 左下角「朗读进度」悬浮球：
  * `[旋转封面] [环形进度 + 播放/暂停] [关闭]`
- *
- * - 封面：有封面图时圆形填充并匀速旋转；无封面时用书名首字居中填充；
- * - 环形进度：当前句 / 总句数；
- * - 关闭：停止朗读、清除进度、回到右下角朗读球。
  */
 @Composable
 fun TtsProgressOrb(
@@ -122,8 +121,8 @@ fun TtsProgressOrb(
             Spacer(Modifier.width(10.dp))
             Box(contentAlignment = Alignment.Center, modifier = Modifier.size(OrbRingSize)) {
                 CircularProgressIndicator(
-                    progress = { 
-                        progress.coerceIn(0f, 1f) 
+                    progress = {
+                        progress.coerceIn(0f, 1f)
                     },
                     modifier = Modifier.size(OrbRingSize),
                     strokeWidth = 3.dp,
@@ -201,10 +200,6 @@ private fun SpinningCover(
 
 /**
  * 听读设置面板：语速 / 音调 / 音色 / 自动下章 / 系统语音。
- *
- * 音色说明（UI 上也写清）：系统 TTS 无法下载音色包，
- * 这里的「萝莉音 / 少女音」等是**音调 + 语速**的组合预设；
- * 若要更换真正的发声人，需用户在系统「文字转语音」里安装语音后再于此选择。
  */
 @Composable
 fun TtsSettingsPanel(
@@ -212,8 +207,9 @@ fun TtsSettingsPanel(
     pitch: Float,
     timbre: TtsTimbre,
     autoNext: Boolean,
-    voices: List<com.demo.domain.repository.TtsVoice>,
+    voices: List<TtsVoice>,
     voiceName: String,
+    bgColor: Color,
     onRate: (Float) -> Unit,
     onPitch: (Float) -> Unit,
     onTimbre: (TtsTimbre) -> Unit,
@@ -227,7 +223,8 @@ fun TtsSettingsPanel(
         modifier = modifier
             .fillMaxWidth()
             .padding(12.dp),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+        backgroundColor = bgColor
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -237,7 +234,7 @@ fun TtsSettingsPanel(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier
                         .weight(1f)
-                        .padding(start = 8.dp),
+                        .padding(start = 8.dp)
                 )
                 IconButton(onClick = onDismiss) {
                     Icon(Icons.Default.Close, contentDescription = "关闭")
@@ -276,7 +273,7 @@ fun TtsSettingsPanel(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("读完自动下一章", style = MaterialTheme.typography.labelLarge)
                 Spacer(Modifier.weight(1f))
-                androidx.compose.material3.Switch(checked = autoNext, onCheckedChange = onAutoNext)
+                Switch(checked = autoNext, onCheckedChange = onAutoNext)
             }
 
             Spacer(Modifier.height(12.dp))
@@ -284,7 +281,7 @@ fun TtsSettingsPanel(
                 Text("发声人（系统语音）", style = MaterialTheme.typography.labelLarge)
                 Spacer(Modifier.weight(1f))
                 Text(
-                    "去下载",
+                    text = "系统设置",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
@@ -308,48 +305,22 @@ fun TtsSettingsPanel(
                         .padding(top = 6.dp)
                 ) {
                     item {
-                        VoiceRow("系统默认", voiceName.isBlank()) { onVoice("") }
+                        VoiceRow(
+                            "系统默认", 
+                            voiceName.isBlank(),
+                            onClick={ onVoice("") }
+                        ) 
                     }
                     items(voices.size) { i ->
                         val v = voices[i]
-                        VoiceRow(v.displayName, v.name == voiceName) { onVoice(v.name) }
+                        VoiceRow(
+                            v.displayName, 
+                            v.name == voiceName,
+                            onClick={ onVoice(v.name) }
+                        )
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun VoiceRow(label: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
-            .background(
-                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                else Color.Transparent
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
-        if (selected) {
-            Icon(
-                Icons.Default.PlayArrow,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(16.dp)
-            )
         }
     }
 }
