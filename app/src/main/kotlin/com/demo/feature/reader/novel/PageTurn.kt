@@ -15,11 +15,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 
 import com.demo.core.model.PageTurnMode
+import com.demo.core.ui.theme.LocalMotionConfig
+import com.demo.core.ui.theme.runThrottledFrameLoop
 
 
 private fun lerp(start: Float, stop: Float, fraction: Float): Float =
@@ -95,18 +96,16 @@ private fun SimulatedPageTurn(
     var outgoing by remember { mutableStateOf<Int?>(null) }
     var animForward by remember { mutableStateOf(forward) }
     var progress by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
+    // 帧率上限：30fps 档下只需一半的状态更新，翻页仍然顺滑但更省
+    val frameIntervalMs = LocalMotionConfig.current.frameIntervalMs
 
     LaunchedEffect(pageIndex, forward) {
         if (pageIndex == base) return@LaunchedEffect
         animForward = forward
         outgoing = base
         base = pageIndex
-        val steps = SIM_TURN_DURATION_MS / 16
-        val duration = SIM_TURN_DURATION_MS.toLong()
-        val start = withFrameNanos { it }
-        // 用帧循环推进：直接拿进度，省掉一层动画调度
-        runFrameLoop(start, duration) { elapsed ->
-            val raw = (elapsed.toFloat() / duration).coerceIn(0f, 1f)
+        // 用带节流的帧循环推进：直接拿进度，省掉一层动画调度
+        runThrottledFrameLoop(SIM_TURN_DURATION_MS.toLong(), frameIntervalMs) { raw ->
             progress = FastOutSlowInEasing.transform(raw)
         }
         progress = 0f
@@ -147,17 +146,3 @@ private fun SimulatedPageTurn(
     }
 }
 
-/** 简单的帧循环：从 startNanos 起按 16ms 节奏回调已耗时长 */
-private suspend fun runFrameLoop(
-    startNanos: Long,
-    durationMs: Long,
-    onFrame: (Long) -> Unit
-) {
-    var elapsed = 0L
-    while (elapsed < durationMs) {
-        val now = withFrameNanos { it }
-        elapsed = (now - startNanos) / 1_000_000L
-        onFrame(elapsed.coerceIn(0L, durationMs))
-    }
-    onFrame(durationMs)
-}

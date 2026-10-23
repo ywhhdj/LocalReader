@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 import com.demo.core.model.AppSettings
+import com.demo.core.model.FrameRateMode
 import com.demo.core.model.ThemeMode
 import com.demo.core.model.TtsTimbre
 import com.demo.core.model.TtsVoice
@@ -42,7 +43,9 @@ data class SettingsUiState(
   val backups: List<RemoteBackup> = emptyList(),
   val syncBusy: Boolean = false,
   val message: String? = null,
-  val ttsVoices: List<TtsVoice> = emptyList()
+  val ttsVoices: List<TtsVoice> = emptyList(),
+  /** 正在检测系统语音：引擎初始化需要时间，用于 UI 显示"检测中"而不是直接跳走 */
+  val ttsVoicesLoading: Boolean = false
 )
 
 class SettingsViewModel(
@@ -86,6 +89,10 @@ class SettingsViewModel(
   fun setTheme(mode: ThemeMode) = update { it.copy(themeMode = mode) }
   fun setDynamicColor(enabled: Boolean) = update { it.copy(dynamicColor = enabled) }
   fun setGlassLevel(level: String) = update { it.copy(glassLevel = level) }
+  /** 界面动效总开关（关闭后翻页/面板/背景光斑全部退化为瞬时切换） */
+  fun setAnimationsEnabled(enabled: Boolean) = update { it.copy(animationsEnabled = enabled) }
+  /** 持续型动画帧率上限 */
+  fun setFrameRateMode(mode: FrameRateMode) = update { it.copy(frameRateMode = mode) }
   fun setNickname(name: String) = update { it.copy(nickname = name.ifBlank { "阅读者" }) }
   fun setComicPreload(count: Int) = update { it.copy(comicPreload = count.coerceIn(4, 6)) }
   fun setScanDepth(depth: Int) = update { it.copy(scanMaxDepth = depth.coerceIn(1, 8)) }
@@ -105,12 +112,20 @@ class SettingsViewModel(
   fun setTtsRate(value: Float) = update { it.copy(ttsRate = value.coerceIn(0.5f, 2.0f)) }
   fun setTtsPitch(value: Float) = update { it.copy(ttsPitch = value.coerceIn(0.5f, 2.0f)) }
   fun setTtsAutoNext(enabled: Boolean) = update { it.copy(ttsAutoNext = enabled) }
+  /**
+   * 读取系统语音列表。
+   *
+   * 引擎初始化是异步的（独立 HandlerThread 上绑定服务 + 校验语音数据），
+   * 进入设置页时往往还没就绪：这里等待就绪（内部有超时）后再读，
+   * 期间 UI 显示"检测中"，避免"点选择没有列表、点去下载直接跳走"。
+   */
   fun refreshTtsVoices() {
     viewModelScope.launch {
-      val list = runCatching { 
+      _uiState.update { it.copy(ttsVoicesLoading = true) }
+      val list = runCatching {
         ttsRepository.availableVoices()
       }.getOrDefault(emptyList())
-      _uiState.update { it.copy(ttsVoices = list) }
+      _uiState.update { it.copy(ttsVoices = list, ttsVoicesLoading = false) }
     }
   }
     fun setTtsTimbre(timbre: TtsTimbre) = viewModelScope.launch {

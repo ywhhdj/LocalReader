@@ -57,7 +57,9 @@ class MainActivity : ComponentActivity() {
             ReaderTheme(
                 themeMode = settings.themeMode,
                 dynamicColor = settings.dynamicColor,
-                glassLevel = GlassLevel.from(settings.glassLevel)
+                glassLevel = GlassLevel.from(settings.glassLevel),
+                animationsEnabled = settings.animationsEnabled,
+                frameRateMode = settings.frameRateMode
             ) {
                 AppNavHost(factory = container)
             }

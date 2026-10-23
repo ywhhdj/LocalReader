@@ -47,6 +47,23 @@ enum class ReaderBackground(val value: String) {
 }
 
 /**
+ * 帧率上限模式。
+ * 作用对象是"持续型动画"（背景光斑、翻页帧循环）的更新频率，
+ * 而不是强行改写屏幕刷新率（Android 未提供该能力）。
+ */
+enum class FrameRateMode(val value: String, val label: String, val fps: Int) {
+    /** 按设备分级自动决定 */
+    AUTO("AUTO", "自动", 0),
+    HIGH("HIGH", "60fps", 60),
+    BALANCED("BALANCED", "30fps", 30);
+
+    companion object {
+        fun from(value: String?): FrameRateMode =
+            entries.firstOrNull { it.value.equals(value, ignoreCase = true) } ?: AUTO
+    }
+}
+
+/**
  * 全局设置（DataStore 持久化）
  */
 data class AppSettings(
@@ -54,13 +71,18 @@ data class AppSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val dynamicColor: Boolean = false,
     val glassLevel: String = "OFF",
+    /** 界面动效总开关：关闭后翻页/面板/背景光斑全部退化为瞬时切换 */
+    val animationsEnabled: Boolean = true,
+    /** 持续型动画的帧率上限 */
+    val frameRateMode: FrameRateMode = FrameRateMode.AUTO,
 
     // 用户
     val nickname: String = "阅读者",
 
     // 小说
     val fontSize: Int = 14,
-    val lineHeightMultiplier: Float = 4.2f,
+    /** 行距倍数：与阅读设置面板滑杆区间（1.6~3.2）保持一致 */
+    val lineHeightMultiplier: Float = 1.8f,
     val letterSpacing: Float = 0.0f,
     val readerBackground: ReaderBackground = ReaderBackground.PAPER,
     val keepScreenOn: Boolean = false,

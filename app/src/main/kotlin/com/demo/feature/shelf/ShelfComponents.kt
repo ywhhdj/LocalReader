@@ -108,7 +108,7 @@ fun FilterIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    GlassIconButton(onClick = onClick, modifier = modifier.size(36.dp)) {
+    GlassIconButton(onClick = onClick, size = 36.dp) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = if (active) Icons.Default.Tune else Icons.Default.FilterList,
@@ -145,7 +145,7 @@ fun TopBarActions(
     onSettings: () -> Unit
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        GlassIconButton(onClick = onToggleTheme, modifier = Modifier.size(36.dp)) {
+        GlassIconButton(onClick = onToggleTheme, size = 36.dp) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = if (darkNow) Icons.Default.DarkMode else Icons.Default.LightMode,
@@ -155,7 +155,7 @@ fun TopBarActions(
             }
         }
         androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
-        GlassIconButton(onClick = onSettings, modifier = Modifier.size(36.dp)) {
+        GlassIconButton(onClick = onSettings, size = 36.dp) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = Icons.Default.Settings,

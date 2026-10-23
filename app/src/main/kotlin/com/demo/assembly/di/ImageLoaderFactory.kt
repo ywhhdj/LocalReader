@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 
 import coil.ImageLoader
+import coil.disk.DiskCache
 import coil.memory.MemoryCache
 
 /**
@@ -19,7 +20,16 @@ object ImageLoaderFactory {
                 .maxSizePercent(0.15)
                 .build()
         }
-        .crossfade(true)
+        .diskCache {
+            DiskCache.Builder()
+                .directory(java.io.File(context.cacheDir, "image_cache"))
+                // 封面缩略图很小，磁盘缓存按可用空间的 2% 封顶，避免缓存无限增长
+                .maxSizePercent(0.02)
+                .build()
+        }
+        // 列表滚动时逐张淡入会持续触发重绘（快滑掉帧的元凶之一）：
+        // 默认关闭，需要淡入的场景在单次请求里显式开启。
+        .crossfade(false)
         .respectCacheHeaders(false)
         .build()
 }

@@ -24,6 +24,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -110,6 +111,18 @@ fun AppBookListCard(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    // 请求对象缓存：避免每次重组都让 Coil 重新走一遍加载流程
+    val coverRequest = remember(book.coverPath, context) {
+        if (book.coverPath.isNullOrBlank()) {
+            null
+        } else {
+            ImageRequest.Builder(context)
+                .data(book.coverPath)
+                .size(112, 152)
+                .crossfade(false)
+                .build()
+        }
+    }
     val shape = RoundedCornerShape(12.dp)
     Row(
         modifier = modifier
@@ -131,13 +144,9 @@ fun AppBookListCard(
                 .background(Brush.linearGradient(listOf(CoverPlaceholderA, CoverPlaceholderB))),
             contentAlignment = Alignment.Center
         ) {
-            if (!book.coverPath.isNullOrBlank()) {
+            if (coverRequest != null) {
                 AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(book.coverPath)
-                        .size(112, 152)
-                        .crossfade(true)
-                        .build(),
+                    model = coverRequest,
                     contentDescription = book.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

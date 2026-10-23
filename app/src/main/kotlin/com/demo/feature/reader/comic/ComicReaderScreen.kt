@@ -62,6 +62,7 @@ import com.demo.feature.reader.common.ReaderSettingsPanel
 import com.demo.feature.reader.common.ReaderTocDrawer
 import com.demo.feature.reader.common.ReaderTopBar
 import com.demo.feature.reader.common.readerColors
+import com.demo.feature.reader.common.readerContentColor
 import com.demo.feature.reader.common.rememberReaderInsets
 
 /** 判定"已滚到底部"的容差（px） */
@@ -179,6 +180,7 @@ fun ComicReaderScreen(
             subtitle = chapterPositionText(state),
             onBack = onBack,
             modifier = Modifier.align(Alignment.TopCenter),
+            contentColor = Color.White,
             actions = {
                 if (state.chapters.size > 1) {
                     IconButton(onClick = viewModel::toggleToc) {
@@ -205,6 +207,7 @@ fun ComicReaderScreen(
             ComicTocList(
                 chapters = state.chapters,
                 currentIndex = state.chapterIndex,
+                textColor = readerContentColor(state.settings.readerBackground),
                 onSelect = { index -> viewModel.selectChapter(index) },
                 header = {
                     Row(
@@ -216,6 +219,7 @@ fun ComicReaderScreen(
                         Text(
                             text = "话集 · 共 ${state.chapters.size} 话",
                             style = MaterialTheme.typography.titleMedium,
+                            color = readerContentColor(state.settings.readerBackground),
                             modifier = Modifier.weight(1f)
                         )
                         TextButton(onClick = { viewModel.toggleToc(false) }) {
@@ -235,7 +239,8 @@ fun ComicReaderScreen(
         ) {
             GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = SheetShape
+                shape = SheetShape,
+                contentColor = Color.White
             ) {
                 Column(
                     modifier = Modifier
@@ -252,6 +257,7 @@ fun ComicReaderScreen(
                         onPrev = viewModel::prevChapter,
                         onNext = viewModel::nextChapter,
                         onSeek = { viewModel.jumpToPage(it) },
+                        contentColor = Color.White,
                         prevLabel = "上一话",
                         nextLabel = "下一话"
                     )
@@ -285,6 +291,7 @@ fun ComicReaderScreen(
                 onKeepScreenOn = { viewModel.updateSettings { s -> s.copy(keepScreenOn = it) } },
                 onVolumeTurn = { viewModel.updateSettings { s -> s.copy(volumeKeyTurnPage = it) } },
                 showTextSettings = false,
+                contentColor = readerContentColor(state.settings.readerBackground),
                 onOpenToc = {
                     viewModel.toggleSettings(false)
                     viewModel.toggleToc(true)

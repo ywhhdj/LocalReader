@@ -55,8 +55,10 @@ import coil.compose.AsyncImage
 import com.demo.core.common.util.VolumeSplitter
 import com.demo.core.model.BookBlock
 import com.demo.core.model.Chapter
+import com.demo.core.model.PageTurnMode
 import com.demo.core.ui.components.VolumeTocList
 import com.demo.core.ui.glass.GlassSurface
+import com.demo.core.ui.theme.LocalMotionConfig
 import com.demo.core.ui.theme.SheetShape
 import com.demo.feature.reader.common.KeepScreenOnEffect
 import com.demo.feature.reader.common.ReaderProgressBar
@@ -65,6 +67,8 @@ import com.demo.feature.reader.common.ReaderTapZone
 import com.demo.feature.reader.common.ReaderTocDrawer
 import com.demo.feature.reader.common.ReaderTopBar
 import com.demo.feature.reader.common.readerColors
+import com.demo.feature.reader.common.readerContentColor
+import com.demo.feature.reader.common.readerSecondaryColor
 import com.demo.feature.reader.common.rememberReaderInsets
 
 /** 内容左右内边距 */
@@ -84,15 +88,25 @@ fun NovelReaderScreen(
     var forward by remember { mutableStateOf(true) }
     /** 朗读会话是否激活（朗读中 / 已暂停都算，保证进度球不闪） */
     val ttsActive = state.ttsActive
-    /** 系统语音列表：只在打开听读设置时取一次，避免每次重组都遍历引擎语音 */
-    val ttsVoices = remember(showTtsSettings) {
-        if (showTtsSettings) viewModel.ttsVoices() else emptyList()
-    }
+    /** 系统语音列表：ViewModel 异步拉取，引擎就绪后自动刷新（不再在组合期同步阻塞读取） */
+    val ttsVoices by viewModel.ttsVoices.collectAsStateWithLifecycle()
     val bgColor = readerColors(state.settings.readerBackground)
+    // 目录切分（卷名识别 + 标题清洗）较重，按章节列表缓存，避免每次重组都重算一遍
+    val tocEntries = remember(state.chapters) { VolumeSplitter.tocEntries(state.chapters) }
+    // 前景色随背景走：夜间背景下正文/目录/底栏文字自动转浅色
+    val contentColor = readerContentColor(state.settings.readerBackground)
+    val motion = LocalMotionConfig.current
+    // 关闭动效时翻页退化为直接切换
+    val turnMode = if (motion.animationsEnabled) state.settings.pageTurnMode else PageTurnMode.NONE
     val currentChapter = state.chapters.getOrNull(state.chapterIndex)
     val insets = rememberReaderInsets()
 
     KeepScreenOnEffect(state.settings.keepScreenOn)
+
+    // 打开听读设置时再拉一次语音列表（引擎可能刚好才初始化完）
+    LaunchedEffect(showTtsSettings) {
+        if (showTtsSettings) viewModel.refreshTtsVoices()
+    }
 
     // 章节切换 → 回到该章首页
     LaunchedEffect(state.chapterIndex) {
@@ -105,7 +119,7 @@ fun NovelReaderScreen(
             modifier.fillMaxSize().background(bgColor),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = MaterialTheme.colorScheme.onSurface)
+            CircularProgressIndicator(color = contentColor)
         }
         return
     }
@@ -173,7 +187,7 @@ fun NovelReaderScreen(
         PageTurnContainer(
             pageIndex = safePageIndex,
             forward = forward,
-            mode = state.settings.pageTurnMode,
+            mode = turnMode,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
@@ -215,7 +229,7 @@ fun NovelReaderScreen(
                         block = item.block,
                         fontSize = state.settings.fontSize,
                         lineHeight = state.settings.lineHeightMultiplier,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = contentColor,
                         isContinuation = item.isContinuation
                     )
                 }
@@ -229,7 +243,7 @@ fun NovelReaderScreen(
             enabled = !showChrome && !state.showToc && !state.showSettings &&
                 (canPrevPage || state.canPrev),
             label = if (canPrevPage) "上一页" else "上一章",
-            textColor = MaterialTheme.colorScheme.onSurface,
+            textColor = contentColor,
             onClick = { goPrev() }
         )
 
@@ -239,7 +253,7 @@ fun NovelReaderScreen(
             enabled = !showChrome && !state.showToc && !state.showSettings &&
                 (canNextPage || state.canNext),
             label = if (canNextPage) "下一页" else "下一章",
-            textColor = MaterialTheme.colorScheme.onSurface,
+            textColor = contentColor,
             onClick = { goNext() }
         )
 
@@ -250,6 +264,7 @@ fun NovelReaderScreen(
             onBack = onBack,
             modifier = Modifier.align(Alignment.TopCenter),
             backgroundColor = bgColor,
+            contentColor = contentColor,
             actions = {
                 IconButton(onClick = viewModel::toggleToc) {
                     Icon(Icons.AutoMirrored.Filled.List, contentDescription = "目录")
@@ -270,7 +285,8 @@ fun NovelReaderScreen(
             GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = SheetShape,
-                backgroundColor = bgColor
+                backgroundColor = bgColor,
+                contentColor = contentColor
             ) {
                 Column(
                     Modifier
@@ -282,7 +298,8 @@ fun NovelReaderScreen(
                             currentChapter, state.chapterIndex, state.chapters.size,
                             safePageIndex, pages.size
                         ),
-                        style = MaterialTheme.typography.labelMedium
+                        style = MaterialTheme.typography.labelMedium,
+                        color = contentColor
                     )
                     // 章节进度条（通用）：拖动本地值，松手跳章
                     ReaderProgressBar(
@@ -292,7 +309,8 @@ fun NovelReaderScreen(
                         hasNext = state.canNext,
                         onPrev = viewModel::prevChapter,
                         onNext = viewModel::nextChapter,
-                        onSeek = { viewModel.jumpToChapter(it) }
+                        onSeek = { viewModel.jumpToChapter(it) },
+                        contentColor = readerSecondaryColor(state.settings.readerBackground)
                     )
                 }
             }
@@ -305,9 +323,9 @@ fun NovelReaderScreen(
             onDismiss = { viewModel.toggleToc(false) }
         ) {
             VolumeTocList(
-                entries = VolumeSplitter.tocEntries(state.chapters),
+                entries = tocEntries,
                 currentIndex = state.chapterIndex,
-                textColor = MaterialTheme.colorScheme.onSurface,
+                textColor = contentColor,
                 onSelect = { index ->
                     viewModel.jumpToChapter(index)
                     viewModel.toggleToc(false)
@@ -316,7 +334,7 @@ fun NovelReaderScreen(
                     Text(
                         "目录",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = contentColor,
                         modifier = Modifier.padding(16.dp)
                     )
                 }
@@ -372,6 +390,7 @@ fun NovelReaderScreen(
                 voices = ttsVoices,
                 voiceName = state.settings.ttsVoiceName,
                 bgColor = bgColor,
+                contentColor = contentColor,
                 onRate = viewModel::setTtsRate,
                 onPitch = viewModel::setTtsPitch,
                 onTimbre = viewModel::setTtsTimbre,
@@ -408,6 +427,7 @@ fun NovelReaderScreen(
                 onVolumeTurn = { viewModel.updateSettings { s -> s.copy(volumeKeyTurnPage = it) } },
                 pageTurnMode = state.settings.pageTurnMode,
                 onPageTurn = { viewModel.updateSettings { s -> s.copy(pageTurnMode = it) } },
+                contentColor = contentColor,
                 onOpenTtsSettings = {
                     // 关掉阅读设置面板再开听读设置，避免两块面板叠在一起
                     viewModel.toggleSettings(false)

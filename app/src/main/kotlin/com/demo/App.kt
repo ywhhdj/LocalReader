@@ -21,6 +21,31 @@ class App : Application() {
     lateinit var container: AppContainer
         private set
 
+    /**
+     * 内存紧张时主动让出可再生内存：
+     * - 先通知业务侧（阅读器章节缓存等）自行收缩；
+     * - 再按系统等级裁剪 Coil 内存缓存。
+     * 与其等 LMK 连进程一起杀掉（阅读进度来不及落库），不如提前让出。
+     */
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        com.demo.core.common.util.MemoryPressure.release()
+        runCatching {
+            val cache = Coil.imageLoader(this).memoryCache
+            when {
+                level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> cache?.clear()
+                level >= ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN -> cache?.trimMemory(50)
+                else -> cache?.trimMemory(25)
+            }
+        }
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        com.demo.core.common.util.MemoryPressure.release()
+        runCatching { Coil.imageLoader(this).memoryCache?.clear() }
+    }
+
     override fun onCreate() {
         super.onCreate()
         Logger.enabled = BuildConfig.DEBUG

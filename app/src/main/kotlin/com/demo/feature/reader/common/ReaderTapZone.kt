@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +40,8 @@ fun BoxScope.ReaderTapZone(
   heightRatio: Float = TAP_ZONE_HEIGHT_RATIO
 ) {
   val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+  // 用最新的回调，但手势只按 enabled 重建：否则每次重组都重启一次手势检测
+  val currentOnClick = rememberUpdatedState(onClick)
   Box(
     modifier = modifier
       .fillMaxWidth(widthRatio)
@@ -47,8 +50,8 @@ fun BoxScope.ReaderTapZone(
       .padding(bottom = bottomInset)
       .then(
         if (enabled) {
-          Modifier.pointerInput(onClick) {
-            detectTapGestures(onTap = { onClick() })
+          Modifier.pointerInput(enabled) {
+            detectTapGestures(onTap = { currentOnClick.value() })
           }
         } else Modifier
       )

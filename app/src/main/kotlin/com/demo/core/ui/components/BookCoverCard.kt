@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.runtime.remember
 
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -61,6 +62,23 @@ fun BookCoverCard(
     onLongClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val coverPath = book.coverPath
+    /**
+     * 图片请求用 remember 缓存：
+     * 每次重组都新建 ImageRequest 会让 Coil 认为是新请求并重新走一遍加载流程
+     * （即使命中内存缓存也要重新调度），列表快滑时非常明显。
+     */
+    val coverRequest = remember(coverPath, context) {
+        if (coverPath.isNullOrBlank()) {
+            null
+        } else {
+            ImageRequest.Builder(context)
+                .data(coverPath)
+                .size(150, 220)          // 按视图尺寸采样，降低内存
+                .crossfade(false)        // 列表不做淡入，避免滚动期持续重绘
+                .build()
+        }
+    }
     Column(modifier = modifier.widthAdaptive()) {
         Box(
             modifier = Modifier
@@ -71,13 +89,9 @@ fun BookCoverCard(
                 .then(if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CoverShape) else Modifier)
                 .bookClickable(onClick = onClick, onLongClick = onLongClick)
         ) {
-            if (!book.coverPath.isNullOrBlank()) {
+            if (coverRequest != null) {
                 AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(book.coverPath)
-                        .size(150, 220)          // 按视图尺寸采样，降低内存
-                        .crossfade(true)
-                        .build(),
+                    model = coverRequest,
                     contentDescription = book.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

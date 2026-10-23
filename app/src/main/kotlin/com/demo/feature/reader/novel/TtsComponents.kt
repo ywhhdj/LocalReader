@@ -53,8 +53,11 @@ import com.demo.core.model.TtsVoice
 import com.demo.core.ui.components.AppSlider
 import com.demo.core.ui.components.settings.VoiceRow
 import com.demo.core.ui.glass.GlassSurface
+import com.demo.core.ui.theme.LocalMotionConfig
+import com.demo.feature.reader.common.readerOnColor
 import com.demo.core.ui.theme.CoverPlaceholderA
 import com.demo.core.ui.theme.CoverPlaceholderB
+import com.demo.core.ui.glass.GlassIconButton
 
 /** 悬浮球尺寸 */
 private val FabSize = 50.dp
@@ -72,9 +75,8 @@ fun TtsFab(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    GlassSurface(
-        modifier = modifier.size(FabSize),
-        shape = CircleShape,
+    GlassIconButton(
+        size = FabSize,
         onClick = onClick
     ) {
         Icon(
@@ -160,10 +162,13 @@ private fun SpinningCover(
     coverPath: String?,
     spinning: Boolean
 ) {
+    val motion = LocalMotionConfig.current
+    // 关闭动效（或暂停）时目标值恒为 0：InfiniteTransition 不再产生有效变化
+    val spinTarget = if (motion.animationsEnabled && spinning) 360f else 0f
     val transition = rememberInfiniteTransition(label = "ttsCover")
     val rotation by transition.animateFloat(
         initialValue = 0f,
-        targetValue = 360f,
+        targetValue = spinTarget,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 7_000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
@@ -210,6 +215,8 @@ fun TtsSettingsPanel(
     voices: List<TtsVoice>,
     voiceName: String,
     bgColor: Color,
+    /** 面板内容色：夜间等深色阅读背景下保证文字可读 */
+    contentColor: Color = Color.Unspecified,
     onRate: (Float) -> Unit,
     onPitch: (Float) -> Unit,
     onTimbre: (TtsTimbre) -> Unit,
@@ -219,12 +226,18 @@ fun TtsSettingsPanel(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val resolved = if (contentColor != Color.Unspecified) {
+        contentColor
+    } else {
+        readerOnColor(bgColor)
+    }
     GlassSurface(
         modifier = modifier
             .fillMaxWidth()
             .padding(12.dp),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-        backgroundColor = bgColor
+        backgroundColor = bgColor,
+        contentColor = resolved
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -254,6 +267,7 @@ fun TtsSettingsPanel(
                         label = item.label,
                         selected = item == timbre,
                         onClick = { onTimbre(item) },
+                        contentColor = resolved,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -261,13 +275,13 @@ fun TtsSettingsPanel(
             Text(
                 "音色为音调/语速组合，不下载语音包；真正的发声人请在系统「文字转语音」中安装后选择。",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                color = resolved.copy(alpha = 0.6f),
                 modifier = Modifier.padding(top = 6.dp)
             )
 
             Spacer(Modifier.height(12.dp))
-            LabeledSlider("语速", rate, 0.5f..2.0f, onRate) { "${oneDecimal(it)}x" }
-            LabeledSlider("音调", pitch, 0.5f..2.0f, onPitch) { oneDecimal(it) }
+            LabeledSlider("语速", rate, 0.5f..2.0f, onRate, resolved) { "${oneDecimal(it)}x" }
+            LabeledSlider("音调", pitch, 0.5f..2.0f, onPitch, resolved) { oneDecimal(it) }
 
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -293,7 +307,7 @@ fun TtsSettingsPanel(
                 Text(
                     "未检测到已安装语音（引擎可能仍在初始化），可先使用默认语音。",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    color = resolved.copy(alpha = 0.6f),
                     modifier = Modifier.padding(top = 4.dp)
                 )
             } else {
@@ -333,14 +347,16 @@ private fun TimbreChip(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
+    contentColor: Color = Color.Unspecified,
     modifier: Modifier = Modifier
 ) {
+    val base = if (contentColor != Color.Unspecified) contentColor else MaterialTheme.colorScheme.onSurface
     Box(
         modifier = modifier
             .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
             .background(
                 if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
-                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
+                else base.copy(alpha = 0.06f)
             )
             .border(
                 width = 1.dp,
@@ -356,7 +372,7 @@ private fun TimbreChip(
             text = label,
             style = MaterialTheme.typography.labelSmall,
             color = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+            else base.copy(alpha = 0.75f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -369,8 +385,10 @@ private fun LabeledSlider(
     value: Float,
     range: ClosedFloatingPointRange<Float>,
     onChange: (Float) -> Unit,
+    contentColor: Color = Color.Unspecified,
     format: (Float) -> String
 ) {
+    val base = if (contentColor != Color.Unspecified) contentColor else MaterialTheme.colorScheme.onSurface
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(label, style = MaterialTheme.typography.labelLarge)
         Spacer(Modifier.width(12.dp))
@@ -385,7 +403,7 @@ private fun LabeledSlider(
         Text(
             text = format(value),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            color = base.copy(alpha = 0.7f),
             modifier = Modifier.width(40.dp)
         )
     }

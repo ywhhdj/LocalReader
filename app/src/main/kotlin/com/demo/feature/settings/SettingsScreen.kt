@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoStories
@@ -42,12 +44,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material.icons.filled.Settings
 
 import kotlinx.coroutines.launch
 
 import com.demo.core.common.util.Constants
 import com.demo.core.common.util.FormatUtil
 import com.demo.core.common.util.StorageAccess
+import com.demo.core.common.util.DeviceTierDetector
+import com.demo.core.model.FrameRateMode
 import com.demo.core.model.ThemeMode
 import com.demo.core.model.TtsTimbre
 import com.demo.core.ui.components.AppBackdrop
@@ -77,6 +82,7 @@ fun SettingsScreen(
         mutableStateOf(state.settings.onlineSourceJson)
     }
     val hasAllFiles = remember { StorageAccess.hasAllFilesAccess() }
+    val deviceTier = remember(context) { DeviceTierDetector.detect(context) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) { viewModel.refreshTtsVoices() }
@@ -120,6 +126,30 @@ fun SettingsScreen(
                             selected = state.settings.glassLevel,
                             label = ::glassLabelOf,
                             onSelect = viewModel::setGlassLevel
+                        )
+                    }
+                }
+
+                // ---------- 动效与流畅度 ----------
+                item {
+                    SettingsSection("动效与流畅度", icon = Icons.Default.Settings) {
+                        SettingSwitchRow(
+                            title = "界面动效",
+                            hint = "关闭后：背景光斑静止、翻页直接切换、面板瞬时显示",
+                            checked = state.settings.animationsEnabled,
+                            onCheckedChange = viewModel::setAnimationsEnabled
+                        )
+                        SettingChipGroup(
+                            sectionLabel = "动画帧率上限",
+                            options = FrameRateMode.entries,
+                            selected = state.settings.frameRateMode,
+                            label = { it.label },
+                            onSelect = viewModel::setFrameRateMode
+                        )
+                        SettingHint(
+                            "当前设备分级：$deviceTier。帧率上限约束的是背景光斑、翻页等持续动画的" +
+                                "刷新频率（Android 不允许 App 直接改写屏幕刷新率）；" +
+                                "「自动」按设备内存与核心数取 30 / 60fps。"
                         )
                     }
                 }
@@ -176,8 +206,9 @@ fun SettingsScreen(
                             onCheckedChange = viewModel::setTtsAutoNext
                         )
 
-                        // —— 发声人：展开后用竖向懒加载，固定 140dp ——
+                        // —— 发声人：展开后用竖向滚动区（固定高度），避免嵌套 LazyColumn 抢滚动 ——
                         val voices = state.ttsVoices
+                        val voicesLoading = state.ttsVoicesLoading
                         var voicesExpanded by rememberSaveable { mutableStateOf(false) }
                         val currentVoiceLabel = voices
                             .firstOrNull { it.name == state.settings.ttsVoiceName }
@@ -188,36 +219,47 @@ fun SettingsScreen(
                             title = "发声人（系统语音）",
                             subtitle = "当前：$currentVoiceLabel",
                             actionText = when {
-                                voices.isEmpty() -> "去下载"
+                                voicesLoading -> "检测中…"
+                                voices.isEmpty() -> "去安装"
                                 voicesExpanded -> "收起"
                                 else -> "选择"
                             },
                             onAction = {
-                                if (voices.isEmpty()) viewModel.launchTtsSettings()
-                                else voicesExpanded = !voicesExpanded
+                                when {
+                                    // 引擎还没就绪：再等一轮，别直接把用户扔到系统设置首页
+                                    voicesLoading -> Unit
+                                    voices.isEmpty() -> {
+                                        viewModel.refreshTtsVoices()
+                                        viewModel.launchTtsSettings()
+                                    }
+                                    else -> voicesExpanded = !voicesExpanded
+                                }
                             }
                         )
 
-                        if (voices.isEmpty()) {
-                            SettingHint("未检测到已安装语音（引擎可能仍在初始化），可先使用默认语音。")
+                        if (voicesLoading) {
+                            SettingHint("正在检测系统语音（引擎初始化中）…")
+                        } else if (voices.isEmpty()) {
+                            SettingHint(
+                                "未检测到已安装语音。可点「去安装」前往系统「文字转语音」页面安装语音包，" +
+                                    "也可先使用默认语音朗读。"
+                            )
                         } else if (voicesExpanded) {
-                            LazyColumn(
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(140.dp),
-                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                                    .height(160.dp)
+                                    .verticalScroll(rememberScrollState())
                             ) {
-                                item(key = "__default__") {
-                                    VoiceRow(
-                                        label = "系统默认",
-                                        selected = state.settings.ttsVoiceName.isBlank(),
-                                        onClick = {
-                                            viewModel.setTtsVoice("")
-                                            voicesExpanded = false
-                                        }
-                                    )
-                                }
-                                items(voices, key = { it.name }) { v ->
+                                VoiceRow(
+                                    label = "系统默认",
+                                    selected = state.settings.ttsVoiceName.isBlank(),
+                                    onClick = {
+                                        viewModel.setTtsVoice("")
+                                        voicesExpanded = false
+                                    }
+                                )
+                                voices.forEach { v ->
                                     VoiceRow(
                                         label = v.displayName,
                                         selected = v.name == state.settings.ttsVoiceName,
@@ -230,8 +272,13 @@ fun SettingsScreen(
                             }
                         }
 
-                        TextButton(onClick = viewModel::launchTtsSettings ) {
-                            Text("打开系统「文字转语音」设置")
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextButton(onClick = viewModel::refreshTtsVoices) {
+                                Text("刷新语音列表")
+                            }
+                            TextButton(onClick = viewModel::launchTtsSettings) {
+                                Text("系统「文字转语音」设置")
+                            }
                         }
                         SettingHint("朗读使用系统 TTS 引擎，可在小说阅读器顶部「朗读」按钮启动。")
                     }

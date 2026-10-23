@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 
 import java.util.Locale
 
+import com.demo.core.common.util.Logger
 import com.demo.core.model.TtsState
 import com.demo.core.model.TtsVoice
 
@@ -41,6 +42,10 @@ import com.demo.domain.repository.TtsRepository
  * - 音色预设（core.model.TtsTimbre）：以音调/语速组合模拟听感，不下载任何语音包
  */
 class TtsRepositoryImpl(context: Context) : TtsRepository {
+
+    companion object {
+        private const val TAG = "TtsRepository"
+    }
 
     private val appContext = context.applicationContext
     private var tts: TextToSpeech? = null
@@ -188,21 +193,30 @@ class TtsRepositoryImpl(context: Context) : TtsRepository {
         onEngine { tts?.setPitch(pitch) }
     }
 
-    override fun availableVoices(): List<TtsVoice> {
-        val engine = tts ?: return emptyList()
-        if (!ready) return emptyList()
-        return runCatching {
-            val voices: Set<Voice>? = engine.voices
-            voices?.map { v ->
-                TtsVoice(
-                    name = v.name,
-                    displayName = buildDisplayName(v),
-                    locale = runCatching { v.locale.toLanguageTag() }.getOrDefault(v.locale.toString()),
-                    quality = v.quality
-                )
-            }?.sortedBy { it.displayName } ?: emptyList()
-        }.getOrDefault(emptyList())
+    override fun isReady(): Boolean = ready
+
+    /**
+     * 语音列表：等引擎就绪后再读取。
+     *
+     * 旧实现直接同步返回：设置页进入时引擎通常还在初始化（绑定服务 + 校验语音数据），
+     * `ready == false` 时直接返回空列表，于是 UI 永远显示"去下载"、点击就跳走。
+     */
+    override suspend fun availableVoices(): List<TtsVoice> {
+        val engine = awaitEngine() ?: return emptyList()
+        return withContext(Dispatchers.Default) { readVoices(engine) }
     }
+
+    private fun readVoices(engine: TextToSpeech): List<TtsVoice> = runCatching {
+        val voices: Set<Voice>? = engine.voices
+        voices?.map { v ->
+            TtsVoice(
+                name = v.name,
+                displayName = buildDisplayName(v),
+                locale = runCatching { v.locale.toLanguageTag() }.getOrDefault(v.locale.toString()),
+                quality = v.quality
+            )
+        }?.sortedBy { it.displayName } ?: emptyList()
+    }.getOrDefault(emptyList())
 
     private fun buildDisplayName(v: Voice): String {
         val lang = runCatching { v.locale.getDisplayName(Locale.SIMPLIFIED_CHINESE) }
@@ -223,24 +237,34 @@ class TtsRepositoryImpl(context: Context) : TtsRepository {
         runCatching { engine.setVoice(target) }
     }
 
-    override fun openSystemSettings() {
-        runCatching { 
-            runCatching {
-                appContext.startActivity(
-                    Intent("com.android.settings.TTS_SETTINGS")
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
-            }
-        }
-    }
+    override fun openSystemSettings() = openTtsSettingsPage()
 
-    override fun launchTtsSettings() {
-        runCatching {
-            appContext.startActivity(
-                Intent(Settings.ACTION_SETTINGS)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            )
+    override fun launchTtsSettings() = openTtsSettingsPage()
+
+    /**
+     * 打开系统「文字转语音」设置页。
+     *
+     * 旧实现用的是 `Settings.ACTION_SETTINGS`，那是**系统设置首页** ——
+     * 用户在设置页点「去下载/去安装语音」会被扔到设置首页，看起来像"跳回首页"。
+     * 这里按可用性依次尝试：TTS 设置页 → 安装语音数据 → 无障碍设置 → 系统设置首页兜底。
+     */
+    private fun openTtsSettingsPage() {
+        val candidates = listOf(
+            Intent("com.android.settings.TTS_SETTINGS"),
+            Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA),
+            Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS),
+            Intent(Settings.ACTION_SETTINGS)
+        )
+        for (intent in candidates) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            val resolvable = runCatching {
+                intent.resolveActivity(appContext.packageManager) != null
+            }.getOrDefault(false)
+            if (!resolvable) continue
+            val started = runCatching { appContext.startActivity(intent) }.isSuccess
+            if (started) return
         }
+        Logger.w("未能打开系统 TTS 设置页", TAG)
     }
 
     override fun shutdown() {

@@ -13,8 +13,10 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 
+import com.demo.core.common.util.DeviceTierDetector
 import com.demo.core.model.AppSettings
 import com.demo.core.model.ComicDirection
+import com.demo.core.model.FrameRateMode
 import com.demo.core.model.PageFitMode
 import com.demo.core.model.PageTurnMode
 import com.demo.core.model.TtsTimbre
@@ -33,6 +35,9 @@ import java.io.IOException
 private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "reader_settings")
 
 class SettingsRepositoryImpl(private val context: Context) : SettingsRepository {
+
+    /** 设备分级：首次读取设置时用于给「动效 / 帧率」兜底默认值 */
+    private val deviceTier by lazy { DeviceTierDetector.detect(context) }
 
     private object Keys {
         val THEME = stringPreferencesKey("theme")
@@ -68,6 +73,9 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
         val WEBDAV_DIR = stringPreferencesKey("webdav_dir")
         val WEBDAV_AUTO = booleanPreferencesKey("webdav_auto")
         val LAST_BACKUP = longPreferencesKey("last_backup_at")
+        // 动效
+        val ANIMATIONS = booleanPreferencesKey("animations_enabled")
+        val FRAME_RATE = stringPreferencesKey("frame_rate_mode")
         // 在线书源
         val ONLINE_ENABLED = booleanPreferencesKey("online_enabled")
         val ONLINE_JSON = stringPreferencesKey("online_json")
@@ -112,6 +120,8 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
             p[Keys.WEBDAV_DIR] = next.webdavDir
             p[Keys.WEBDAV_AUTO] = next.webdavAutoBackup
             p[Keys.LAST_BACKUP] = next.lastBackupAt
+            p[Keys.ANIMATIONS] = next.animationsEnabled
+            p[Keys.FRAME_RATE] = next.frameRateMode.value
             p[Keys.ONLINE_ENABLED] = next.onlineSourceEnabled
             p[Keys.ONLINE_JSON] = next.onlineSourceJson
         }
@@ -121,10 +131,14 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
         themeMode = ThemeMode.from(this[Keys.THEME]),
         dynamicColor = this[Keys.DYNAMIC] ?: false,
         glassLevel = this[Keys.GLASS] ?: "OFF",
+        animationsEnabled = this[Keys.ANIMATIONS]
+            ?: DeviceTierDetector.suggestAnimations(this@SettingsRepositoryImpl.deviceTier),
+        frameRateMode = FrameRateMode.from(this[Keys.FRAME_RATE]),
         nickname = this[Keys.NICKNAME] ?: "阅读者",
         fontSize = this[Keys.FONT_SIZE] ?: 14,
-        lineHeightMultiplier = this[Keys.LINE_HEIGHT] ?: 2.2f,
-        letterSpacing = this[Keys.LETTER_SPACING] ?: 1.0f,
+        // 旧版本存过 4.2f，已超出面板滑杆区间（1.6~3.2），这里统一夹回合法范围
+        lineHeightMultiplier = (this[Keys.LINE_HEIGHT] ?: 1.8f).coerceIn(1.2f, 3.2f),
+        letterSpacing = this[Keys.LETTER_SPACING] ?: 0.0f,
         readerBackground = ReaderBackground.from(this[Keys.BG]),
         keepScreenOn = this[Keys.KEEP_SCREEN_ON] ?: false,
         volumeKeyTurnPage = this[Keys.VOLUME_TURN] ?: false,

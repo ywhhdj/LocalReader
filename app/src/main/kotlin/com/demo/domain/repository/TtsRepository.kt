@@ -38,8 +38,17 @@ interface TtsRepository {
      */
     fun prewarm()
 
-    /** 系统已安装的语音列表（未安装语音不会出现在列表里） */
-    fun availableVoices(): List<TtsVoice>
+    /**
+     * 系统已安装的语音列表（未安装语音不会出现在列表里）。
+     *
+     * 必须是 suspend：引擎初始化在独立线程上进行，进入设置页时往往还没 ready，
+     * 同步调用只会拿到空列表（表现为"点了选择却没有列表"）。
+     * 实现内部会等待引擎就绪（有超时），不会阻塞调用线程。
+     */
+    suspend fun availableVoices(): List<TtsVoice>
+
+    /** 引擎是否已就绪（用于 UI 决定是否显示"正在检测"） */
+    fun isReady(): Boolean
 
     /** 选择系统语音；空串表示恢复系统默认 */
     fun setVoice(name: String)
@@ -47,6 +56,7 @@ interface TtsRepository {
     /** 跳转系统「文字转语音」设置：语音包下载由用户在该处完成 */
     fun openSystemSettings()
 
+    /** 同上：专门用于"去下载语音"入口，落到 TTS 设置页而不是系统设置首页 */
     fun launchTtsSettings()
 
     /** 释放引擎（应用退出/不再朗读时调用） */

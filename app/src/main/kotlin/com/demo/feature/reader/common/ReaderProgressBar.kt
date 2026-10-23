@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.demo.core.ui.components.AppSlider
 
@@ -41,8 +42,15 @@ fun ReaderProgressBar(
   onSeek: (Int) -> Unit,
   modifier: Modifier = Modifier,
   prevLabel: String = "上一章",
-  nextLabel: String = "下一章"
+  nextLabel: String = "下一章",
+  /** 进度条文字色：阅读器自定义背景时用前景色，避免夜间背景黑字 */
+  contentColor: Color = Color.Unspecified
 ) {
+  val textColor = if (contentColor != Color.Unspecified) {
+    contentColor
+  } else {
+    MaterialTheme.colorScheme.onSurfaceVariant
+  }
   if (count <= 1) return
 
   // 拖动时只更新本地值，松手才跳：避免逐帧触发跳转
@@ -56,7 +64,7 @@ fun ReaderProgressBar(
     Text(
       text = prevLabel,
       style = MaterialTheme.typography.labelMedium,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      color = textColor,
       modifier = Modifier
         .clickable(enabled = hasPrev) { onPrev() }
         .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -75,7 +83,7 @@ fun ReaderProgressBar(
     Text(
       text = nextLabel,
       style = MaterialTheme.typography.labelMedium,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      color = textColor,
       modifier = Modifier
         .clickable(enabled = hasNext) { onNext() }
         .padding(horizontal = 8.dp, vertical = 4.dp)

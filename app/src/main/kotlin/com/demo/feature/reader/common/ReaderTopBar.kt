@@ -42,6 +42,8 @@ fun ReaderTopBar(
   modifier: Modifier = Modifier,
   subtitle: String? = null,
   backgroundColor: Color = Color.Unspecified,
+  /** 顶栏内容色：阅读器自定义背景（夜间/护眼）时保证图标与标题仍可读 */
+  contentColor: Color = Color.Unspecified,
   actions: @Composable RowScope.() -> Unit = {}
 ) {
   AnimatedVisibility(
@@ -50,10 +52,16 @@ fun ReaderTopBar(
     exit = slideOutVertically { -it },
     modifier = modifier
   ) {
+    val resolved = if (contentColor != Color.Unspecified) {
+      contentColor
+    } else {
+      MaterialTheme.colorScheme.onSurface
+    }
     GlassSurface(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
-      backgroundColor = backgroundColor
+      backgroundColor = backgroundColor,
+      contentColor = resolved
     ) {
       Column(
         modifier = Modifier
@@ -79,7 +87,7 @@ fun ReaderTopBar(
               Text(
                 text = subtitle,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                color = resolved.copy(alpha = 0.7f),
                 maxLines = 1
               )
             }

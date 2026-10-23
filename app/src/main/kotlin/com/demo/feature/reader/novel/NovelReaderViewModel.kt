@@ -76,6 +76,14 @@ class NovelReaderViewModel(
     private val _ttsProgress = MutableStateFlow(0f)
     val ttsProgress: StateFlow<Float> = _ttsProgress.asStateFlow()
 
+    /**
+     * 系统语音列表。
+     * 引擎初始化是异步的，组合期同步取列表一定取不到（表现为"点了选择没有列表"），
+     * 改为 StateFlow：进页面就异步拉一次，就绪后自动刷新。
+     */
+    private val _ttsVoices = MutableStateFlow<List<TtsVoice>>(emptyList())
+    val ttsVoices: StateFlow<List<TtsVoice>> = _ttsVoices.asStateFlow()
+
     private var content: NovelContent? = null
     private var sessionId: Long = 0L
     private var sessionStartAt: Long = 0L
@@ -131,6 +139,9 @@ class NovelReaderViewModel(
     private val flushScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     init {
+        // 进入阅读器即预热引擎并拉取语音列表，避免打开听读设置时才初始化（列表为空）
+        ttsRepository.prewarm()
+        refreshTtsVoices()
         // 内存紧张时优先让出可再生的章节缓存（当前页 blocks 仍在 UI state 里，不影响阅读）
         unregisterMemoryPressure = MemoryPressure.register {
             chapterCache.clear()
@@ -378,10 +389,14 @@ class NovelReaderViewModel(
 
     fun launchTtsSettings() = ttsRepository.launchTtsSettings()
 
-    /** 系统语音列表（引擎未就绪时为空，UI 会提示） */
-    fun ttsVoices(): List<TtsVoice> = runCatching {
-        ttsRepository.availableVoices()
-    }.getOrDefault(emptyList())
+    /** 系统语音列表：异步读取，引擎就绪后写入 [ttsVoices] */
+    fun refreshTtsVoices() {
+        viewModelScope.launch {
+            _ttsVoices.value = runCatching {
+                ttsRepository.availableVoices()
+            }.getOrDefault(emptyList())
+        }
+    }
 
     /** 选择系统语音 */
     fun setTtsVoice(name: String) {

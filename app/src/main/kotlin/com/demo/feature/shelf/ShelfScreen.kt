@@ -89,6 +89,7 @@ import com.demo.feature.shelf.FilterIconButton
 import com.demo.core.ui.components.AppBookListCard
 import com.demo.core.ui.components.AppChipRow
 import com.demo.core.ui.components.AppLoading
+import com.demo.core.ui.glass.GlassIconButton
 
 
 import kotlinx.coroutines.launch
@@ -215,7 +216,12 @@ fun ShelfScreen(
                         }
                     }
 
-                    items(state.gridBooks, key = { it.id }, contentType = { "book" }) { book ->
+                    items(
+                        state.gridBooks,
+                        key = { it.id },
+                        // 列表卡片与封面卡片结构不同，分开 contentType 才能正确复用
+                        contentType = { if (state.gridMode == GridMode.LIST) "book_row" else "book_grid" }
+                    ) { book ->
                         if (state.gridMode == GridMode.LIST) {
                             // 详细列表用横向行卡片
                             AppBookListCard(
@@ -238,23 +244,19 @@ fun ShelfScreen(
         }
 
         // 悬浮导入按钮
-        GlassSurface(
+        GlassIconButton(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 5.dp, bottom = 65.dp)
-                .size(56.dp)
                 .navigationBarsPadding(),
-            shape = CircleShape,
-            tintAlpha = 0.22f,
+            size = 56.dp,
             onClick = { showImportDialog = true }
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "导入",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "导入",
+                tint = MaterialTheme.colorScheme.primary
+            )
         }
 
         SnackbarHost(
@@ -339,7 +341,10 @@ private fun GridModeButton(
         GridMode.LIST -> Icons.AutoMirrored.Filled.ViewList
     }
     Box {
-        IconButton(onClick = { expanded = true }) {
+        GlassIconButton(
+            onClick = { expanded = true }, 
+            size = 36.dp
+        ){
             Icon(
                 imageVector = icon,
                 contentDescription = "切换视图",
@@ -386,6 +391,18 @@ private fun BookListCard(
     onLongClick: () -> Unit
 ) {
     val context = LocalContext.current
+    // 同上：请求对象缓存，避免每次重组重启加载
+    val coverRequest = remember(book.coverPath, context) {
+        if (book.coverPath.isNullOrBlank()) {
+            null
+        } else {
+            ImageRequest.Builder(context)
+                .data(book.coverPath)
+                .size(112, 152)
+                .crossfade(false)
+                .build()
+        }
+    }
     val shape = RoundedCornerShape(12.dp)
     Row(
         modifier = Modifier
@@ -409,13 +426,9 @@ private fun BookListCard(
                 .background(Brush.linearGradient(listOf(CoverPlaceholderA, CoverPlaceholderB))),
             contentAlignment = Alignment.Center
         ) {
-            if (!book.coverPath.isNullOrBlank()) {
+            if (coverRequest != null) {
                 AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(book.coverPath)
-                        .size(112, 152)
-                        .crossfade(true)
-                        .build(),
+                    model = coverRequest,
                     contentDescription = book.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

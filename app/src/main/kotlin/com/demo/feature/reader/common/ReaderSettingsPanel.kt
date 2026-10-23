@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 
@@ -28,6 +29,7 @@ import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.ReaderShapes
 import com.demo.core.ui.components.AppSlider
 import com.demo.feature.reader.common.readerColors
+import com.demo.feature.reader.common.readerOnColor
 
 /**
  * 阅读设置面板（小说 / 漫画共用）
@@ -55,15 +57,23 @@ fun ReaderSettingsPanel(
     pageTurnMode: PageTurnMode? = null,
     onPageTurn: ((PageTurnMode) -> Unit)? = null,
     /** 非空时显示「听读设置」入口（仅小说） */
-    onOpenTtsSettings: (() -> Unit)? = null
+    onOpenTtsSettings: (() -> Unit)? = null,
+    /**
+     * 面板内容色：阅读器背景可能是深色（夜间），
+     * 之前统一取 onSurface，夜间背景下会出现"黑底黑字"。
+     */
+    contentColor: Color = Color.Unspecified
 ) {
     val bgColor= readerColors(background)
+    // 未显式指定时按底色亮度反推，保证任何背景下文字都可读
+    val resolved = if (contentColor != Color.Unspecified) contentColor else readerOnColor(bgColor)
     GlassSurface(
         modifier = modifier
             .fillMaxWidth()
             .padding(12.dp),
         backgroundColor= bgColor,
         shape = ReaderShapes.extraSmall,
+        contentColor = resolved
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(Modifier
@@ -98,7 +108,7 @@ fun ReaderSettingsPanel(
                         label = { Text(
                             "听读设置",
                             style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = resolved
                         ) },
                         leadingIcon = {
                             Icon(
@@ -118,7 +128,7 @@ fun ReaderSettingsPanel(
                     Text("字号 ${fontSize}sp",
                         style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier.padding(start = 8.dp),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = resolved
                     )
                     AppSlider(
                         value = fontSize.toFloat(),
@@ -134,7 +144,7 @@ fun ReaderSettingsPanel(
                     Text(
                         "行距",
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = resolved
                     )
                     AppSlider(
                         value = lineHeight,
@@ -150,7 +160,7 @@ fun ReaderSettingsPanel(
                 Text(
                     "背景", 
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = resolved
                 )
                 Spacer(Modifier.weight(1f))
                 ReaderBackground.entries.forEach { bg ->
@@ -172,7 +182,7 @@ fun ReaderSettingsPanel(
                             onClick = { onPageTurn(mode) },
                             label = { Text(
                                 mode.label,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = resolved
                             ) },
                             modifier = Modifier.padding(start = 4.dp)
                         )
@@ -183,7 +193,7 @@ fun ReaderSettingsPanel(
                 Text(
                     "屏幕常亮", 
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = resolved
                 )
                 Spacer(Modifier.weight(1f))
                 Switch(checked = keepScreenOn, onCheckedChange = onKeepScreenOn)
@@ -192,7 +202,7 @@ fun ReaderSettingsPanel(
                 Text(
                     "音量键翻页",
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = resolved,
                 )
                 Spacer(Modifier.weight(1f))
                 Switch(checked = volumeTurn, onCheckedChange = onVolumeTurn)
