@@ -267,14 +267,17 @@ class NovelReaderViewModel(
             runCatching { opened.loadChapter(index) }
                 .getOrDefault(listOf(BookBlock.Paragraph("（章节加载失败）")))
         }
-        // 双保险：解析器已去掉重复标题行，这里再兜一层（含卷名写法）
+        // 双保险：解析器已去掉重复标题行，这里再兜一层（含卷名写法）。
+        // 顺序很重要：必须先按行拆块再剥标题 ——
+        // TXT 里"标题行 + 正文"常合成一个段落，拆开后标题才是一整块，能被精确去掉。
         val chapter = chaptersOf().getOrNull(index)
-        val blocks = if (chapter == null) raw else {
-            VolumeSplitter.stripTitles(
-                raw,
+        val blocks = splitParagraphLines(raw).let { split ->
+            if (chapter == null) split
+            else VolumeSplitter.peelLeadingTitles(
+                split,
                 listOf(chapter.title, VolumeSplitter.displayTitle(chapter))
             )
-        }.let { splitParagraphLines(it) }
+        }
         putChapter(index, blocks)
         _uiState.update {
             it.copy(

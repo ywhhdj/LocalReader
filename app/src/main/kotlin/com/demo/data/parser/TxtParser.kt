@@ -48,6 +48,8 @@ class TxtParser(
         const val HEAD_SNIFF_BYTES = 8 * 1024
         /** 单章最大读取字节（约 2MB，超长章节截断保护） */
         const val MAX_CHAPTER_BYTES = 2 * 1024 * 1024
+        /** 单行字节上限（异常长行截断，避免缓冲区无限增长） */
+        const val MAX_LINE_BYTES = 64 * 1024
     }
 
     /** 作者：落家小沫 / 作 者：xxx / Author: xxx */
@@ -99,6 +101,19 @@ class TxtParser(
         )
     }
 
+    /** 无信息量的文件名：纯数字、单个词、常见默认名 */
+    private fun isGenericName(name: String): Boolean {
+        val t = name.trim()
+        if (t.isBlank()) return true
+        if (t.all { it.isDigit() || it == '.' || it == '_' || it == '-' }) return true
+        if (t.length <= 1) return true
+        val generic = setOf(
+            "新建文本文档", "新建文本", "未命名", "无标题", "untitled", "new file",
+            "text", "txt", "book", "小说", "正文", "文档"
+        )
+        return t.lowercase() in generic
+    }
+
     private fun cleanAuthor(raw: String): String {
         if (raw.isBlank()) return ""
         val cut = AUTHOR_TAIL_REGEX.split(raw).firstOrNull().orEmpty()
@@ -125,7 +140,12 @@ class TxtParser(
         val chapters = splitChapters(file, charset)
         val sniffed = sniffHeader(file, charset)  
         val fileTitle = FileUtil.humanTitle(file.name)
-        val title = fileTitle.ifBlank { sniffed.title }       // 文件名优先，正文标题兜底
+        // 文件名优先，但"新建文本文档 / 纯数字 / 1"这类没有信息量的名字让位给正文嗅探到的书名
+        val title = if (isGenericName(fileTitle)) {
+            sniffed.title.ifBlank { fileTitle }
+        } else {
+            fileTitle
+        }
         val author = sniffed.author.ifBlank { "未知作者" }
         val cover = runCatching {
             coverStore?.save(textCoverFactory.create(title, "TXT"), file.absolutePath)
@@ -224,8 +244,14 @@ class TxtParser(
         return chapters
     }
 
-    /** 逐行扫描（保留字节偏移），避免整本读入内存 */
-    private inline fun scanLines(
+    /**
+     * 逐行扫描（保留字节偏移），避免整本读入内存。
+     *
+     * 性能：旧实现每行都 new 一个 ByteArrayOutputStream，5MB 的 TXT 有十几万行，
+     * 光是缓冲区对象就要分配十几万个；这里改成**复用的可增长字节缓冲**，
+     * 行结束只 reset 游标，不再重新分配。
+     */
+    private fun scanLines(
         file: File,
         charset: Charset,
         onLine: (text: String, byteStart: Long, byteLength: Int) -> Unit
@@ -233,26 +259,45 @@ class TxtParser(
         FileInputStream(file).use { fis ->
             BufferedInputStream(fis, 1 shl 16).use { input ->
                 val buf = ByteArray(1 shl 16)
-                var pending = ByteArrayOutputStream(256)
+                var line = ByteArray(256)
+                var lineLen = 0
                 var pos = 0L
+
+                /** 追加字节；超过单行上限的部分直接丢弃（异常长行保护） */
+                fun append(src: ByteArray, from: Int, len: Int) {
+                    if (len <= 0) return
+                    val take = len.coerceAtMost(MAX_LINE_BYTES - lineLen)
+                    if (take <= 0) return
+                    val need = lineLen + take
+                    if (need > line.size) {
+                        var cap = line.size
+                        while (cap < need) cap = (cap * 2).coerceAtMost(MAX_LINE_BYTES)
+                        line = line.copyOf(cap)
+                    }
+                    System.arraycopy(src, from, line, lineLen, take)
+                    lineLen += take
+                }
+
+                fun emit(byteLen: Int) {
+                    onLine(String(line, 0, lineLen, charset), pos, byteLen)
+                    pos += byteLen
+                    lineLen = 0
+                }
+
                 while (true) {
                     val n = input.read(buf)
                     if (n <= 0) break
                     var start = 0
                     for (i in 0 until n) {
                         if (buf[i] == '\n'.code.toByte()) {
-                            if (i > start) pending.write(buf, start, i - start)
-                            val bytes = pending.toByteArray()
-                            onLine(String(bytes, charset), pos, bytes.size + 1)
-                            pos += bytes.size + 1L
-                            pending = ByteArrayOutputStream(256)
+                            append(buf, start, i - start)
+                            emit(lineLen + 1)
                             start = i + 1
                         }
                     }
-                    if (start < n) pending.write(buf, start, n - start)
+                    append(buf, start, n - start)
                 }
-                val bytes = pending.toByteArray()
-                if (bytes.isNotEmpty()) onLine(String(bytes, charset), pos, bytes.size)
+                if (lineLen > 0) onLine(String(line, 0, lineLen, charset), pos, lineLen)
             }
         }
     }
@@ -272,8 +317,8 @@ class TxtParser(
                 .map { it.trim().trim('\u3000', '\uFEFF', ' ', '\r', '\n') }
                 .filter { it.isNotBlank() }
                 .distinct()
+
             val blocks = ArrayList<BookBlock>()
-            var first = true
             text.split(Regex("""\n\s*\n+"""))
                 .asSequence()
                 .map { it.trim() }
@@ -281,18 +326,14 @@ class TxtParser(
                 .forEach { paragraph ->
                     // 段内换行保留（观感：换行显示），仅折叠行尾多余空格
                     val body = paragraph.replace(Regex("""[ \t　]+"""), " ")
-                     if (first) {
-                        first = false
-                        // 1) 整段 == 标题 → 整段丢弃
-                        if (titleCandidates.any { it == body }) {
-                            return@forEach
-                        }
-                    }
                     if (body.isNotBlank()) blocks.add(BookBlock.Paragraph(body))
                 }
-            if (blocks.isEmpty()) blocks.add(BookBlock.Paragraph(text.trim()))
-            // 顶部已单独显示章节名，正文里再来一遍的标题行去掉
-            VolumeSplitter.stripTitles(blocks, listOf(chapter.title, displayTitle))
+            if (blocks.isEmpty()) return emptyList()
+
+            // 顶部已显示章节名：剥掉正文开头重复的标题
+            // （旧实现只比对"整段 == 标题"，标题行和正文之间没有空行时合成一段，就漏掉了）
+            val peeled = VolumeSplitter.peelLeadingTitles(blocks, titleCandidates)
+            return VolumeSplitter.stripTitles(peeled, titleCandidates)
                 .ifEmpty { listOf(BookBlock.Paragraph("（本章无正文内容）")) }
         }.getOrElse { 
             listOf(BookBlock.Paragraph("（该章节内容无法解析）"))

@@ -7,7 +7,7 @@
 | 类型 | 格式 |
 |---|---|
 | 小说 | EPUB（container/OPF/nav/ncx + 正文与图片抽取）、TXT（编码自动识别 + 章节切分）、PDF |
-| 漫画 | CBZ / ZIP、图片文件夹、PDF（逐页渲染）、CBR/RAR（接口预留，提示转 CBZ） |
+| 漫画 | CBZ / ZIP、图片文件夹、PDF（逐页渲染）、CBR/RAR |
 
 
 ## 权限与扫描（Android 11+ 必读）

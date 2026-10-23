@@ -19,6 +19,9 @@ import com.demo.domain.repository.NovelContent
 import java.io.File
 import java.util.zip.ZipFile
 
+/** 与 TXT 侧保持一致的缺省作者文案 */
+private const val UNKNOWN_AUTHOR = "未知作者"
+
 class EpubParser(
     private val coverStore: CoverStore,
     private val bookCacheDir: File,
@@ -39,7 +42,7 @@ class EpubParser(
 
             Book(
                 title = opf.title.ifBlank { FileUtil.humanTitle(file.name) },
-                author = opf.author.ifBlank { "未知" },
+                author = opf.author.ifBlank { UNKNOWN_AUTHOR },
                 type = BookType.NOVEL,
                 format = BookFormat.EPUB,
                 filePath = file.absolutePath,

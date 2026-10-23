@@ -52,42 +52,11 @@ internal class EpubNovelContent(
             .filter { it.isNotBlank() }
             .distinct()
 
-        // 在 stripTitles 之前，先"剥开"首块里内嵌的章节标题
-        val peeled = blocks.toMutableList()
-        val firstBlock = peeled.firstOrNull()
-        if (firstBlock is BookBlock.Paragraph) {
-            var body = firstBlock.text
-            var changed = false
-            for (t in titleCandidates) {
-                if (body == t) { 
-                    peeled.removeAt(0);
-                    changed = true;
-                    break
-                }
-                if (body.startsWith(t) && body.getOrNull(t.length)?.let { it == '\n' || it == '\r' } == true) {
-                    body = body.substring(t.length).trimStart('\n', '\r', ' ', '\u3000')
-                    if (body.isBlank()) peeled.removeAt(0)
-                    else peeled[0] = BookBlock.Paragraph(body)
-                    changed = true
-                    break
-                }
-            }
-            // 同时支持首块是 Heading 但标题在前、正文串进 Heading 里的场景
-            if (!changed) {
-                for (t in titleCandidates) {
-                    if (body.startsWith(t) && body.length > t.length) {
-                        val rest = body.substring(t.length).trimStart()
-                        if (rest.isNotBlank()) {
-                            peeled.removeAt(0)
-                            peeled.add(0, BookBlock.Paragraph(rest))
-                        }
-                        break
-                    }
-                }
-            }
-        }
-
-        VolumeSplitter.stripTitles(blocks, listOf(chapter.title, VolumeSplitter.displayTitle(chapter)))
+        // 顶部已单独显示章节名，正文开头的重复标题要剥掉：
+        // 整块等于标题 → 删；标题 + 换行 + 正文挤在一块 / 标题后直接接正文 → 剥前缀。
+        // （旧实现算完 peeled 却把 blocks 传给了 stripTitles，剥离结果被丢弃 —— 等于没剥）
+        val peeled = VolumeSplitter.peelLeadingTitles(blocks, titleCandidates)
+        return VolumeSplitter.stripTitles(peeled, titleCandidates)
             .ifEmpty { listOf(BookBlock.Paragraph("（本章无正文内容）")) }
     }.getOrElse { e ->
         Logger.w("章节加载失败 #$index：${e.javaClass.simpleName} ${e.message}", "EpubParser")

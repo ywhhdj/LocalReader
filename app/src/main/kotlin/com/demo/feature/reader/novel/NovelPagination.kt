@@ -68,6 +68,7 @@ fun splitParagraphLines(blocks: List<BookBlock>): List<BookBlock> {
  * - 单段在本页只剩 1 行空间时整体挪到下一页（避免"孤儿行"，也让下一页的段落能正常首行缩进）；
  * - Heading / Image / Break：不可切分，放不下则先 flush 到新页；
  * - Image：独占一页（高度未知，避免估算误差）；
+ *   例外：章节正文**一开始就是图片**时并入首页，否则首页只剩一行章节名、图片被挤到第二页；
  * - 分页算法不会产生空页（除非整章无内容）。
  */
 fun paginateNovel(
@@ -86,6 +87,8 @@ fun paginateNovel(
     val pages = mutableListOf<NovelPage>()
     var current = mutableListOf<PageItem>()
     var used = 0f
+    /** 当前页是否已含"正文内容"（标题与分隔不算）：决定图片能否并入本页 */
+    var hasBody = false
 
     val baseStyle = TextStyle(
         fontSize = fontSize.sp,
@@ -115,6 +118,14 @@ fun paginateNovel(
             current = mutableListOf()
         }
         used = 0f
+        hasBody = false
+    }
+
+    /** 往当前页追加一个块；只有正文块（段落 / 引用 / 图片）才置位 [hasBody] */
+    fun append(item: PageItem, height: Float, body: Boolean = true) {
+        current.add(item)
+        used += height
+        if (body) hasBody = true
     }
 
     /** 可切分文本：Paragraph / Quote 共用；缩进由 [indentStyle] 承担，续页不再缩进 */
@@ -122,11 +133,37 @@ fun paginateNovel(
         var remaining = text
         var firstChunk = true
         var splits = 0
+        /**
+         * 单页可容纳的字符数估算值：命中的话直接按字符切，省掉一次整段测量。
+         *
+         * 超长段落（几万字不断行）会走 [MAX_SPLITS_PER_BLOCK] 次"测量 → 取切点 → 再测量"，
+         * 每次测量都是对剩余全文的排版，复杂度接近 O(n²) —— 大章节切页时明显卡顿。
+         * 有了估算值后，多数切分一次都不用测量。
+         */
+        var charsPerPage = 0
         val vPad = if (isQuote) quoteVPad else paragraphVPad
         val hPad = if (isQuote) quoteHPad else 0f
         val contentWidth = (pageWidth - hPad * 2).toInt().coerceAtLeast(1)
 
         while (remaining.isNotEmpty()) {
+            // 已有估算值且剩余文本足够长：直接按字符切，跳过整段测量
+            if (charsPerPage > 0 && remaining.length > charsPerPage * 2 &&
+                splits >= FAST_SPLIT_AFTER
+            ) {
+                // 取"一页能放下"的字符数作为本页内容，其余留到后续页
+                val cut = charsPerPage.coerceAtMost(remaining.length)
+                val head = remaining.substring(0, cut)
+                val tail = remaining.substring(cut).trimStart('\n', '\r')
+                if (head.isNotBlank()) {
+                    append(PageItem(block.copyText(head), isContinuation = !firstChunk), 0f)
+                }
+                flush()
+                remaining = tail
+                firstChunk = false
+                splits++
+                continue
+            }
+
             // 引用不缩进；段落只有首块缩进，跨页续块与正文保持一致（不加缩进符）
             val style = if (!isQuote && firstChunk) indentStyle else baseStyle
             val availableHeight = (pageHeight - used - vPad).coerceAtLeast(0f)
@@ -138,8 +175,7 @@ fun paginateNovel(
             val blockHeight = layout.size.height.toFloat() + vPad
 
             if (blockHeight <= pageHeight - used || (availableHeight <= 0f && current.isEmpty())) {
-                current.add(PageItem(block.copyText(remaining), isContinuation = !firstChunk))
-                used += blockHeight
+                append(PageItem(block.copyText(remaining), isContinuation = !firstChunk), blockHeight)
                 remaining = ""
             } else {
                 val fitLines = fitLines(layout, availableHeight)
@@ -147,7 +183,7 @@ fun paginateNovel(
                     if (current.isNotEmpty()) {
                         flush()
                     } else {
-                        current.add(PageItem(block.copyText(remaining), isContinuation = !firstChunk))
+                        append(PageItem(block.copyText(remaining), isContinuation = !firstChunk), blockHeight)
                         remaining = ""
                     }
                 } else {
@@ -163,8 +199,10 @@ fun paginateNovel(
                     val end = layout.getLineEnd(fitLines - 1)
                     val head = remaining.substring(0, end)
                     val tail = remaining.substring(end).trimStart('\n', '\r')
+                    // 记住"一页能放多少字"，后续切分直接复用
+                    if (end > 0) charsPerPage = end
                     if (head.isNotEmpty()) {
-                        current.add(PageItem(block.copyText(head), isContinuation = !firstChunk))
+                        append(PageItem(block.copyText(head), isContinuation = !firstChunk), 0f)
                     }
                     flush()
                     remaining = tail
@@ -185,20 +223,21 @@ fun paginateNovel(
                 )
                 val h = layout.size.height.toFloat() + headingVPad
                 if (used + h > pageHeight && current.isNotEmpty()) flush()
-                current.add(PageItem(block))
-                used += h
+                // 章节标题不算"正文"，图片仍可并入本页
+                append(PageItem(block), h, body = false)
             }
             is BookBlock.Paragraph -> paginateText(block, block.text, isQuote = false)
             is BookBlock.Quote -> paginateText(block, block.text, isQuote = true)
             is BookBlock.Image -> {
-                if (current.isNotEmpty()) flush()
-                current.add(PageItem(block))
+                // 章节正文以图片开头时并入首页（首页只剩标题会很空）；
+                // 已经排了正文才另起一页，避免把段落和图片挤在一起。
+                if (hasBody) flush()
+                append(PageItem(block), 0f)
                 flush()
             }
             is BookBlock.Break -> {
                 if (used + breakHeight > pageHeight && current.isNotEmpty()) flush()
-                current.add(PageItem(block))
-                used += breakHeight
+                append(PageItem(block), breakHeight, body = false)
             }
         }
     }
@@ -217,6 +256,8 @@ fun paragraphIndent(fontSize: Int, isContinuation: Boolean): TextIndent =
 private const val MIN_LINES_ON_PAGE = 2
 /** 单个段落最多切分次数：超长段落（几万字不断行）不至于把分页拖成 O(n²) */
 private const val MAX_SPLITS_PER_BLOCK = 40
+/** 切分次数超过该值后改用"按字符估算"快切，不再逐次整段测量 */
+private const val FAST_SPLIT_AFTER = 6
 /** 按行拆分后的整章块数上限，避免异常文本生成海量 Composable */
 private const val MAX_SPLIT_BLOCKS = 3000
 

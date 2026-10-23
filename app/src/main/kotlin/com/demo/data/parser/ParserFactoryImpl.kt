@@ -6,11 +6,12 @@ import com.demo.data.cover.CoverStore
 import com.demo.data.cover.TextCoverFactory
 import com.demo.data.parser.comic.FolderComicParser
 import com.demo.data.parser.comic.PdfComicParser
+import com.demo.data.parser.comic.RarComicParser
 import com.demo.data.parser.comic.ZipComicParser
 
 import java.io.File
 
-/** 解析器注册与分发（RAR 预留：未注册，扫描时给出"请转为 CBZ/ZIP"提示） */
+/** 解析器注册与分发 */
 class ParserFactoryImpl(
     coverStore: CoverStore,
     pageCache: PageCache,
@@ -25,6 +26,7 @@ class ParserFactoryImpl(
 
     private val comicParsers: List<ComicParser> = listOf(
         ZipComicParser(coverStore, pageCache),
+        RarComicParser(coverStore, pageCache),
         FolderComicParser(coverStore),
         PdfComicParser(coverStore, pageCache, textCoverFactory)
     )

@@ -110,43 +110,185 @@ object VolumeSplitter {
     }
 
     /**
-     * 去掉正文中重复出现的章节标题行（前若干个块），
-     * 避免"顶部已显示标题、正文又来一遍"的观感问题。
+     * 剥掉正文**开头**内嵌的章节标题（顶部已单独显示标题，正文里再来一遍很碍眼）。
+     *
+     * 覆盖三种常见形态：
+     * 1) 整块就是标题：`第一章 初遇`（TXT 里标题行独占一段）；
+     * 2) 标题 + 换行 + 正文挤在同一块：`第一章 初遇\n今天天气很好……`
+     *    （TXT 按空行分段时，标题行和正文之间没有空行就会合成一块）；
+     * 3) 标题后面直接接正文：`第一章 初遇今天天气很好……`（部分 EPUB 的 h/p 混排）。
+     *
+     * 只对**开头若干个块**生效，且不改动块内部其余文本，避免误伤正文。
+     */
+    fun peelLeadingTitles(
+        blocks: List<BookBlock>,
+        titles: Collection<String>
+    ): List<BookBlock> {
+        if (blocks.isEmpty()) return blocks
+        val keys = titleKeys(titles)
+        if (keys.isEmpty()) return blocks
+
+        val out = blocks.toMutableList()
+        var guard = 0
+        while (guard < MAX_PEEL && out.isNotEmpty()) {
+            val first = out.first()
+            val raw = textOf(first) ?: break
+            if (raw.isBlank()) {
+                out.removeAt(0)
+                guard++
+                continue
+            }
+            val n = normalize(raw)
+            // 1) 整块即标题
+            if (keys.any { it.normalized == n }) {
+                out.removeAt(0)
+                guard++
+                continue
+            }
+            // 2) / 3) 标题在前、正文在后
+            var peeled: String? = null
+            for (key in keys) {
+                val hit = key.candidates.firstNotNullOfOrNull { cand ->
+                    peelPrefix(raw, cand, key.chapterLike)
+                }
+                if (hit != null) {
+                    peeled = hit
+                    break
+                }
+            }
+            if (peeled == null) break
+            if (peeled.isBlank()) out.removeAt(0) else replaceText(out, 0, peeled)
+            guard++
+        }
+        return out
+    }
+
+    /**
+     * 去掉正文中重复出现的章节标题行（整块完全等于标题的块）。
+     *
+     * 只做"整块相等"的精确判定：模糊的前缀/后缀匹配会把正文（例如以标题开头
+     * 的长段落）整段吃掉，那类场景交给 [peelLeadingTitles] 在开头处理更安全。
      */
     fun stripTitles(blocks: List<BookBlock>, titles: Collection<String>): List<BookBlock> {
-        val keys = titles.map { normalize(it) }
-            .filter { it.length >= 3 }
-            .toSet()
+        val keys = titleKeys(titles).map { it.normalized }.toSet()
         if (keys.isEmpty()) return blocks
         var removed = 0
         return blocks.filter { block ->
-            val text = when (block) {
-                is BookBlock.Heading -> block.text
-                is BookBlock.Paragraph -> block.text
-                is BookBlock.Quote -> block.text
-                else -> return@filter true
-            }
+            val text = textOf(block) ?: return@filter true
             val n = normalize(text)
             if (n.isBlank()) return@filter false
-            val hit = keys.any { key ->
-                n == key || (n.startsWith(key) && n.length <= key.length + 4) ||
-                    (key.startsWith(n) && n.length >= 6 && key.length <= n.length + 4)
-            }
-            if (hit && removed < MAX_STRIP) {
+            if (n in keys && removed < MAX_STRIP) {
                 removed++
                 false
             } else true
         }
     }
 
+    /** 标题候选：归一化名 + 可参与前缀比对的原始写法（含去装饰后的写法） */
+    private data class TitleKey(
+        val normalized: String,
+        val candidates: List<String>,
+        val chapterLike: Boolean
+    )
+
+    private fun titleKeys(titles: Collection<String>): List<TitleKey> = titles
+        .map { it.trim() }
+        .filter { it.isNotBlank() }
+        .distinct()
+        .mapNotNull { raw ->
+            val n = normalize(raw)
+            // 短标题（「楔子」「序言」，归一化后仅 2 字）也要能命中：
+            // 旧实现要求长度 >= 3，导致这类章节名永远去不掉。
+            if (n.length < 2) return@mapNotNull null
+            val bare = trimDecoration(raw)
+            TitleKey(
+                normalized = n,
+                candidates = listOf(raw, bare).filter { it.isNotBlank() }.distinct(),
+                chapterLike = isChapterLike(raw)
+            )
+        }
+
+    /** 块内文本；图片 / 分隔块没有文本，返回 null 表示不参与标题比对 */
+    private fun textOf(block: BookBlock): String? = when (block) {
+        is BookBlock.Heading -> block.text
+        is BookBlock.Paragraph -> block.text
+        is BookBlock.Quote -> block.text
+        else -> null
+    }
+
+    private fun replaceText(out: MutableList<BookBlock>, index: Int, text: String) {
+        when (val block = out[index]) {
+            is BookBlock.Heading -> out[index] = block.copy(text = text)
+            is BookBlock.Paragraph -> out[index] = block.copy(text = text)
+            is BookBlock.Quote -> out[index] = block.copy(text = text)
+            else -> Unit
+        }
+    }
+
+    /**
+     * 从 [text] 开头剥掉标题 [title]，返回剩余正文；不匹配返回 null。
+     *
+     * @param chapterLike 标题是否像章节名（第X章 / Chapter N / 楔子…）。
+     *   只有章节名才允许"标题后直接接正文"的强剥离（形态 3），
+     *   否则「活着」这类书名式标题会把正文开头的同名文字一起切掉。
+     */
+    private fun peelPrefix(text: String, title: String, chapterLike: Boolean): String? {
+        if (title.isBlank()) return null
+        val src = trimDecoration(text)
+        if (src.length <= title.length) return null
+        if (!src.startsWith(title, ignoreCase = true)) return null
+        val rest = src.substring(title.length)
+        if (rest.isBlank()) return ""
+        val head = rest.first()
+        val peeled = when {
+            // 形态 2：标题后是换行 —— 无论标题长相都安全地剥
+            head == '\n' || head == '\r' -> rest.trimStart('\n', '\r', ' ', '\t', '\u3000')
+            // 形态 2：标题后有空格 / 全角空格分隔
+            head == ' ' || head == '\t' || head == '\u3000' || head == '\u00A0' ->
+                rest.trimStart(' ', '\t', '\u3000', '\u00A0', '\n', '\r')
+            // 形态 3：标题后直接接正文，仅章节名才剥
+            chapterLike -> rest.trimStart(' ', '\t', '\u3000')
+            else -> null
+        }
+        // 标题带装饰符号时（「【第一章 初遇】」），右半边的括号会留在正文开头
+        return peeled
+            ?.trimStart(*DECOR_CHARS)
+            ?.trimStart('\n', '\r', ' ', '\t', '\u3000')
+    }
+
+    /** 标题两侧的装饰符号：【】「」『』《》（）等 */
+    private val DECOR_CHARS = charArrayOf(
+        '【', '】', '「', '」', '『', '』', '《', '》', '〈', '〉',
+        '（', '）', '(', ')', '[', ']', '　', ' '
+    )
+
+    private fun trimDecoration(text: String): String = text
+        .trim()
+        .trim(*DECOR_CHARS)
+        .trim()
+
+    /** 是否像章节标题：第X章 / Chapter N / 序章 / 楔子 等 */
+    private fun isChapterLike(title: String): Boolean =
+        CHAPTER_MARK.containsMatchIn(title) ||
+            SPECIAL_MARK.containsMatchIn(title) ||
+            VOLUME_MARK.containsMatchIn(title)
+
     /** 归一化：去空白与标点，便于标题比对 */
     fun normalize(text: String): String = text
         .replace("\uFEFF", "")
         .replace(Regex("""[\s　]+"""), "")
-        .replace(Regex("""[，。、！？：；“”‘’（）《》〈〉·—…\-,.!?:;"'()\[\]{}|/\\~`*#]"""), "")
+        .replace(
+            Regex(
+                """[，。、！？：；“”‘’（）《》〈〉〔〕【】「」『』·—…\-_,.!?:;"'()\[\]{}|/\\~`*#]"""
+            ),
+            ""
+        )
 
     const val VOLUME_FIRST_TITLE = "卷首"
-    private const val MAX_STRIP = 3
+    /** 开头最多剥离几块（防止异常文本被剥空） */
+    private const val MAX_PEEL = 3
+    /** 全文范围内最多删除几个"整块等于标题"的块 */
+    private const val MAX_STRIP = 2
 
     /** 目录项：卷标题 或 章节 */
     sealed interface TocEntry {

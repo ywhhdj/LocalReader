@@ -110,8 +110,12 @@ class FileScanner(
           }
           // 仅在需要刷新时才回查该条记录（大部分场景不会走到这里）
           val exists = withContext(Dispatchers.IO) { bookDao.byPath(path) }
+          // 作者缺失（老版本 EPUB 解析漏掉作者）也算"需要刷新"，
+          // 否则这些书永远不会自动补上作者。
+          val authorMissing = exists?.author.isNullOrBlank() ||
+            exists?.author == "未知" || exists?.author == "未知作者"
           val changed = exists != null &&
-            (exists.size_bytes != file.length() || exists.title.isBlank())
+            (exists.size_bytes != file.length() || exists.title.isBlank() || authorMissing)
           if (!changed) {
             c.skipped++
             return@runCatching
@@ -131,6 +135,8 @@ class FileScanner(
         }
         val book = parser.parseMeta(file)
         if (book == null) {
+          // RAR5 / 加密包 junrar 解不出来：单独计数，结束时给出"请转 CBZ"的提示
+          if (ext in RAR_EXTENSIONS) c.unsupported++
           c.failed++
           return@runCatching
         }
@@ -147,10 +153,6 @@ class FileScanner(
     suspend fun consumeFile(file: File, sourceUri: String?) {
       val ext = FileUtil.extension(file.name)
       when {
-        ext in RAR_EXTENSIONS -> {
-          c.unsupported++
-          c.skipped++
-        }
         ext.isNotEmpty() && !isSupported(ext) -> c.skipped++
         file.length() > options.maxFileSize -> c.skipped++
         else -> {
@@ -246,7 +248,6 @@ class FileScanner(
               if (visited++ > options.maxFiles) {
                 stopped = true
               } else if (entry.extension.isEmpty() || !isSupported(entry.extension)) {
-                if (entry.extension in RAR_EXTENSIONS) c.unsupported++
                 c.skipped++
               } else if (entry.size > options.maxFileSize) {
                 c.skipped++
@@ -314,7 +315,8 @@ class FileScanner(
   }
 
   companion object {
-    const val RAR_HINT = "RAR/CBR 暂不支持，请转为 CBZ/ZIP"
+    /** 仅统计 RAR5 等 junrar 解不了的包（RAR4 及更早已可直接阅读） */
+    const val RAR_HINT = "部分 RAR 为 RAR5 格式无法解析，请转为 CBZ/ZIP"
     val RAR_EXTENSIONS = setOf("rar", "cbr")
 
     val SUPPORTED_EXTENSIONS = setOf(
