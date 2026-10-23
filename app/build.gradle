@@ -40,18 +40,20 @@ android {
             keyPassword keyPass
         }
     }
+    
 
      buildTypes {
 
         release {
+            ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }
             signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
             proguardFiles(
-                    getDefaultProguardFile('proguard-android-optimize.txt'),
-                    'proguard-rules.pro'
+                getDefaultProguardFile('proguard-android-optimize.txt'),
+                'proguard-rules.pro'
             )
-            // baselineProfile.automaticGenerationDuringBuild = true
+            crunchPngs = true
         }
     }
 
@@ -100,19 +102,5 @@ dependencies {
     implementation "androidx.room:room-runtime:$roomVersion"
     implementation "androidx.room:room-ktx:$roomVersion"
     ksp "androidx.room:room-compiler:$roomVersion"
+
 }
-
-
-// baselineProfile {
-//     // 可选：如果你使用 Gradle 管理的设备 (GMD) 来生成 Profile
-//     managedDevices += "pixel6Api31"
-    
-//     // 可选：使用非签名变体（如 debug）来生成 Profile，而不是自动创建的 release 变体
-//     useConnectedDevices = false
-
-//     variants {
-//         freeRelease {
-//             mergeIntoMain = true
-//         }
-//     }
-// }

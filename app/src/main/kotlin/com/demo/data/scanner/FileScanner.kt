@@ -105,33 +105,37 @@ class FileScanner(
         val path = file.absolutePath
         if (knownPaths.contains(path)) {
           if (!options.refreshExisting) {
-            c.skipped++
+                c.skipped++
+                return@runCatching
+            }
+            // 仅在需要刷新时才回查该条记录（大部分场景不会走到这里）
+            val exists = withContext(Dispatchers.IO) { bookDao.byPath(path) }
+            if (exists == null) {
+                c.failed++
+                return@runCatching
+            }
+            // 作者缺失（老版本 EPUB 解析漏掉作者）也算"需要刷新"，
+            // 否则这些书永远不会自动补上作者。
+            val authorMissing = exists.author.isNullOrBlank() ||
+                exists.author == "未知" || exists.author == "未知作者"
+            val changed = exists.size_bytes != file.length() ||
+                exists.title.isBlank() || authorMissing
+            if (!changed) {
+                c.skipped++
+                return@runCatching
+            }
+            val refreshed = parser.parseMeta(file)
+            if (refreshed == null) {
+                c.failed++
+                return@runCatching
+            }
+            withContext(Dispatchers.IO) {
+                bookDao.upsert(
+                    refreshed.copy(sourceUri = sourceUri ?: exists.source_uri).toEntity(exists.id)
+                )
+            }
+            c.updated++
             return@runCatching
-          }
-          // 仅在需要刷新时才回查该条记录（大部分场景不会走到这里）
-          val exists = withContext(Dispatchers.IO) { bookDao.byPath(path) }
-          // 作者缺失（老版本 EPUB 解析漏掉作者）也算"需要刷新"，
-          // 否则这些书永远不会自动补上作者。
-          val authorMissing = exists?.author.isNullOrBlank() ||
-            exists?.author == "未知" || exists?.author == "未知作者"
-          val changed = exists != null &&
-            (exists.size_bytes != file.length() || exists.title.isBlank() || authorMissing)
-          if (!changed) {
-            c.skipped++
-            return@runCatching
-          }
-          val refreshed = parser.parseMeta(file)
-          if (refreshed == null || exists == null) {
-            c.failed++
-            return@runCatching
-          }
-          withContext(Dispatchers.IO) {
-            bookDao.upsert(
-              refreshed.copy(sourceUri = sourceUri ?: exists.source_uri).toEntity(exists.id)
-            )
-          }
-          c.updated++
-          return@runCatching
         }
         val book = parser.parseMeta(file)
         if (book == null) {
@@ -175,9 +179,9 @@ class FileScanner(
       }
       // 根目录本身可能就是一个漫画图片文件夹
       if (options.folderAsComic && isComicFolder(root)) {
-          handle(root, "", null)
-          tick(root.name)
-          return
+        handle(root, "", null)
+        tick(root.name)
+        return
       }
 
       val queue = ArrayDeque<Pair<File, Int>>()
