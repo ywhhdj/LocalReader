@@ -11,9 +11,8 @@ import com.demo.core.common.util.Logger
 import com.demo.assembly.di.AppContainer
 import com.demo.assembly.di.ImageLoaderFactory
 
-//构建配置
 object BuildConfig {
-    val DEBUG = false
+  const val DEBUG = false
 }
 
 class App : Application() {
