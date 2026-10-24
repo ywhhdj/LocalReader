@@ -110,7 +110,9 @@ class SettingsViewModel(
 
   // ---------- 朗读 ----------
   fun setTtsRate(value: Float) = update { it.copy(ttsRate = value.coerceIn(0.5f, 2.0f)) }
-  fun setTtsPitch(value: Float) = update { it.copy(ttsPitch = value.coerceIn(0.5f, 2.0f)) }
+  fun setTtsPitch(value: Float) = viewModelScope.launch {
+    update { it.copy(ttsPitch = value.coerceIn(0.5f, 2.0f)) }
+  }
   fun setTtsAutoNext(enabled: Boolean) = update { it.copy(ttsAutoNext = enabled) }
   /**
    * 读取系统语音列表。
@@ -131,11 +133,11 @@ class SettingsViewModel(
     fun setTtsTimbre(timbre: TtsTimbre) = viewModelScope.launch {
     ttsRepository.setPitch(timbre.pitch)
     ttsRepository.setRate(timbre.rate)
-    updateSettings { it.copy(ttsTimbre = timbre) }
+    update { it.copy(ttsTimbre = timbre) }
   }
   fun setTtsVoice(name: String) = viewModelScope.launch {
     ttsRepository.setVoice(name)
-    updateSettings { it.copy(ttsVoiceName = name) }
+    update { it.copy(ttsVoiceName = name) }
   }
   fun openSystemTtsSettings() = ttsRepository.openSystemSettings()
   fun launchTtsSettings()= ttsRepository.launchTtsSettings()

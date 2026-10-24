@@ -45,6 +45,31 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateOffsetAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import kotlin.math.roundToInt
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.AnimatedVisibility
 
 import coil.compose.AsyncImage
 
@@ -85,6 +110,170 @@ fun TtsFab(
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(26.dp)
         )
+    }
+}
+
+private enum class OrbHiddenSide { Left, Right }
+
+/**
+ * 可拖动、可贴边隐藏的朗读悬浮球。
+ *
+ * 调用方需要把它放在填满屏幕的容器里（比如 `Box(Modifier.fillMaxSize())`），
+ * 不要再手动传 `align(BottomStart)` —— 位置由内部管理，初始默认左下角。
+ */
+@Composable
+fun DraggableTtsProgressOrb(
+    title: String,
+    coverPath: String?,
+    progress: Float,
+    playing: Boolean,
+    onTogglePlay: () -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier,
+    visible: Boolean = true,
+) {
+    BoxWithConstraints(modifier.fillMaxSize()) {
+        val density = LocalDensity.current
+        val parentW = constraints.maxWidth.toFloat()
+        val parentH = constraints.maxHeight.toFloat()
+
+        val edgeMarginPx = with(density) { 12.dp.toPx() }
+        // 隐藏态 orb 允许露出的宽度（仅用于位移计算，视觉上被 alpha 0 覆盖）
+        val peekPx = with(density) { 24.dp.toPx() }
+
+        var orbSize by remember { mutableStateOf(IntSize.Zero) }
+        var hiddenSide by remember { mutableStateOf<OrbHiddenSide?>(null) }
+        var dragging by remember { mutableStateOf(false) }
+        var pos by remember { mutableStateOf(Offset.Zero) }
+        var initialized by remember { mutableStateOf(false) }
+
+        // 首次完成测量后落到左下角
+        LaunchedEffect(orbSize, parentH) {
+            if (!initialized && orbSize.width > 0 && parentH > 0f) {
+                pos = Offset(edgeMarginPx, parentH - orbSize.height - edgeMarginPx)
+                initialized = true
+            }
+        }
+
+        val targetPos = when (hiddenSide) {
+            null -> pos
+            OrbHiddenSide.Left -> Offset(-orbSize.width + peekPx, pos.y)
+            OrbHiddenSide.Right -> Offset(parentW - peekPx, pos.y)
+        }
+        // 拖动中 snap 立即跟手；松手贴边时 tween 平滑
+        val animatedPos by animateOffsetAsState(
+            targetValue = targetPos,
+            animationSpec = if (dragging) snap() else tween(220, easing = FastOutSlowInEasing),
+            label = "orbPosition",
+        )
+
+        val orbAlpha by animateFloatAsState(
+            targetValue = if (hiddenSide == null) 1f else 0f,
+            animationSpec = tween(160),
+            label = "orbAlpha",
+        )
+        val handleAlpha by animateFloatAsState(
+            targetValue = if (hiddenSide == null) 0f else 1f,
+            animationSpec = tween(160),
+            label = "handleAlpha",
+        )
+
+        val maxX = (parentW - peekPx).coerceAtLeast(0f)
+        val minX = (-orbSize.width + peekPx).coerceAtMost(maxX)
+        val maxY = (parentH - orbSize.height).coerceAtLeast(0f)
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
+            // 完整悬浮球
+            Box(
+                modifier = Modifier
+                    .offset { IntOffset(animatedPos.x.roundToInt(), animatedPos.y.roundToInt()) }
+                    .onSizeChanged { orbSize = it }
+                    .graphicsLayer { alpha = orbAlpha }
+                    .pointerInput(hiddenSide, orbSize, parentW, parentH) {
+                        if (orbSize.width == 0 || hiddenSide != null) return@pointerInput
+                        detectDragGestures(
+                            onDragStart = { dragging = true },
+                            onDrag = { change, drag ->
+                                change.consume()
+                                pos = Offset(
+                                    (pos.x + drag.x).coerceIn(minX, maxX),
+                                    (pos.y + drag.y).coerceIn(0f, maxY),
+                                )
+                            },
+                            onDragEnd = {
+                                dragging = false
+                                val centerX = pos.x + orbSize.width / 2f
+                                hiddenSide = when {
+                                    centerX < parentW * 0.15f -> OrbHiddenSide.Left
+                                    centerX > parentW * 0.85f -> OrbHiddenSide.Right
+                                    else -> null
+                                }
+                                // 隐藏时把"展开锚点"对齐到边缘内侧，下次展开不越界
+                                pos = when (hiddenSide) {
+                                    OrbHiddenSide.Left -> Offset(edgeMarginPx, pos.y)
+                                    OrbHiddenSide.Right -> Offset(
+                                        parentW - orbSize.width - edgeMarginPx,
+                                        pos.y,
+                                    )
+                                    null -> pos
+                                }
+                            },
+                            onDragCancel = { dragging = false },
+                        )
+                    }
+            ) {
+                TtsProgressOrb(
+                    title = title,
+                    coverPath = coverPath,
+                    progress = progress,
+                    playing = playing,
+                    onTogglePlay = onTogglePlay,
+                    onClose = onClose,
+                )
+            }
+        }
+
+        // 贴边把手：点击展开
+        val side = hiddenSide
+        if (visible &&  side != null) {
+            val handleWidthPx = with(density) { 24.dp.toPx() }
+            val handleHeightPx = with(density) { 56.dp.toPx() }
+            val handleX = if (side == OrbHiddenSide.Left) 0f else parentW - handleWidthPx
+            val handleY = (pos.y + (orbSize.height - handleHeightPx) / 2f)
+                .coerceIn(0f, (parentH - handleHeightPx).coerceAtLeast(0f))
+
+            Surface(
+                onClick = { hiddenSide = null },
+                modifier = Modifier
+                    .offset { IntOffset(handleX.roundToInt(), handleY.roundToInt()) }
+                    .size(width = 24.dp, height = 56.dp)
+                    .graphicsLayer { alpha = handleAlpha },
+                shape = if (side == OrbHiddenSide.Left) {
+                    RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
+                } else {
+                    RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)
+                },
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
+                contentColor = MaterialTheme.colorScheme.primary,
+                tonalElevation = 4.dp,
+                shadowElevation = 6.dp,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = if (side == OrbHiddenSide.Left) {
+                            Icons.Default.KeyboardArrowRight
+                        } else {
+                            Icons.Default.KeyboardArrowLeft
+                        },
+                        contentDescription = "展开朗读控制",
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+        }
     }
 }
 

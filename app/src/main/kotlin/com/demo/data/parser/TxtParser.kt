@@ -190,8 +190,8 @@ class TxtParser(
         if (titles.isEmpty()) return fallbackChapters(file)
 
         val chapters = ArrayList<Chapter>()
-        // 第一个标题之前的内容
-        if (titles.first().first > 0) {
+        // 第一个标题之前的内容 并且前言正文有内容
+        if (titles.first().first > 0  && titles.first().second.isNotBlank()) {
             chapters.add(
                 Chapter(
                     index = 0,

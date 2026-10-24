@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.TransformOrigin
 
 import com.demo.core.model.PageTurnMode
 import com.demo.core.ui.theme.LocalMotionConfig
@@ -104,39 +105,44 @@ private fun SimulatedPageTurn(
         animForward = forward
         outgoing = base
         base = pageIndex
-        // 用带节流的帧循环推进：直接拿进度，省掉一层动画调度
+        progress = 0f
         runThrottledFrameLoop(SIM_TURN_DURATION_MS.toLong(), frameIntervalMs) { raw ->
             progress = FastOutSlowInEasing.transform(raw)
         }
-        progress = 0f
+        progress = 1f 
         outgoing = null
     }
 
     Box(modifier = modifier) {
-        // 新页（底层）：从背面翻回来
+        val animating = outgoing != null
+        // 新页（底层）：动画中从背面翻回来；无动画时正视
         Box(
             modifier = Modifier.matchParentSize().graphicsLayer {
-                rotationY = if (animForward) lerp(90f, 0f, progress) else lerp(-90f, 0f, progress)
+                rotationY = when {
+                    !animating -> 0f
+                    animForward -> lerp(90f, 0f, progress)
+                    else -> lerp(-90f, 0f, progress)
+                }
                 cameraDistance = 24f * density
                 transformOrigin = if (animForward) {
-                    androidx.compose.ui.graphics.TransformOrigin(0f, 0.5f)
+                    TransformOrigin(0f, 0.5f)
                 } else {
-                    androidx.compose.ui.graphics.TransformOrigin(1f, 0.5f)
+                    TransformOrigin(1f, 0.5f)
                 }
-                alpha = if (progress <= 0f && outgoing == null) 1f else progress.coerceAtLeast(0.15f)
+                alpha = if (!animating) 1f else progress.coerceAtLeast(0.15f)
             }
         ) { content(base) }
 
-        // 旧页（顶层）：翻向背面并淡出，模拟纸张背光
+        // 旧页（顶层）：翻向背面并淡出
         outgoing?.let { old ->
             Box(
                 modifier = Modifier.matchParentSize().graphicsLayer {
                     rotationY = if (animForward) -100f * progress else 100f * progress
                     cameraDistance = 24f * density
                     transformOrigin = if (animForward) {
-                        androidx.compose.ui.graphics.TransformOrigin(0f, 0.5f)
+                        TransformOrigin(0f, 0.5f)
                     } else {
-                        androidx.compose.ui.graphics.TransformOrigin(1f, 0.5f)
+                        TransformOrigin(1f, 0.5f)
                     }
                     alpha = (1f - progress).coerceIn(0f, 1f)
                     shadowElevation = 8f * progress

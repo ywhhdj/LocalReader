@@ -76,10 +76,9 @@ fun ReaderSettingsPanel(
         contentColor = resolved
     ) {
         Column(Modifier.padding(16.dp)) {
-            Row(Modifier
-                .fillMaxWidth()
-                //垂直居中
-                
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,    
             ){
                 // 目录入口：点开抽屉后可直接跳章 / 跳卷
                 if (onOpenToc != null) {
@@ -87,8 +86,9 @@ fun ReaderSettingsPanel(
                         selected = false,
                         onClick = onOpenToc,
                         label = { Text(
-                            "目录",
-                            style = MaterialTheme.typography.labelLarge
+                            if (showTextSettings) "目录" else "话集",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = resolved
                         ) },
                         leadingIcon = {
                             Icon(
@@ -96,9 +96,10 @@ fun ReaderSettingsPanel(
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
-                        },
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        }
                     )
+                }
+                 if (onOpenToc != null && onOpenTtsSettings != null) {
                     Spacer(Modifier.width(10.dp))
                 }
                 if (onOpenTtsSettings != null) {
@@ -116,8 +117,7 @@ fun ReaderSettingsPanel(
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
-                        },
-                        modifier = Modifier.padding(top = 8.dp)
+                        }
                     )
                 }
             }

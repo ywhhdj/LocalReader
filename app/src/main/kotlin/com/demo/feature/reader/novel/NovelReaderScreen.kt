@@ -354,26 +354,18 @@ fun NovelReaderScreen(
         }
 
         // ---------- 左下角「朗读进度」悬浮球 ----------
-        AnimatedVisibility(
+        DraggableTtsProgressOrb(
+            title = state.book?.title.orEmpty(),
+            coverPath = state.book?.coverPath,
+            progress = ttsProgress,
+            playing = state.tts.speaking,
+            onTogglePlay = {
+                if (state.tts.speaking) viewModel.pauseTts()
+                else viewModel.resumeTts()
+            },
+            onClose = viewModel::cancelTts,
             visible = ttsActive,
-            enter = slideInHorizontally { -it } + fadeIn(),
-            exit = slideOutHorizontally { -it } + fadeOut(),
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(start = 16.dp, bottom = 80.dp)
-        ) {
-            TtsProgressOrb(
-                title = state.book?.title.orEmpty(),
-                coverPath = state.book?.coverPath,
-                progress = ttsProgress,
-                playing = state.tts.speaking,
-                onTogglePlay = {
-                    if (state.tts.speaking) viewModel.pauseTts()
-                    else viewModel.resumeTts()
-                },
-                onClose = viewModel::cancelTts
-            )
-        }
+        )
 
         // ---------- 听读设置 ----------
         AnimatedVisibility(
