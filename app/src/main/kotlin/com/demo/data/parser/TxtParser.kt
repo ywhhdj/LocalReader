@@ -50,6 +50,8 @@ class TxtParser(
         const val MAX_CHAPTER_BYTES = 2 * 1024 * 1024
         /** 单行字节上限（异常长行截断，避免缓冲区无限增长） */
         const val MAX_LINE_BYTES = 64 * 1024
+        /** 前言内容探测的最大读取字节 */
+        const val PROBE_MAX_BYTES = 64 * 1024
     }
 
     /** 作者：落家小沫 / 作 者：xxx / Author: xxx */
@@ -175,12 +177,12 @@ class TxtParser(
      */
     private fun splitChapters(file: File, charset: Charset): List<Chapter> {
         val titles = ArrayList<Pair<Long, String>>() // 字节偏移 → 标题
-        var offset = 0L
-        var totalBytes = 0L
         runCatching {
-            scanLines(file, charset) { text, start, byteLen ->
-                totalBytes = start + byteLen
-                val trimmed = text.trim().replace("\uFEFF", "").replace("\u200B", "")
+            scanLines(file, charset) { text, start, _ ->
+                // 行内重复折叠：「终章 终焉的开始 终章 终焉的开始」→「终章 终焉的开始」
+                val trimmed = foldInlineRepeat(
+                    text.trim().replace("\uFEFF", "").replace("\u200B", "")
+                )
                 if (trimmed.length in 1..40 && patterns.any { it.matches(trimmed) }) {
                     titles.add(start to trimmed)
                 }
@@ -189,20 +191,28 @@ class TxtParser(
 
         if (titles.isEmpty()) return fallbackChapters(file)
 
+        // 连续重复标题合并：正文里常见「终章 终焉的开始」连着出现两遍，
+        // 第二遍只是排版残留，切出来会得到一个空章节。
+        val unique = dedupeConsecutive(titles)
+
         val chapters = ArrayList<Chapter>()
-        // 第一个标题之前的内容 并且前言正文有内容
-        if (titles.first().first > 0  && titles.first().second.isNotBlank()) {
+        // 第一个标题之前的内容：只有真的存在正文时才补「前言」章
+        // （旧实现只看偏移量 > 0，开头几行是空行 / 分隔线 / BOM 时也会多出一个空章）
+        val firstOffset = unique.first().first
+        if (firstOffset > 0 && unique.first().second.isNotBlank() &&
+            hasProse(readTextRange(file, charset, 0L, firstOffset))
+        ) {
             chapters.add(
                 Chapter(
                     index = 0,
                     title = "前言",
                     startOffset = 0L,
-                    endOffset = titles.first().first
+                    endOffset = firstOffset
                 )
             )
         }
-        titles.forEachIndexed { i, (start, title) ->
-            val end = titles.getOrNull(i + 1)?.first ?: -1L
+        unique.forEachIndexed { i, (start, title) ->
+            val end = unique.getOrNull(i + 1)?.first ?: -1L
             chapters.add(
                 Chapter(
                     index = chapters.size,
@@ -212,9 +222,76 @@ class TxtParser(
                 )
             )
         }
-        totalBytes.coerceAtLeast(1L)
         // 分卷：识别「第X卷 …」并向下延续归属
         return VolumeSplitter.apply(chapters)
+    }
+
+    /**
+     * 相邻重复标题合并（含行内重复折叠后的等价标题）。
+     *
+     * 只合并**连续**出现的同名标题：跨卷的同名章节（如两卷都有「后记」）仍需保留。
+     */
+    private fun dedupeConsecutive(titles: List<Pair<Long, String>>): List<Pair<Long, String>> {
+        if (titles.size <= 1) return titles
+        val out = ArrayList<Pair<Long, String>>(titles.size)
+        for (item in titles) {
+            val prev = out.lastOrNull()
+            if (prev != null && normalizeTitle(prev.second) == normalizeTitle(item.second)) continue
+            out.add(item)
+        }
+        return out
+    }
+
+    /** 标题归一化：忽略空白、全半角与常见分隔符差异 */
+    private fun normalizeTitle(raw: String): String = raw
+        .replace(Regex("""[\s\u3000]+"""), "")
+        .trim('《', '》', '【', '】', '「', '」', '（', '）', '(', ')', '.', '。', '、', '：', ':')
+        .lowercase()
+
+    /**
+     * 行内重复折叠：「终章 终焉的开始 终章 终焉的开始」这类把标题连打两遍的行，
+     * 归一化后是两段完全相同的文本，取一半即可。
+     */
+    private fun foldInlineRepeat(raw: String): String {
+        val core = raw.trim()
+        if (core.length < 8) return core
+        val normalized = core.replace(Regex("""[\s\u3000]+"""), "")
+        val half = normalized.length / 2
+        if (normalized.length % 2 == 0 && half >= 4 &&
+            normalized.substring(0, half) == normalized.substring(half)
+        ) {
+            return normalized.substring(0, half)
+        }
+        return core
+    }
+
+    /** 区间内是否有"真正文"：空行 / BOM / 纯符号分隔线不算 */
+    private fun hasProse(raw: String): Boolean {
+        if (raw.isBlank()) return false
+        return raw.lineSequence().any { line ->
+            val t = line.trim()
+            // 至少一个字母/数字/汉字，才算有内容（过滤 "***" "———" 之类分隔行）
+            t.length >= 2 && t.any { it.isLetterOrDigit() }
+        }
+    }
+
+    /** 按字节区间读取（用于前言内容探测，只读前 64KB 足够判断） */
+    private fun readTextRange(file: File, charset: Charset, from: Long, to: Long): String {
+        val limit = (to - from).coerceIn(0L, PROBE_MAX_BYTES.toLong()).toInt()
+        if (limit <= 0) return ""
+        return runCatching {
+            FileInputStream(file).use { fis ->
+                if (from > 0) fis.skip(from)
+                val buf = ByteArray(limit)
+                var read = 0
+                while (read < buf.size) {
+                    val n = fis.read(buf, read, buf.size - read)
+                    if (n <= 0) break
+                    read += n
+                }
+                if (read <= 0) "" else String(buf, 0, read, charset)
+            }
+        }.getOrDefault("")
     }
 
     /** 无标题：按约 20KB 字节切分（中文约 1 万字/章） */

@@ -75,6 +75,8 @@ data class AppSettings(
     val animationsEnabled: Boolean = true,
     /** 持续型动画的帧率上限 */
     val frameRateMode: FrameRateMode = FrameRateMode.AUTO,
+    /** 沉浸阅读：隐藏状态栏 */
+    val immersiveMode: Boolean = false,
 
     // 用户
     val nickname: String = "阅读者",

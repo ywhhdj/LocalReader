@@ -44,6 +44,8 @@ fun ReaderTopBar(
   backgroundColor: Color = Color.Unspecified,
   /** 顶栏内容色：阅读器自定义背景（夜间/护眼）时保证图标与标题仍可读 */
   contentColor: Color = Color.Unspecified,
+  /** 沉浸模式：状态栏已收起，顶栏不再为它留白 */
+  immersive: Boolean = false,
   actions: @Composable RowScope.() -> Unit = {}
 ) {
   AnimatedVisibility(
@@ -66,7 +68,10 @@ fun ReaderTopBar(
       Column(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(WindowInsets.statusBars.asPaddingValues())
+          .then(
+            if (immersive) Modifier
+            else Modifier.padding(WindowInsets.statusBars.asPaddingValues())
+          )
       ) {
         Row(
           modifier = Modifier

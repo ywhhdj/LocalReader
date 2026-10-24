@@ -8,6 +8,7 @@ import android.os.StrictMode
 import coil.Coil
 
 import com.demo.core.common.util.Logger
+import com.demo.assembly.cleanup.ExitCleanup
 import com.demo.assembly.di.AppContainer
 import com.demo.assembly.di.ImageLoaderFactory
 
@@ -52,6 +53,10 @@ class App : Application() {
         Coil.setImageLoader(ImageLoaderFactory.create(this))
         CrashGuard.install(this)
         container = AppContainer(this)
+        // 上一轮被系统直接杀掉的进程来不及清理，冷启动时先补清一次解压残留
+        container.cleanupExtracted()
+        // 正常退出（所有页面销毁）时再清一次：解压页 / 渲染页不再留在内部存储
+        ExitCleanup { container.cleanupExtracted() }.install(this)
     }
 
     private fun enableStrictMode() {

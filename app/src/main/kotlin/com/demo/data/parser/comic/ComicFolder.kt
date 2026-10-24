@@ -15,7 +15,11 @@ import java.io.File
  * 2. 分话：目录下是「第一话」「第二话」…… 这类子目录，图片在各话目录里。
  *    此时**外层目录名即漫画名**，各话按自然序排列。
  *
- * 判定顺序：先查话目录（≥2 个话目录即分话），否则只要本层有图片就按短篇处理。
+ * 判定要点
+ * - 话目录里的图片允许再套一层（「第1话/images/001.jpg」很常见），这里向下多看一层；
+ * - 单个话目录也算分话结构（只要图片主要都在话目录里），
+ *   旧实现要求 ≥2 个话目录，导致「漫画名/第1话/…」这类目录整本被漏掉，只能导入成名为"第1话"的书；
+ * - 混放目录（本层有图 + 有话目录）按图片数量多的一方判定归属。
  */
 object ComicFolder {
 
@@ -41,58 +45,89 @@ object ComicFolder {
         file.isFile && !file.name.startsWith(".") &&
             FileUtil.extension(file.name) in Constants.IMAGE_EXTENSIONS
 
+    /** 一次 listFiles 的结果快照：图片 + 可见子目录 */
+    private class Snapshot(val images: List<File>, val dirs: List<File>)
+
+    private fun snapshot(dir: File): Snapshot {
+        val all = dir.listFiles()
+        if (all.isNullOrEmpty()) return Snapshot(emptyList(), emptyList())
+        val images = ArrayList<File>(all.size)
+        val dirs = ArrayList<File>()
+        for (f in all) {
+            when {
+                f.isDirectory -> {
+                    if (!f.name.startsWith(".") && !FileUtil.isHidden(f) && !FileUtil.hasNoMedia(f)) {
+                        dirs.add(f)
+                    }
+                }
+                isImage(f) -> images.add(f)
+            }
+        }
+        images.sortWith(imageComparator)
+        dirs.sortWith(dirComparator)
+        return Snapshot(filterTiny(images), dirs)
+    }
+
+    /** 过小的图片（封面 logo / 占位图）过滤掉；过滤后为空则回退，避免整本变 0 页 */
+    private fun filterTiny(list: List<File>): List<File> {
+        val filtered = ArrayList<File>(list.size)
+        for (f in list) if (f.length() > Constants.MIN_IMAGE_SIZE) filtered.add(f)
+        return filtered.ifEmpty { list }
+    }
+
     /** 目录下的直接图片（自然序，过滤过小文件；过滤后为空则回退） */
-    fun imagesIn(dir: File): List<File> {
-        val all = dir.listFiles()?.filter { isImage(it) } ?: emptyList()
-        val filtered = all.filter { it.length() > Constants.MIN_IMAGE_SIZE }.sortedWith(imageComparator)
-        val fallback = all.sortedWith(imageComparator)
-        return filtered.ifEmpty { fallback }
-    }
+    fun imagesIn(dir: File): List<File> = snapshot(dir).images
 
-    /** 话目录：名字像话/章的子目录，且内部有图片 */
-    fun chapterDirs(dir: File): List<File> {
-        val subDirs = dir.listFiles()
+    /**
+     * 话目录内图片：优先本层，本层没有图片时再看一层子目录。
+     * （「第1话/images/001.jpg」这类结构很常见，旧实现会把它判成空话目录从而整本跳过）
+     */
+    fun imagesInDeep(dir: File, depth: Int = 1): List<File> {
+        val direct = imagesIn(dir)
+        if (direct.isNotEmpty() || depth <= 0) return direct
+        val nested = dir.listFiles()
             ?.filter { it.isDirectory && !it.name.startsWith(".") && !FileUtil.isHidden(it) }
-            ?.filter { !FileUtil.hasNoMedia(it) }
-            ?: emptyList()
-        return subDirs
-            .filter { CHAPTER_NAME.matches(it.name) && imagesIn(it).isNotEmpty() }
-            .sortedWith(dirComparator)
+            ?: return emptyList()
+        var best: List<File> = emptyList()
+        for (child in nested) {
+            val found = imagesInDeep(child, depth - 1)
+            if (found.size > best.size) best = found
+            if (best.size >= 2) break
+        }
+        return best
     }
 
-    /** 分话结构：≥2 个话目录，且本层没有与话目录数量相当的图片 */
-    fun isChaptered(dir: File): Boolean {
-        if (!dir.isDirectory) return false
-        val chapters = chapterDirs(dir)
-        if (chapters.size < 2) return false
-        val total = chapters.sumOf { imagesIn(it).size }
-        if (total < 2) return false
-        // 本层若同时存在图片，说明是"短篇 + 额外目录"，以图片数量多的一方为准
-        return imagesIn(dir).isEmpty() || total > imagesIn(dir).size
+    /** 话目录：名字像话/章的子目录，且内部（含一层嵌套）有图片 */
+    fun chapterDirs(dir: File): List<File> {
+        val snap = snapshot(dir)
+        if (snap.dirs.isEmpty()) return emptyList()
+        return snap.dirs
+            .filter { CHAPTER_NAME.matches(it.name) && imagesInDeep(it).isNotEmpty() }
     }
 
     /**
-     * 短篇：本层有图片，且不是"容器目录"。
-     * 注意：不再内部调用 isChaptered（调用方已优先判定分话），避免重复列举子目录。
+     * 是否可作为一本漫画导入。
+     *
+     * 判定顺序：先看话目录（够数即停，不枚举全部话内容），再退回本层图片。
      */
-    fun isFlat(dir: File): Boolean {
-        if (!dir.isDirectory) return false
-        val images = imagesIn(dir)
-        if (images.isEmpty()) return false
-        val subDirs = dir.listFiles()
-            ?.count { 
-                it.isDirectory && !it.name.startsWith(".") && !FileUtil.isHidden(it) 
-            }
-            ?: 0
-        // 没有子目录 → 整本就是这一层；有子目录但图片占绝对多数 → 仍按短篇
-        return subDirs == 0 || (images.size >= 2 && images.size >= subDirs * 2)
-    }
-
-    /** 是否可作为一本漫画导入（先判分话，避免重复遍历子目录） */
     fun isComicFolder(dir: File): Boolean {
         if (!dir.isDirectory) return false
-        if (isChaptered(dir)) return true
-        return isFlat(dir)
+        val snap = snapshot(dir)
+        if (snap.images.isEmpty() && snap.dirs.isEmpty()) return false
+
+        val chapters = snap.dirs.filter { CHAPTER_NAME.matches(it.name) }
+        if (chapters.isNotEmpty()) {
+            // 够数即停：话内图片一旦超过本层图片数，就足以判定为分话结构
+            var inChapters = 0
+            for (chapter in chapters) {
+                inChapters += imagesInDeep(chapter).size
+                if (inChapters > snap.images.size && inChapters > 0) return true
+            }
+            if (inChapters > 0 && snap.images.isEmpty()) return true
+        }
+        // 短篇：本层有图片，且话目录不是主体（没有话目录，或图片数量占优）
+        if (snap.images.isEmpty()) return false
+        return chapters.isEmpty() || snap.images.size >= maxOf(2, chapters.size * 2)
     }
 
     /**
@@ -102,12 +137,23 @@ object ComicFolder {
      * 话名去掉结尾的标点（如「第一话,」「第二话.」），保证 UI 显示整洁。
      */
     fun chaptersOf(dir: File): List<FolderChapter> {
-        if (isChaptered(dir)) {
-            return chapterDirs(dir).map { FolderChapter(cleanChapterName(it.name), imagesIn(it)) }
+        val snap = snapshot(dir)
+        if (snap.images.isEmpty() && snap.dirs.isEmpty()) return emptyList()
+        val chapters = snap.dirs.filter { CHAPTER_NAME.matches(it.name) }
+
+        // 分话：话目录里确实有图，且图片主要不在本层
+        if (chapters.isNotEmpty()) {
+            val inChapters = chapters.map { imagesInDeep(it) }.filter { it.isNotEmpty() }
+            val total = inChapters.sumOf { it.size }
+            if (total > 0 && (snap.images.isEmpty() || total > snap.images.size)) {
+                return inChapters.mapIndexed { index, files ->
+                    val dirName = chapters[index].name
+                    FolderChapter(cleanChapterName(dirName), files)
+                }
+            }
         }
-        val images = imagesIn(dir)
-        if (images.isEmpty()) return emptyList()
-        return listOf(FolderChapter(SINGLE_CHAPTER_TITLE, images))
+        if (snap.images.isEmpty()) return emptyList()
+        return listOf(FolderChapter(SINGLE_CHAPTER_TITLE, snap.images))
     }
 
     /** 页面文件列表：按话顺序拼接（短篇即本层图片） */

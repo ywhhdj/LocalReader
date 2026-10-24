@@ -1,0 +1,5 @@
+KEYSTORE_PASSWORD=LocalReader@2026#Rel
+KEY_ALIAS=release
+KEY_PASSWORD=LocalReader@2026#Rel
+
+#命令示例 keytool -genkey -v -keystore keystore.jks -alias release -keyalg RSA -keysize 2048 -validity 10000

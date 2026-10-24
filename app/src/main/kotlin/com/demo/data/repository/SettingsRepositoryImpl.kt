@@ -1,4 +1,4 @@
-package com.demo.data.datastore
+package com.demo.data.repository
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -76,6 +76,8 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
         // 动效
         val ANIMATIONS = booleanPreferencesKey("animations_enabled")
         val FRAME_RATE = stringPreferencesKey("frame_rate_mode")
+        // 沉浸阅读
+        val IMMERSIVE = booleanPreferencesKey("immersive_mode")
         // 在线书源
         val ONLINE_ENABLED = booleanPreferencesKey("online_enabled")
         val ONLINE_JSON = stringPreferencesKey("online_json")
@@ -122,6 +124,7 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
             p[Keys.LAST_BACKUP] = next.lastBackupAt
             p[Keys.ANIMATIONS] = next.animationsEnabled
             p[Keys.FRAME_RATE] = next.frameRateMode.value
+            p[Keys.IMMERSIVE] = next.immersiveMode
             p[Keys.ONLINE_ENABLED] = next.onlineSourceEnabled
             p[Keys.ONLINE_JSON] = next.onlineSourceJson
         }
@@ -134,6 +137,7 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
         animationsEnabled = this[Keys.ANIMATIONS]
             ?: DeviceTierDetector.suggestAnimations(this@SettingsRepositoryImpl.deviceTier),
         frameRateMode = FrameRateMode.from(this[Keys.FRAME_RATE]),
+        immersiveMode = this[Keys.IMMERSIVE] ?: false,
         nickname = this[Keys.NICKNAME] ?: "阅读者",
         fontSize = this[Keys.FONT_SIZE] ?: 14,
         // 旧版本存过 4.2f，已超出面板滑杆区间（1.6~3.2），这里统一夹回合法范围

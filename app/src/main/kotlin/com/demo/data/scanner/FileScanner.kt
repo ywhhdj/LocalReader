@@ -94,15 +94,23 @@ class FileScanner(
       )
     }
 
-    suspend fun handle(file: File, ext: String, sourceUri: String?) {
+    /**
+     * 处理单个条目；返回是否成功入库。
+     *
+     * 返回值用于调用方决定"是否继续下钻"：图片文件夹被判为漫画但解析失败时
+     * （图片不可读 / 权限受限），旧实现直接跳过整个目录，漫画就再也扫不到了。
+     */
+    suspend fun handle(file: File, ext: String, sourceUri: String?): Boolean {
         val parser = parserFactory.anyParser(file, ext)
         if (parser == null) {
           if (ext.isNotEmpty()) c.skipped++
-          return
+          return false
         }
         c.scanned++
+        var ok = false
         runCatching {
         val path = file.absolutePath
+        val isFolderBook = file.isDirectory
         if (knownPaths.contains(path)) {
           if (!options.refreshExisting) {
                 c.skipped++
@@ -118,8 +126,13 @@ class FileScanner(
             // 否则这些书永远不会自动补上作者。
             val authorMissing = exists.author.isNullOrBlank() ||
                 exists.author == "未知" || exists.author == "未知作者"
-            val changed = exists.size_bytes != file.length() ||
+            // 图片文件夹：File#length() 对目录没有意义（恒不等于入库时统计的图片总大小），
+            // 若仍按 size 比对，每轮扫描都会把整本漫画重新列举一遍 —— 只在元数据缺失时刷新。
+            val changed = if (isFolderBook) {
                 exists.title.isBlank() || authorMissing
+            } else {
+                exists.size_bytes != file.length() || exists.title.isBlank() || authorMissing
+            }
             if (!changed) {
                 c.skipped++
                 return@runCatching
@@ -135,6 +148,7 @@ class FileScanner(
                 )
             }
             c.updated++
+            ok = true
             return@runCatching
         }
         val book = parser.parseMeta(file)
@@ -147,11 +161,13 @@ class FileScanner(
         knownPaths.add(path)
         pending.add(if (sourceUri != null) book.copy(sourceUri = sourceUri) else book)
         c.imported++
+        ok = true
         if (pending.size >= 200) flush()
       }.onFailure { e ->
         c.failed++
         Logger.w("扫描失败：${file.absolutePath} ${e.message}", "FileScanner")
       }
+        return ok
     }
 
     suspend fun consumeFile(file: File, sourceUri: String?) {
@@ -179,9 +195,12 @@ class FileScanner(
       }
       // 根目录本身可能就是一个漫画图片文件夹
       if (options.folderAsComic && isComicFolder(root)) {
-        handle(root, "", null)
-        tick(root.name)
-        return
+        if (handle(root, "", null)) {
+          tick(root.name)
+          return
+        }
+        // 判定为漫画目录却解析失败（图片不可读 / 权限受限）→ 继续当普通目录遍历，
+        // 至少能扫到里面的单文件，不再整本消失
       }
 
       val queue = ArrayDeque<Pair<File, Int>>()
@@ -200,9 +219,11 @@ class FileScanner(
         if (current.isDirectory) {
           if (FileUtil.hasNoMedia(current) || isBlockedDir(current)) continue
           if (options.folderAsComic && isComicFolder(current)) {
-            handle(current, "", null)
-            tick(current.name)
-            continue
+            if (handle(current, "", null)) {
+              tick(current.name)
+              continue
+            }
+            // 同上：解析失败不吞掉整个目录，继续下钻
           }
           if (depth >= options.maxDepth) continue
           val children = current.listFiles()

@@ -127,6 +127,12 @@ fun SettingsScreen(
                             label = ::glassLabelOf,
                             onSelect = viewModel::setGlassLevel
                         )
+                        SettingSwitchRow(
+                            title = "沉浸阅读",
+                            hint = "开启后阅读页收起系统状态栏，正文/漫画直接占到屏幕顶部（从屏幕顶部下滑可临时呼出状态栏）",
+                            checked = state.settings.immersiveMode,
+                            onCheckedChange = viewModel::setImmersiveMode
+                        )
                     }
                 }
 
@@ -474,6 +480,10 @@ fun SettingsScreen(
                             title = "目录缓存(SAF) ${FormatUtil.formatBytes(state.safBytes)}",
                             actionText = "清理",
                             onAction = { viewModel.clearSafCache() }
+                        )
+                        SettingHint(
+                            "页面缓存（CBZ/ZIP/RAR 解压页、PDF 渲染页）与 EPUB 图片缓存会在退出应用时自动清理，" +
+                                "需要重新查看时按需再解压；SAF 目录缓存是书籍源文件，不会自动删除。"
                         )
                     }
                 }

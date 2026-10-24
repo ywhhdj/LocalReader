@@ -67,17 +67,17 @@ LocalReader/
 # 2. 补齐 Gradle Wrapper（本仓库不含二进制 jar）
 gradle wrapper --gradle-version 8.7
 
-# 3. 构建 debug APK
+# 3. 构建 Release APK
 gradle clean
-gradle :app:assembleDebug
-# 输出：app/build/outputs/apk/debug/app-debug.apk
+gradle :app:assembleRelease
+# 输出：app/build/outputs/apk/release/app-release.apk
 
 # 4. 安装到真机
 ./install.sh
 
-# release（可选）：cp keystore.properties.example keystore.properties 并填写
+# release（可选）：cp local.properties.example local.properties 并填写
 ./build.sh release
 ```
 
 ## 本地数据库 SQLite
-请根据指示 `schema.sql` 创建数据库。
+> 请根据指示 `schema.sql` 创建数据库。

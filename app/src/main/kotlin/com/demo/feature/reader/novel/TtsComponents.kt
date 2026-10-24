@@ -264,9 +264,9 @@ fun DraggableTtsProgressOrb(
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = if (side == OrbHiddenSide.Left) {
-                            Icons.Default.KeyboardArrowRight
+                            Icons.Filled.KeyboardArrowRight
                         } else {
-                            Icons.Default.KeyboardArrowLeft
+                            Icons.Filled.KeyboardArrowLeft
                         },
                         contentDescription = "展开朗读控制",
                         modifier = Modifier.size(20.dp),

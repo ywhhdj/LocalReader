@@ -67,18 +67,31 @@ class SafScanner(private val context: Context, cacheRoot: File) {
         mime = type
     )
 
+    /**
+     * 短篇判定：本层有图片，且话目录不构成主体。
+     *
+     * 旧实现要求"不能有任何子目录"，漫画目录里只要混进一个无关子目录就会被整本跳过。
+     */
     fun isComicFolder(children: List<Entry>): Boolean {
         if (children.isEmpty()) return false
-        if (children.any { it.isDirectory }) return false
-        return children.count { it.extension in Constants.IMAGE_EXTENSIONS } >= 2
+        val images = children.count { !it.isDirectory && it.extension in Constants.IMAGE_EXTENSIONS }
+        if (images < 1) return false
+        val dirs = children.count { it.isDirectory }
+        val chapters = chapterEntries(children).size
+        return chapters == 0 || images >= maxOf(2, dirs * 2)
     }
 
+    /**
+     * 分话判定：至少 1 个话目录，且图片不在本层。
+     *
+     * 旧实现要求 ≥2 个话目录，导致「漫画名/第1话/…」这种单话结构被漏掉。
+     */
     fun isChapterFolder(children: List<Entry>): Boolean {
         if (children.isEmpty()) return false
         val dirs = chapterEntries(children)
-        if (dirs.size < 2) return false
+        if (dirs.isEmpty()) return false
         val images = children.count { !it.isDirectory && it.extension in Constants.IMAGE_EXTENSIONS }
-        return images == 0
+        return images == 0 || dirs.size >= 2 || images < 2
     }
 
     private fun chapterEntries(children: List<Entry>): List<Entry> = children

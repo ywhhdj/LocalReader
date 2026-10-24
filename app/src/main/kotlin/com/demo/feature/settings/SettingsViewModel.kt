@@ -93,6 +93,10 @@ class SettingsViewModel(
   fun setAnimationsEnabled(enabled: Boolean) = update { it.copy(animationsEnabled = enabled) }
   /** 持续型动画帧率上限 */
   fun setFrameRateMode(mode: FrameRateMode) = update { it.copy(frameRateMode = mode) }
+
+  /** 沉浸阅读 */
+  fun setImmersiveMode(enabled: Boolean) = update { it.copy(immersiveMode = enabled) }
+
   fun setNickname(name: String) = update { it.copy(nickname = name.ifBlank { "阅读者" }) }
   fun setComicPreload(count: Int) = update { it.copy(comicPreload = count.coerceIn(4, 6)) }
   fun setScanDepth(depth: Int) = update { it.copy(scanMaxDepth = depth.coerceIn(1, 8)) }

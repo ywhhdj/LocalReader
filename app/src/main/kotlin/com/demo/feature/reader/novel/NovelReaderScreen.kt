@@ -60,6 +60,7 @@ import com.demo.core.ui.components.VolumeTocList
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.LocalMotionConfig
 import com.demo.core.ui.theme.SheetShape
+import com.demo.feature.reader.common.ImmersiveModeEffect
 import com.demo.feature.reader.common.KeepScreenOnEffect
 import com.demo.feature.reader.common.ReaderProgressBar
 import com.demo.feature.reader.common.ReaderSettingsPanel
@@ -99,9 +100,11 @@ fun NovelReaderScreen(
     // 关闭动效时翻页退化为直接切换
     val turnMode = if (motion.animationsEnabled) state.settings.pageTurnMode else PageTurnMode.NONE
     val currentChapter = state.chapters.getOrNull(state.chapterIndex)
-    val insets = rememberReaderInsets()
+    // 沉浸模式：状态栏收起，正文顶到屏幕最上沿
+    val insets = rememberReaderInsets(state.settings.immersiveMode)
 
     KeepScreenOnEffect(state.settings.keepScreenOn)
+    ImmersiveModeEffect(state.settings.immersiveMode)
 
     // 打开听读设置时再拉一次语音列表（引擎可能刚好才初始化完）
     LaunchedEffect(showTtsSettings) {
@@ -223,15 +226,19 @@ fun NovelReaderScreen(
                 }
         ) { idx ->
             val page = pages.getOrNull(idx)
-            Column(Modifier.fillMaxSize()) {
-                page?.items?.forEach { item ->
-                    BlockView(
-                        block = item.block,
-                        fontSize = state.settings.fontSize,
-                        lineHeight = state.settings.lineHeightMultiplier,
-                        color = contentColor,
-                        isContinuation = item.isContinuation
-                    )
+            // 整页一个选择容器：旧实现每段包一层，一页几十个 SelectionContainer
+            // 既拖慢组合速度，又让选区无法跨段落。
+            SelectionContainer {
+                Column(Modifier.fillMaxSize()) {
+                    page?.items?.forEach { item ->
+                        BlockView(
+                            block = item.block,
+                            fontSize = state.settings.fontSize,
+                            lineHeight = state.settings.lineHeightMultiplier,
+                            color = contentColor,
+                            isContinuation = item.isContinuation
+                        )
+                    }
                 }
             }
         }
@@ -265,6 +272,7 @@ fun NovelReaderScreen(
             modifier = Modifier.align(Alignment.TopCenter),
             backgroundColor = bgColor,
             contentColor = contentColor,
+            immersive = state.settings.immersiveMode,
             actions = {
                 IconButton(onClick = viewModel::toggleToc) {
                     Icon(Icons.AutoMirrored.Filled.List, contentDescription = "目录")
@@ -470,43 +478,37 @@ private fun BlockView(
     isContinuation: Boolean = false
 ) {
     when (block) {
-        is BookBlock.Heading -> SelectionContainer {
-            Text(
-                text = block.text,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = color,
-                    fontSize = (fontSize + 2).sp,
-                    lineHeight = (fontSize * lineHeight).sp,
-                    fontWeight = FontWeight.Bold
-                ),
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-        }
-        is BookBlock.Paragraph -> SelectionContainer {
-            Text(
-                text = block.text,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = color,
-                    fontSize = fontSize.sp,
-                    lineHeight = (fontSize * lineHeight).sp,
-                    textAlign = TextAlign.Start,
-                    textIndent = paragraphIndent(fontSize, isContinuation)
-                ),
-                modifier = Modifier.padding(vertical = 6.dp)
-            )
-        }
-        is BookBlock.Quote -> SelectionContainer {
-            Text(
-                text = block.text,
+        is BookBlock.Heading -> Text(
+            text = block.text,
+            style = MaterialTheme.typography.titleMedium.copy(
                 color = color,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = color.copy(alpha = 0.75f),
-                    fontSize = fontSize.sp,
-                    lineHeight = (fontSize * lineHeight).sp
-                ),
-                modifier = Modifier.padding(vertical = 6.dp, horizontal = 8.dp)
-            )
-        }
+                fontSize = (fontSize + 2).sp,
+                lineHeight = (fontSize * lineHeight).sp,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+        is BookBlock.Paragraph -> Text(
+            text = block.text,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                color = color,
+                fontSize = fontSize.sp,
+                lineHeight = (fontSize * lineHeight).sp,
+                textAlign = TextAlign.Start,
+                textIndent = paragraphIndent(fontSize, isContinuation)
+            ),
+            modifier = Modifier.padding(vertical = 6.dp)
+        )
+        is BookBlock.Quote -> Text(
+            text = block.text,
+            color = color,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = color.copy(alpha = 0.75f),
+                fontSize = fontSize.sp,
+                lineHeight = (fontSize * lineHeight).sp
+            ),
+            modifier = Modifier.padding(vertical = 6.dp, horizontal = 8.dp)
+        )
         is BookBlock.Image -> AsyncImage(
             model = block.src,
             contentDescription = block.alt,

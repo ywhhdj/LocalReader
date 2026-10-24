@@ -56,6 +56,7 @@ import com.demo.core.ui.components.ComicTocList
 import com.demo.core.ui.glass.GlassSurface
 import com.demo.core.ui.theme.ReaderShapes
 import com.demo.core.ui.theme.SheetShape
+import com.demo.feature.reader.common.ImmersiveModeEffect
 import com.demo.feature.reader.common.KeepScreenOnEffect
 import com.demo.feature.reader.common.ReaderProgressBar
 import com.demo.feature.reader.common.ReaderSettingsPanel
@@ -80,9 +81,11 @@ fun ComicReaderScreen(
     val scroll by viewModel.scrollRequest.collectAsStateWithLifecycle()
     val pages = state.pages
     val range = state.chapterRange
-    val insets = rememberReaderInsets()
+    // 沉浸模式：状态栏收起，漫画页顶到屏幕最上沿
+    val insets = rememberReaderInsets(state.settings.immersiveMode)
 
     KeepScreenOnEffect(state.settings.keepScreenOn)
+    ImmersiveModeEffect(state.settings.immersiveMode)
 
     val listState = rememberLazyListState(
         initialFirstVisibleItemIndex = (state.pageIndex - range.first).coerceAtLeast(0)
@@ -146,7 +149,8 @@ fun ComicReaderScreen(
             ) {
                 items(
                     count = range.count(),
-                    key = { offset -> range.first + offset }
+                    key = { offset -> range.first + offset },
+                    contentType = { "comicPage" }
                 ) { offset ->
                     val index = range.first + offset
                     ComicPageItem(
@@ -181,6 +185,7 @@ fun ComicReaderScreen(
             onBack = onBack,
             modifier = Modifier.align(Alignment.TopCenter),
             contentColor = Color.White,
+            immersive = state.settings.immersiveMode,
             actions = {
                 if (state.chapters.size > 1) {
                     IconButton(onClick = viewModel::toggleToc) {

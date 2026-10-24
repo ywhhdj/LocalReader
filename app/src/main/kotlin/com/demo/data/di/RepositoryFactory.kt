@@ -11,10 +11,12 @@ import com.demo.core.database.DatabaseProvider
 import com.demo.data.cover.CoverStore
 import com.demo.data.cache.PageCache
 import com.demo.data.cover.TextCoverFactory
-import com.demo.data.datastore.SettingsRepositoryImpl
+
 import com.demo.data.parser.ParserFactory
-import com.demo.data.parser.ParserFactoryImpl
 import com.demo.data.remote.WebDavClient
+
+import com.demo.data.parser.ParserFactoryImpl
+import com.demo.data.repository.SettingsRepositoryImpl
 import com.demo.data.repository.BookRepositoryImpl
 import com.demo.data.repository.GroupRepositoryImpl
 import com.demo.data.repository.ProgressRepositoryImpl

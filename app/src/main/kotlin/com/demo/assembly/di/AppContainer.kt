@@ -4,6 +4,16 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
+import com.demo.core.common.util.FileUtil
+import com.demo.core.common.util.Logger
+
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+
+import java.io.File
+
 import com.demo.data.di.RepositoryFactory
 import com.demo.data.di.Repositories
 
@@ -89,6 +99,32 @@ class AppContainer(context: Context) : ViewModelProvider.Factory {
     val ttsRepository = repos.ttsRepository
     val bookSourceRepository = repos.bookSourceRepository
     val safScanner = repos.safScanner
+
+    /** 清理用的独立作用域：不随任何页面生命周期，进程内长期存活 */
+    private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * 清理解压类临时文件（退出时 / 冷启动时各调一次）。
+     *
+     * 范围：
+     * - 页缓存：CBZ/ZIP/RAR 解压出的图片、PDF 渲染结果（可再生，重开时按需再解）；
+     * - 书籍缓存目录：EPUB 正文图片解压产物。
+     *
+     * 不动：封面缓存（书架要用，重建成本高且体积小）、SAF 物化目录（书籍源文件，删了书就读不了）。
+     */
+    fun cleanupExtracted() {
+        cleanupScope.launch {
+            runCatching { repos.pageCache.clear() }
+                .onFailure { Logger.w("清理页缓存失败：${it.message}", "AppContainer") }
+            runCatching { clearDirChildren(repos.bookCacheDir) }
+                .onFailure { Logger.w("清理书籍缓存失败：${it.message}", "AppContainer") }
+        }
+    }
+
+    private fun clearDirChildren(dir: File) {
+        val children = dir.listFiles() ?: return
+        for (child in children) FileUtil.deleteRecursively(child)
+    }
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when (modelClass) {
