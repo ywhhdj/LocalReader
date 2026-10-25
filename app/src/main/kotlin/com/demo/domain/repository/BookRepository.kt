@@ -25,6 +25,9 @@ interface BookRepository {
 
     fun observeShelf(groupId: Long?, type: String?, limit: Int): Flow<List<Book>>
 
+    /** 当前筛选下的书籍总数（Flow）：书架据此判断"书库是否发生变化" */
+    fun observeCount(groupId: Long?, type: String?, favoriteOnly: Boolean): Flow<Int>
+
     suspend fun upsert(book: Book): Long
 
     suspend fun upsertAll(books: List<Book>)

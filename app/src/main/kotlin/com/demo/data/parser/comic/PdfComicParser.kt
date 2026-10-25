@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
+import android.content.Context
 
 import com.demo.core.common.util.Constants
 import com.demo.core.common.util.FileUtil
@@ -31,7 +32,9 @@ import java.io.File
 class PdfComicParser(
     private val coverStore: CoverStore,
     private val pageCache: PageCache,
-    private val textCoverFactory: TextCoverFactory = TextCoverFactory()
+    private val textCoverFactory: TextCoverFactory = TextCoverFactory(),
+    /** 仅用于读取设备内存等级（决定 PDF 渲染上限），不做其它用途 */
+    private val appContext: Context? = null
 ) : ComicParser {
 
     override fun matches(file: File, ext: String): Boolean =
@@ -63,7 +66,7 @@ class PdfComicParser(
         List(book.pageCount.coerceAtLeast(0)) { ComicPage(it, pdfPage = it) }
 
     override suspend fun openComic(file: File, book: Book): ComicContent =
-        PdfComicContent(file, book.id, book.pageCount.coerceAtLeast(0), pageCache)
+        PdfComicContent(file, book.id, book.pageCount.coerceAtLeast(0), pageCache, appContext)
 
     private fun renderCover(renderer: PdfRenderer, file: File): String? = runCatching {
         synchronized(renderer) {
@@ -83,7 +86,9 @@ class PdfComicParser(
         private val file: File,
         private val bookId: Long,
         pageCount: Int,
-        private val pageCache: PageCache
+        private val pageCache: PageCache,
+        /** 用于按设备内存分档决定渲染上限 */
+        private val context: Context?,
     ) : ComicContent {
 
         override val pages: List<ComicPage> = List(pageCount) { ComicPage(it, pdfPage = it) }
@@ -119,7 +124,10 @@ class PdfComicParser(
                 synchronized(lock) {
                     r.openPage(index).use { page ->
                         val longEdge = maxOf(page.width, page.height).coerceAtLeast(1)
-                        val scale = (Constants.PDF_PAGE_MAX_EDGE.toFloat() / longEdge).coerceAtMost(2f)
+                        // 渲染上限按设备内存分档：2048 长边的 ARGB_8888 单页就是 16MB 峰值，
+                        // 低端机上很容易连续 OOM。这里高档 2048、其余降到 1600。
+                        val maxEdge = com.demo.core.common.util.MemoryUtils.pdfPageMaxEdge(context)
+                        val scale = (maxEdge.toFloat() / longEdge).coerceAtMost(2f)
                         val w = (page.width * scale).toInt().coerceAtLeast(1)
                         val h = (page.height * scale).toInt().coerceAtLeast(1)
                         val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)

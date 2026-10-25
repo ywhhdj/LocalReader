@@ -31,6 +31,7 @@ import com.demo.domain.usecase.LoadShelfPageUseCase
 import com.demo.domain.usecase.MoveToGroupUseCase
 import com.demo.domain.usecase.ObserveGroupsUseCase
 import com.demo.domain.usecase.ObserveSettingsUseCase
+import com.demo.domain.usecase.ObserveShelfCountUseCase
 import com.demo.domain.usecase.OnlineChaptersUseCase
 import com.demo.domain.usecase.OnlineContentUseCase
 import com.demo.domain.usecase.OnlineSearchUseCase
@@ -64,6 +65,7 @@ class AppContainer(context: Context) : ViewModelProvider.Factory {
     // 用例
     private val loadHomeSections = LoadHomeSectionsUseCase(repos.bookRepository)
     private val loadShelfPage = LoadShelfPageUseCase(repos.bookRepository)
+    private val observeShelfCount = ObserveShelfCountUseCase(repos.bookRepository)
     private val observeGroups = ObserveGroupsUseCase(repos.groupRepository)
     private val observeSettings = ObserveSettingsUseCase(repos.settingsRepository)
     private val updateSettings = UpdateSettingsUseCase(repos.settingsRepository)
@@ -104,33 +106,51 @@ class AppContainer(context: Context) : ViewModelProvider.Factory {
     private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /**
-     * 清理解压类临时文件（退出时 / 冷启动时各调一次）。
+     * 清理"退出后必然无用"的解压产物。
      *
-     * 范围：
-     * - 页缓存：CBZ/ZIP/RAR 解压出的图片、PDF 渲染结果（可再生，重开时按需再解）；
-     * - 书籍缓存目录：EPUB 正文图片解压产物。
+     * 范围（**只清页缓存**）：
+     * - 页缓存：CBZ/ZIP/RAR 解压出的图片、PDF 渲染结果。阅读器关闭就没人引用了，可再生。
      *
-     * 不动：封面缓存（书架要用，重建成本高且体积小）、SAF 物化目录（书籍源文件，删了书就读不了）。
+     * 不动：
+     * - 书籍缓存目录（EPUB 正文图片）：旧实现会在"所有 Activity 销毁 4 秒后"整目录清空，
+     *   用户切出去回个消息再回来，整本书的插图要重新解压一遍，体验很差。
+     *   改为按容量淘汰（见 [trimBookCacheIfNeeded]）。
+     * - 封面缓存（书架要用，重建成本高且体积小）、SAF 物化目录（书籍源文件，删了书就读不了）。
      */
     fun cleanupExtracted() {
         cleanupScope.launch {
             runCatching { repos.pageCache.clear() }
                 .onFailure { Logger.w("清理页缓存失败：${it.message}", "AppContainer") }
-            runCatching { clearDirChildren(repos.bookCacheDir) }
-                .onFailure { Logger.w("清理书籍缓存失败：${it.message}", "AppContainer") }
+            trimBookCacheIfNeeded()
         }
     }
 
-    private fun clearDirChildren(dir: File) {
-        val children = dir.listFiles() ?: return
-        for (child in children) FileUtil.deleteRecursively(child)
+    /**
+     * EPUB 图片缓存按容量淘汰
+     */
+    private fun trimBookCacheIfNeeded() {
+        runCatching {
+            val dir = repos.bookCacheDir
+            val books = (dir.listFiles() ?: return).filter { it.isDirectory }.toMutableList()
+            if (books.isEmpty()) return
+            var total = books.sumOf { FileUtil.dirSize(it) }
+            val max = com.demo.core.common.util.Constants.BOOK_IMAGE_CACHE_MAX_BYTES
+            if (total <= max) return
+            // 按最后修改时间升序：最久没读过的书先让位
+            books.sortBy { it.lastModified() }
+            for (book in books) {
+                if (total <= max * 0.8) break
+                val size = FileUtil.dirSize(book)
+                if (FileUtil.deleteRecursively(book)) total -= size
+            }
+        }.onFailure { Logger.w("裁剪书籍缓存失败：${it.message}", "AppContainer") }
     }
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when (modelClass) {
         ShelfViewModel::class.java -> ShelfViewModel(
-            loadHomeSections,
             loadShelfPage,
+            observeShelfCount,
             observeGroups,
             observeSettings,
             updateSettings,

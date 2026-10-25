@@ -2,7 +2,6 @@ package com.demo.data.cache
 
 import com.demo.core.common.util.FileUtil
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 极简磁盘 LRU：按最后访问时间淘汰最旧文件。
@@ -20,7 +19,13 @@ class DiskLruCache(
     private val recursive: Boolean = false
 ) {
 
-    private val accessMap = ConcurrentHashMap<String, Long>()
+    /**
+     * 访问序：key → 最后访问时间（毫秒，与文件 mtime 同口径）。
+     * 必须是**有界**的：旧实现只在淘汰时移除条目，长期阅读会累积成千上万个 key；
+     * 且进程重启后内存访问序丢失、LRU 会退化成 lastModified。
+     * 因此 touch 时同步刷新文件 mtime，作为跨进程 / 跨重启的持久 LRU 依据。
+     */
+    private val accessMap = LinkedHashMap<String, Long>(256, 0.75f, false)
 
     /** 容量统计结果缓存：目录递归统计很贵，不能每次写入都算一遍 */
     @Volatile
@@ -34,7 +39,24 @@ class DiskLruCache(
 
     fun dir(): File = dir
 
-    fun touch(key: String) { accessMap[key] = System.nanoTime() }
+    @Synchronized
+    fun touch(key: String) {
+        val now = System.currentTimeMillis()
+        val prev = accessMap.put(key, now)
+        // 有界：超过上限时丢掉最早插入的一批（插入序，比真正的 LRU 便宜且足够用）
+        if (accessMap.size > ACCESS_MAP_MAX) {
+            val it = accessMap.keys.iterator()
+            var drop = ACCESS_MAP_MAX / 8
+            while (drop-- > 0 && it.hasNext()) {
+                it.next()
+                it.remove()
+            }
+        }
+        // 持久化访问时间（节流写入，避免每次命中都改一次文件元数据）
+        if (prev == null || now - prev > MTIME_FLUSH_MS) {
+            runCatching { file(key).setLastModified(now) }
+        }
+    }
 
     fun file(key: String): File = File(dir, key)
 
@@ -65,7 +87,9 @@ class DiskLruCache(
         val targetCount = (maxCount * 0.8).toInt().coerceAtLeast(1)
         // 用与 touch 一致的相对路径 key 排序，否则永远回退到 lastModified，
         // LRU 名存实亡（访问过的页面也会被当成最旧的删掉）
-        val sorted = entries.sortedBy { accessMap[relativeKey(it)] ?: it.lastModified().toLong() * 1_000_000L }
+        // 与 touch 口径一致（毫秒）：内存访问序优先，缺失时回落到文件 mtime
+        // （mtime 由 touch 持久化，因此重启后 LRU 依然有效）
+        val sorted = entries.sortedBy { accessMap[relativeKey(it)] ?: it.lastModified() }
         var remaining = entries.size
         for (f in sorted) {
             if (remaining <= targetCount && total <= maxBytes * 0.8) break
@@ -130,6 +154,10 @@ class DiskLruCache(
         const val TRIM_INTERVAL_MS = 5_000L
         /** 容量统计缓存有效期 */
         const val SIZE_TTL_MS = 10_000L
+        /** 内存访问序上限：防止长期阅读时 key 无限累积 */
+        const val ACCESS_MAP_MAX = 4096
+        /** 刷新文件 mtime 的最小间隔 */
+        const val MTIME_FLUSH_MS = 60_000L
     }
 
     private fun sizeOf(f: File): Long =

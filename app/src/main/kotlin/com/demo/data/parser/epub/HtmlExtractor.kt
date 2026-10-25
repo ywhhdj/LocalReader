@@ -3,10 +3,10 @@ package com.demo.data.parser.epub
 import com.demo.core.model.BookBlock
 
 /**
- * 轻量 HTML → 正文块抽取（无第三方依赖）。
+ * 轻量 HTML → 正文块抽取
  * 保留段落/标题/图片/引用，剥离脚本与样式，输出结构化 blocks 供 Compose 渲染。
  *
- * 稳定性要点（"制作信息"等异常章节曾导致崩溃）：
+ * 稳定性要点：
  * 1. 剥离 svg / iframe / form / nav 等非正文块（内嵌巨型 SVG 会生成上万文本块直接 OOM）；
  * 2. 限制块数量与单块文本长度，超长内容分段，避免一次性创建海量 Composable；
  * 3. 保留段落内真实换行（旧实现把 \s+ 全部折叠为空格，正文全糊成一大坨）；
@@ -27,6 +27,9 @@ object HtmlExtractor {
     private val XML_PROLOG_REGEX = Regex("""<\?[\s\S]*?\?>""")
     /** DOCTYPE 可能带内部子集 [ <!ENTITY ...> ]，用 [^>\[] 排除 '>' 和 '[' 再配平方括号 */
     private val DOCTYPE_REGEX = Regex("""<!DOCTYPE(?:[^>\[]|\[[\s\S]*?])*>""", RegexOption.IGNORE_CASE)
+    private val NL_SPACE_REGEX = Regex("""\n """)
+    private val SPACE_NL_REGEX = Regex(""" \n""")
+    private val MULTI_NL_REGEX = Regex("""\n{2,}""")
 
     /** 单章节正文最大处理长度（超出截断，防止超大章节 OOM） */
     private const val MAX_HTML_LENGTH = 4 * 1024 * 1024
@@ -128,8 +131,8 @@ object HtmlExtractor {
         var s = decodeEntities(text).replace("\uFEFF", "")
         s = s.replace(BLANK_LINE_REGEX, "\n")
         s = s.replace(SPACE_REGEX, " ")
-        s = s.replace(Regex("""\n """), "\n").replace(Regex(""" \n"""), "\n")
-        s = s.replace(Regex("""\n{2,}"""), "\n")
+        s = s.replace(NL_SPACE_REGEX, "\n").replace(SPACE_NL_REGEX, "\n")
+        s = s.replace(MULTI_NL_REGEX, "\n")
         return s.trim()
     }
 

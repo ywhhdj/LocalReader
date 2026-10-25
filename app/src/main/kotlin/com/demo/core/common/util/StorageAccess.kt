@@ -1,7 +1,6 @@
 package com.demo.core.common.util
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -32,32 +31,27 @@ object StorageAccess {
 
     /** Android 13+ 媒体权限（仅影响媒体库，不覆盖文档类文件，仅作辅助） */
     fun hasReadMedia(context: Context): Boolean {
+        // 阅读器只需要图片（漫画页 / 封面）。视频与音频权限与业务无关，已移除声明。
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
-        val images = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES)
-        val video = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_VIDEO)
-        val audio = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO)
-        return images == PackageManager.PERMISSION_GRANTED ||
-            video == PackageManager.PERMISSION_GRANTED ||
-            audio == PackageManager.PERMISSION_GRANTED
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES) ==
+            PackageManager.PERMISSION_GRANTED
     }
 
     /** 是否可以直接用文件路径扫描（无需 SAF） */
     fun canScanByPath(context: Context): Boolean =
         hasAllFilesAccess() || (!needsAllFilesAccess() && hasReadExternalStorage(context))
 
-    /** 缺失的运行时权限清单 */
+    /**
+     * 缺失的运行时权限清单。
+     * Android 13+ 只申请 READ_MEDIA_IMAGES：音视频权限与阅读无关，
+     * 申请既无法通过商店审核，也拿不到文档类书籍（后者仍需 SAF / 所有文件访问权限）。
+     */
     fun missingPermissions(context: Context): List<String> {
         val result = ArrayList<String>()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES)
                 != PackageManager.PERMISSION_GRANTED
             ) result.add(Manifest.permission.READ_MEDIA_IMAGES)
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_VIDEO)
-                != PackageManager.PERMISSION_GRANTED
-            ) result.add(Manifest.permission.READ_MEDIA_VIDEO)
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO)
-                != PackageManager.PERMISSION_GRANTED
-            ) result.add(Manifest.permission.READ_MEDIA_AUDIO)
         } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -115,11 +109,4 @@ object StorageAccess {
     fun isReadable(dir: File): Boolean = runCatching {
         dir.exists() && dir.isDirectory && (dir.listFiles() != null)
     }.getOrDefault(false)
-
-    fun requestPermissions(activity: Activity, requestCode: Int): Boolean {
-        val missing = missingPermissions(activity)
-        if (missing.isEmpty()) return false
-        androidx.core.app.ActivityCompat.requestPermissions(activity, missing.toTypedArray(), requestCode)
-        return true
-    }
 }

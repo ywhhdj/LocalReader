@@ -154,10 +154,16 @@ class NovelReaderViewModel(
                 ttsRepository.setPitch(settings.ttsPitch)
             }
         }
+        // 采样节流：每 PROGRESS_THROTTLE_MS 把"期间最新的位置"落库一次。
         viewModelScope.launch {
-            pendingProgress.collectLatest { (chapterIndex, charOffset) ->
+            var latest: Pair<Int, Int>? = null
+            launch { pendingProgress.collect { latest = it } }
+            while (true) {
                 delay(PROGRESS_THROTTLE_MS)
-                saveProgress(chapterIndex, charOffset)
+                latest?.let { (chapterIndex, charOffset) ->
+                    latest = null
+                    saveProgress(chapterIndex, charOffset)
+                }
             }
         }
         viewModelScope.launch {
@@ -270,13 +276,17 @@ class NovelReaderViewModel(
         // 双保险：解析器已去掉重复标题行，这里再兜一层（含卷名写法）。
         // 顺序很重要：必须先按行拆块再剥标题 ——
         // TXT 里"标题行 + 正文"常合成一个段落，拆开后标题才是一整块，能被精确去掉。
+        // 整段后处理（按行拆块 + 多轮正则剥标题）是纯 CPU 活，切到 Default，
+        // 长章节在主线程做会有数百毫秒占用（掉帧 / ANR）。
         val chapter = chaptersOf().getOrNull(index)
-        val blocks = splitParagraphLines(raw).let { split ->
-            if (chapter == null) split
-            else VolumeSplitter.peelLeadingTitles(
-                split,
-                listOf(chapter.title, VolumeSplitter.displayTitle(chapter))
-            )
+        val blocks = withContext(Dispatchers.Default) {
+            splitParagraphLines(raw).let { split ->
+                if (chapter == null) split
+                else VolumeSplitter.peelLeadingTitles(
+                    split,
+                    listOf(chapter.title, VolumeSplitter.displayTitle(chapter))
+                )
+            }
         }
         putChapter(index, blocks)
         _uiState.update {

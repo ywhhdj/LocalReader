@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -24,18 +27,17 @@ import com.demo.domain.repository.ScanProgress
 import com.demo.domain.usecase.CreateGroupUseCase
 import com.demo.domain.usecase.DeleteBooksUseCase
 import com.demo.domain.usecase.ImportBooksUseCase
-import com.demo.domain.usecase.LoadHomeSectionsUseCase
 import com.demo.domain.usecase.LoadShelfPageUseCase
 import com.demo.domain.usecase.MoveToGroupUseCase
 import com.demo.domain.usecase.ObserveGroupsUseCase
 import com.demo.domain.usecase.ObserveSettingsUseCase
+import com.demo.domain.usecase.ObserveShelfCountUseCase
 import com.demo.domain.usecase.SearchBooksUseCase
 import com.demo.domain.usecase.ToggleFavoriteUseCase
 import com.demo.domain.usecase.UpdateSettingsUseCase
 
 data class ShelfUiState(
     val isLoading: Boolean = true,
-    val sections: com.demo.domain.usecase.HomeSections = com.demo.domain.usecase.HomeSections(),
     val groups: List<BookGroup> = emptyList(),
     val selectedGroupId: Long = BuiltInGroup.ALL,
     val typeFilter: BookType? = null,
@@ -57,8 +59,8 @@ data class ShelfUiState(
 }
 
 class ShelfViewModel(
-    private val loadHomeSections: LoadHomeSectionsUseCase,
     private val loadShelfPage: LoadShelfPageUseCase,
+    private val observeShelfCount: ObserveShelfCountUseCase,
     private val observeGroups: ObserveGroupsUseCase,
     private val observeSettings: ObserveSettingsUseCase,
     private val updateSettings: UpdateSettingsUseCase,
@@ -87,6 +89,32 @@ class ShelfViewModel(
             }
         }
         refresh()
+        observeLibraryChanges()
+    }
+
+    /**
+     * 书库变化自动刷新。
+     *
+     * 此前首页只在手动 refresh() 时重载：删书 / 改分组 / 导入后一旦漏调，
+     * UI 与库就会不一致。这里监听"当前筛选下的书籍总数"，由 Room 的失效通知驱动重载。
+     * - debounce：导入过程中每条入库都会触发，避免逐条刷新；
+     * - 导入进行中不打断（scan != null 时跳过，导入结束仍会整体 refresh 一次）。
+     */
+    private var libraryJob: kotlinx.coroutines.Job? = null
+
+    private fun observeLibraryChanges() {
+        libraryJob?.cancel()
+        libraryJob = viewModelScope.launch {
+            val state = _uiState.value
+            val (groupId, type, fav) = filtersFor(state)
+            observeShelfCount(groupId, type?.value, fav)
+                .distinctUntilChanged()
+                .drop(1)          // 首次发射即当前状态，无需刷新
+                .debounce(400)
+                .collectLatest {
+                    if (_uiState.value.scan == null && !_uiState.value.isLoading) refresh()
+                }
+        }
     }
 
     /**
@@ -152,6 +180,7 @@ class ShelfViewModel(
             it.copy(selectedGroupId = groupId, page = 0, gridBooks = emptyList(), canLoadMore = true)
         }
         loadPage(0)
+        observeLibraryChanges()
     }
 
     fun setTypeFilter(type: BookType?) {
@@ -160,6 +189,7 @@ class ShelfViewModel(
             it.copy(typeFilter = type, page = 0, gridBooks = emptyList(), canLoadMore = true)
         }
         loadPage(0)
+        observeLibraryChanges()
     }
 
     fun setSortOrder(order: SortOrder) {
@@ -168,6 +198,7 @@ class ShelfViewModel(
             it.copy(sortOrder = order, page = 0, gridBooks = emptyList(), canLoadMore = true)
         }
         loadPage(0)
+        observeLibraryChanges()
     }
 
     fun setGridMode(mode: GridMode) {

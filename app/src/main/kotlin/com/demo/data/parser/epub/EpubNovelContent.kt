@@ -29,7 +29,30 @@ internal class EpubNovelContent(
     private var zip: ZipFile? = null
     private val lock = Any()
 
+    /** 条目名 → ZipEntry 的懒加载索引：避免每次解析失败/找图都全量枚举一遍 zip */
+    @Volatile
+    private var entryIndex: Map<String, ZipEntry>? = null
+
+    /** 已写入缓存目录的字节数（-1 表示尚未统计）。避免每张图都递归统计一次目录 → O(N²) */
+    @Volatile
+    private var cachedBytes: Long = -1L
+
+    /** 自上次真实统计以来的写入次数，用于周期性校正（外部清理缓存后不至于永远偏高） */
+    @Volatile
+    private var writesSinceMeasure = 0
+
     private fun zip(): ZipFile = zip ?: synchronized(lock) { zip ?: ZipFile(file).also { zip = it } }
+
+    private fun entriesByName(zf: ZipFile): Map<String, ZipEntry> =
+        entryIndex ?: synchronized(lock) {
+            entryIndex ?: HashMap<String, ZipEntry>().apply {
+                val e = zf.entries()
+                while (e.hasMoreElements()) {
+                    val ze = e.nextElement()
+                    if (!ze.isDirectory) put(ze.name, ze)
+                }
+            }.also { entryIndex = it }
+        }
 
     override suspend fun loadChapter(index: Int): List<BookBlock> = runCatching {
         val chapter = chapters.getOrNull(index) ?: return emptyList()
@@ -54,7 +77,6 @@ internal class EpubNovelContent(
 
         // 顶部已单独显示章节名，正文开头的重复标题要剥掉：
         // 整块等于标题 → 删；标题 + 换行 + 正文挤在一块 / 标题后直接接正文 → 剥前缀。
-        // （旧实现算完 peeled 却把 blocks 传给了 stripTitles，剥离结果被丢弃 —— 等于没剥）
         val peeled = VolumeSplitter.peelLeadingTitles(blocks, titleCandidates)
         return VolumeSplitter.stripTitles(peeled, titleCandidates)
             .ifEmpty { listOf(BookBlock.Paragraph("（本章无正文内容）")) }
@@ -75,9 +97,10 @@ internal class EpubNovelContent(
         zf.getEntry(PathUtils.decodePath(clean))?.let { return it }
         val tail = clean.substringAfterLast('/')
         if (tail.isBlank()) return null
-        return zf.entries().toList().firstOrNull {
-            !it.isDirectory && (it.name.equals(clean, true) || it.name.endsWith("/$tail", true) ||
-                it.name.equals(tail, true))
+        val index = entriesByName(zf)
+        index[clean]?.let { return it }
+        return index.values.firstOrNull {
+            it.name.endsWith("/$tail", true) || it.name.equals(tail, true)
         }
     }
 
@@ -96,8 +119,8 @@ internal class EpubNovelContent(
         }
         if (entry == null) {
             val tail = clean.substringAfterLast('/')
-            entry = zf.entries().toList().firstOrNull {
-                !it.isDirectory && it.name.endsWith(tail, true)
+            entry = entriesByName(zf).values.firstOrNull {
+                it.name.endsWith(tail, true)
             } ?: return null
         }
         if (!ensureCacheBudget()) return null
@@ -109,22 +132,37 @@ internal class EpubNovelContent(
             zf.getInputStream(entry!!).use { input ->
                 FileOutputStream(outFile).use { output -> input.copyTo(output) }
             }
+            // 增量累加缓存体积：旧实现每张图都跑一次 dirSize() 递归统计，
+            // 插图多的章节会退化成 O(N²) 次目录遍历。
+            if (cachedBytes >= 0) cachedBytes += outFile.length()
+            if (++writesSinceMeasure >= MEASURE_EVERY_WRITES) {
+                cachedBytes = -1L   // 周期性用真实值校正（缓存被外部清理时不至于永远偏高）
+                writesSinceMeasure = 0
+            }
             outFile.absolutePath
         }.onFailure { outFile.delete() }.getOrNull()
     }
 
+    /** 只在首次与每 N 次写入后统计一次真实目录大小 */
     private fun ensureCacheBudget(): Boolean = runCatching {
-        FileUtil.dirSize(cacheDir) < Constants.BOOK_IMAGE_CACHE_MAX_BYTES
+        val measured = cachedBytes
+        val size = if (measured < 0) {
+            FileUtil.dirSize(cacheDir).also { cachedBytes = it; writesSinceMeasure = 0 }
+        } else measured
+        size < Constants.BOOK_IMAGE_CACHE_MAX_BYTES
     }.getOrDefault(false)
 
     override fun close() {
         synchronized(lock) {
             runCatching { zip?.close() }
             zip = null
+            entryIndex = null
         }
     }
 
     private companion object {
         const val MAX_CHAPTER_BYTES = 8 * 1024 * 1024
+        /** 每写入这么多张图，重新统计一次缓存目录真实大小 */
+        const val MEASURE_EVERY_WRITES = 32
     }
 }

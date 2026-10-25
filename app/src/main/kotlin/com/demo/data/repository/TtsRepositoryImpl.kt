@@ -45,9 +45,17 @@ class TtsRepositoryImpl(context: Context) : TtsRepository {
 
     companion object {
         private const val TAG = "TtsRepository"
+        /**
+         * 单次入队句数
+         */
+        private const val BATCH_SIZE = 8
+        private val MULTI_NL_REGEX = Regex("""\n{2,}""")
+        private val SENTENCE_SPLIT_REGEX = Regex("""(?<=[。！？!?；;…\n])""")
     }
 
     private val appContext = context.applicationContext
+
+    @Volatile
     private var tts: TextToSpeech? = null
 
     @Volatile
@@ -58,6 +66,8 @@ class TtsRepositoryImpl(context: Context) : TtsRepository {
 
     private var sentences: List<String> = emptyList()
     private var cursor = 0
+    /** 已入队到的句下标（不含）：用于判断何时补下一批 */
+    private var queuedUntil = 0
     private var rate = 1.0f
     private var pitch = 1.0f
     private var voiceName: String = ""
@@ -87,8 +97,12 @@ class TtsRepositoryImpl(context: Context) : TtsRepository {
             cursor++
             if (cursor >= sentences.size) {
                 _state.value = _state.value.copy(speaking = false, chunkIndex = sentences.size)
-            } else {
-                _state.value = _state.value.copy(chunkIndex = cursor + 1)
+                return
+            }
+            _state.value = _state.value.copy(chunkIndex = cursor + 1)
+            // 分批补队：本批播完再从当前句继续入队，保证暂停/续播与进度精确对齐
+            if (cursor >= queuedUntil) {
+                tts?.let { enqueue(it, cursor) }
             }
         }
 
@@ -151,18 +165,23 @@ class TtsRepositoryImpl(context: Context) : TtsRepository {
         }
         sentences = list
         cursor = 0
+        queuedUntil = 0
         _state.value = _state.value.copy(speaking = true, chunkIndex = 1, chunkCount = list.size, error = null)
         onEngine { enqueue(engine, 0) }
         return true
     }
 
+    /** 只入队 [BATCH_SIZE] 句，剩下的由 onDone 回调按需补齐 */
     private fun enqueue(engine: TextToSpeech, from: Int) {
+        val end = (from + BATCH_SIZE).coerceAtMost(sentences.size)
+        if (from >= end) return
         val params = Bundle()
-        // 批量入队一次性 post 完成：逐句 post 会产生几百个 Runnable，白白占用引擎线程
-        for (i in from until sentences.size) {
+        // 同批内一次性 post 完成：逐句 post 会产生几百个 Runnable，白白占用引擎线程
+        for (i in from until end) {
             params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "chunk-$i")
             engine.speak(sentences[i], TextToSpeech.QUEUE_ADD, params, "chunk-$i")
         }
+        queuedUntil = end
     }
 
     override fun pause() {
@@ -179,6 +198,8 @@ class TtsRepositoryImpl(context: Context) : TtsRepository {
     }
 
     override fun stop() {
+        // 引擎队列被清空，已入队但未播出的部分作废（resume 会从 cursor 重新入队）
+        queuedUntil = cursor
         onEngine { tts?.stop() }
         _state.value = _state.value.copy(speaking = false)
     }
@@ -197,9 +218,6 @@ class TtsRepositoryImpl(context: Context) : TtsRepository {
 
     /**
      * 语音列表：等引擎就绪后再读取。
-     *
-     * 旧实现直接同步返回：设置页进入时引擎通常还在初始化（绑定服务 + 校验语音数据），
-     * `ready == false` 时直接返回空列表，于是 UI 永远显示"去下载"、点击就跳走。
      */
     override suspend fun availableVoices(): List<TtsVoice> {
         val engine = awaitEngine() ?: return emptyList()
@@ -244,8 +262,6 @@ class TtsRepositoryImpl(context: Context) : TtsRepository {
     /**
      * 打开系统「文字转语音」设置页。
      *
-     * 旧实现用的是 `Settings.ACTION_SETTINGS`，那是**系统设置首页** ——
-     * 用户在设置页点「去下载/去安装语音」会被扔到设置首页，看起来像"跳回首页"。
      * 这里按可用性依次尝试：TTS 设置页 → 安装语音数据 → 无障碍设置 → 系统设置首页兜底。
      */
     private fun openTtsSettingsPage() {
@@ -296,8 +312,8 @@ class TtsRepositoryImpl(context: Context) : TtsRepository {
     /** 按标点分句，超长句再按 120 字切分，避免单条过长被截断 */
     private fun splitSentences(text: String): List<String> {
         if (text.isBlank()) return emptyList()
-        val normalized = text.replace("\r", "").replace(Regex("""\n{2,}"""), "\n")
-        val raw = Regex("""(?<=[。！？!?；;…\n])""").split(normalized)
+        val normalized = text.replace("\r", "").replace(MULTI_NL_REGEX, "\n")
+        val raw = SENTENCE_SPLIT_REGEX.split(normalized)
             .map { it.trim() }
             .filter { it.isNotBlank() }
         val result = ArrayList<String>((raw.size * 1.2).toInt().coerceAtLeast(16))

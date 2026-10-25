@@ -40,13 +40,13 @@ import java.io.File
  * CBR / RAR 漫画解析
  *
  *
- * 使用约束（都已在代码里处理）：
- * 1. **只支持 RAR4 及更早格式**；RAR5 是另一套格式，junrar 解不出来 ——
+ * 使用约束：
+ * 1. 只支持 RAR4 及更早格式；RAR5 是另一套格式，junrar 解不出来 ——
  *    此时条目列表为空，解析返回 null，扫描结束会提示"RAR5 请转 CBZ"；
- * 2. `Archive` **非线程安全**：所有访问串行化到同一把锁；
+ * 2. `Archive` 非线程安全：所有访问串行化到同一把锁；
  * 3. `Archive#getInputStream` 每次调用都会**新建线程 + 管道流**，
  *    因此必须读到底并关闭，否则线程会一直挂着不退出；
- * 4. 包内图片按**自然序**排列（img2 < img10），避免页序错乱；
+ * 4. 包内图片按自然序排列（img2 < img10），避免页序错乱；
  * 5. 解压后的字节写入 [PageCache]，与 CBZ/ZIP 共用同一套缓存与内存策略。
  */
 class RarComicParser(
@@ -150,6 +150,9 @@ class RarComicParser(
 
         @Volatile
         private var archive: Archive? = null
+        /** 条目名 → FileHeader 索引：避免每翻一页都线性扫一遍条目表（1000 页的包是 O(n·页数)） */
+        @Volatile
+        private var headerIndex: Map<String, FileHeader>? = null
         private val lock = Any()
 
         /** Archive 非线程安全：打开与读取都串行化 */
@@ -157,17 +160,34 @@ class RarComicParser(
             archive ?: Archive(file).also { archive = it }
         }
 
+        private fun headersByName(): Map<String, FileHeader> = headerIndex ?: synchronized(lock) {
+            headerIndex ?: HashMap<String, FileHeader>((pages.size * 2).coerceAtLeast(16)).apply {
+                val a = archive()
+                for (h in a.fileHeaders) {
+                    if (h.isDirectory) continue
+                    put(h.entryName(), h)
+                }
+            }.also { headerIndex = it }
+        }
+
         override suspend fun resolvePage(index: Int): String? {
             val page = pages.getOrNull(index) ?: return null
             pageCache.cached(bookId, index)?.let { return it }
             val name = page.entryName ?: return null
             return runCatching {
+                val ext = name.substringAfterLast('.', "")
+                val target = headersByName()[name] ?: return null
+                if (PageCache.canStoreRaw(ext, PageCache.safeSize(target.fullUnpackSize))) {
+                    val path = synchronized(lock) {
+                        archive().getInputStream(target).use { input ->
+                            pageCache.putRawStream(bookId, index, ext) { output -> input.copyTo(output) }
+                        }
+                    }
+                    if (path != null) return@runCatching path
+                }
                 val bytes = synchronized(lock) {
-                    val target = archive().fileHeaders
-                        .firstOrNull { !it.isDirectory && it.entryName() == name }
-                    if (target == null) null
-                    else archive().getInputStream(target).use { it.readBytes() }
-                } ?: return null
+                    archive().getInputStream(target).use { it.readBytes() }
+                }
                 pageCache.putBytes(bookId, index, bytes)
             }.getOrNull()
         }
@@ -176,6 +196,7 @@ class RarComicParser(
             synchronized(lock) {
                 runCatching { archive?.close() }
                 archive = null
+                headerIndex = null
             }
         }
     }

@@ -261,6 +261,64 @@ private const val FAST_SPLIT_AFTER = 6
 /** 按行拆分后的整章块数上限，避免异常文本生成海量 Composable */
 private const val MAX_SPLIT_BLOCKS = 3000
 
+/**
+ * 分页请求的键。
+ * 用**引用相等**比较 blocks：整章几千块做值相等比较本身就是一笔开销。
+ */
+class PaginationKey(
+    val chapterIndex: Int,
+    val blocks: List<BookBlock>,
+    val fontSize: Int,
+    val lineHeightMultiplier: Float,
+    val pageWidth: Int,
+    val pageHeight: Int
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        val o = other as? PaginationKey ?: return false
+        return chapterIndex == o.chapterIndex && blocks === o.blocks &&
+            fontSize == o.fontSize && lineHeightMultiplier == o.lineHeightMultiplier &&
+            pageWidth == o.pageWidth && pageHeight == o.pageHeight
+    }
+
+    override fun hashCode(): Int {
+        var h = chapterIndex
+        h = 31 * h + fontSize
+        h = 31 * h + lineHeightMultiplier.toBits()
+        h = 31 * h + pageWidth
+        h = 31 * h + pageHeight
+        return h
+    }
+}
+
+/**
+ * 分页结果缓存。
+ *
+ * 场景：字号滑杆来回拖动、切章后又切回、屏幕旋转回到同一尺寸 ——
+ * 这些情况下排版参数完全一致，没必要重新跑一遍整章测量（长章节数百毫秒）。
+ * 只保留最近几份结果，容量很小。
+ */
+object NovelPaginationCache {
+    private const val MAX_ENTRIES = 6
+    private val map = LinkedHashMap<PaginationKey, List<NovelPage>>(MAX_ENTRIES + 1, 0.75f, true)
+
+    @Synchronized
+    fun get(key: PaginationKey): List<NovelPage>? = map[key]
+
+    @Synchronized
+    fun put(key: PaginationKey, pages: List<NovelPage>) {
+        map[key] = pages
+        if (map.size > MAX_ENTRIES) {
+            val it = map.keys.iterator()
+            it.next()
+            it.remove()
+        }
+    }
+
+    @Synchronized
+    fun clear() = map.clear()
+}
+
 /** 在当前可用高度内最多能放下多少行（二分查找） */
 private fun fitLines(layout: TextLayoutResult, availableHeight: Float): Int {
     if (layout.size.height <= availableHeight) return layout.lineCount

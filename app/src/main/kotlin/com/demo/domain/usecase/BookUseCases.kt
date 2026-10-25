@@ -28,6 +28,17 @@ class LoadShelfPageUseCase(private val repo: BookRepository) {
     )
 }
 
+/**
+ * 监听"当前筛选下的书籍总数"，作为书库变化的信号。
+ *
+ * 用途：书架此前只在手动 refresh() 时才重载，删书 / 改分组 / 导入后一旦遗漏调用，
+ * UI 与库就会不一致。这里由 Room 的 invalidation 驱动自动刷新。
+ */
+class ObserveShelfCountUseCase(private val repo: BookRepository) {
+    operator fun invoke(groupId: Long?, type: String?, favoriteOnly: Boolean): kotlinx.coroutines.flow.Flow<Int> =
+        repo.observeCount(groupId, type, favoriteOnly)
+}
+
 class SearchBooksUseCase(private val repo: BookRepository) {
     suspend operator fun invoke(keyword: String, limit: Int = 100): List<Book> =
         if (keyword.isBlank()) emptyList() else repo.search(keyword.trim(), limit)

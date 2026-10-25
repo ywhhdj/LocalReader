@@ -7,23 +7,23 @@
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"
     />
-    <!-- Android 13+ 媒体权限-->
+    <!-- Android 13+ 媒体权限 -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
-    <!-- Android 11+ 直接遍历公共目录（可选，用户在设置中授权；未授权时用 SAF） -->
+    <!-- Android 11+ 直接遍历公共目录 -->
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage"
     />
-    <!-- 仅在用户启用 WebDAV 备份或在线书源时才会产生网络请求 -->
+    <!-- 仅在用户启用 WebDAV 备份或在线书源时才会产生网络请求。
+         注意：targetSdk 34 默认禁止明文流量，http:// 的 WebDAV 会静默失败，UI 已提示使用 https -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- 数据库可能含 WebDAV 账号/备份数据：关闭 adb 备份，避免明文外泄 -->
 
     <application
         android:name=".App"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:enableOnBackInvokedCallback="true"
         android:hardwareAccelerated="true"
         android:label="@string/app_name"

@@ -5,7 +5,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
 /**
- * Legado 规则引擎（JSoup 版，零自实现 HTML 解析）。
+ * Legado 规则引擎
  *
  * 支持：
  * - CSS 选择器（JSoup 原生）：tag / .class / #id / [attr=val] / :first / :eq(n) / :contains(...)
@@ -42,12 +42,12 @@ object LegadoRuleEngine {
     if (nodes.isEmpty()) return emptyList()
     val raw = nodes.joinToString("\n") { pipeline.extractRaw(it) }
     return raw.replace(Regex("""<br\s*/?>""", RegexOption.IGNORE_CASE), "\n")
-          .replace(Regex("""</p\s*>""", RegexOption.IGNORE_CASE), "\n\n")
-          .replace(Regex("""<[^>]+>"""), "")
-          .let { RuleEngine.decodeEntitiesPublic(it) }
-          .split(Regex("""\n{2,}|\r?\n"""))
-          .map { it.trim() }
-          .filter { it.isNotBlank() }
+      .replace(Regex("""</p\s*>""", RegexOption.IGNORE_CASE), "\n\n")
+      .replace(Regex("""<[^>]+>"""), "")
+      .let { RuleEngine.decodeEntitiesPublic(it) }
+      .split(Regex("""\n{2,}|\r?\n"""))
+      .map { it.trim() }
+      .filter { it.isNotBlank() }
   }
 
   // ---------- 内部 ----------

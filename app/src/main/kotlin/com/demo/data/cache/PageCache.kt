@@ -102,6 +102,33 @@ class PageCache(filesDir: File) {
     }
 
     /**
+     * 流式原样落盘：压缩包内的图片直接写文件，不解码也不重编码。
+     * 相比 [putRaw] 的优势是不需要把整份字节读进内存（大图友好）。
+     *
+     * @param block 只负责把源数据拷进给定的输出流
+     * @return 缓存文件路径；失败返回 null（调用方回退到 [putBytes]）
+     */
+    fun putRawStream(bookId: Long, index: Int, ext: String, block: (java.io.OutputStream) -> Unit): String? {
+        val normalized = ext.lowercase().ifBlank { "jpg" }
+        if (normalized !in RAW_EXTS) return null
+        val key = pageKey(bookId, index, normalized)
+        val file = cache.file(key)
+        return runCatching {
+            file.parentFile?.mkdirs()
+            java.io.FileOutputStream(file).use { block(it) }
+            if (file.length() <= 0L) {
+                runCatching { file.delete() }
+                null
+            } else {
+                extByKey[slot(bookId, index)] = normalized
+                cache.touch(key)
+                cache.trim()
+                file.absolutePath
+            }
+        }.onFailure { runCatching { file.delete() } }.getOrNull()
+    }
+
+    /**
      * 删除指定漫画的缓存
      */
     fun clear(bookId: Long) {
@@ -130,5 +157,9 @@ class PageCache(filesDir: File) {
         /** 该条目是否可以跳过转码直接落盘 */
         fun canStoreRaw(ext: String, sizeBytes: Int): Boolean =
             ext.lowercase() in RAW_EXTS && sizeBytes in 1..RAW_MAX_BYTES
+
+        /** zip/rar 条目的 size 可能是 -1（未知）或超过 Int 范围，这里统一夹到合法区间 */
+        fun safeSize(size: Long): Int =
+            if (size in 0..RAW_MAX_BYTES.toLong()) size.toInt() else -1
     }
 }

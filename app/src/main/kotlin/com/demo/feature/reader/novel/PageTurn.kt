@@ -34,13 +34,11 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -56,6 +54,8 @@ import com.demo.core.ui.theme.runThrottledFrameLoop
 
 private const val TURN_DURATION_MS = 260
 private const val CURL_TURN_DURATION_MS = 420
+/** 仿真翻页：背面页整体压暗系数（替代每帧 saveLayer） */
+private const val BACK_PAGE_ALPHA = 0.55f
 private const val TUBE_RATIO = 0.62f
 
 /**
@@ -357,6 +357,10 @@ private fun CurlPageTurn(
                         scaleX = g.scaleX
                         translationX = g.translationX
                         transformOrigin = TransformOrigin(0f, 0.5f)
+                        // 背面压暗。旧实现在这里每帧 drawIntoCanvas + saveLayer + new Paint()：
+                        // 每帧都分配一块全屏离屏缓冲和一个 Paint 对象，中低端机 420ms 动画明显掉帧。
+                        // 用 graphicsLayer 的 alpha 直接合成，省掉离屏缓冲与对象分配。
+                        alpha = BACK_PAGE_ALPHA
                     }
                     .drawWithContent {
                         val g = curlGeometry(size.width, p, mirror)
@@ -367,12 +371,7 @@ private fun CurlPageTurn(
                                 right = g.backR.coerceAtMost(size.width),
                                 bottom = size.height
                             ) {
-                                drawIntoCanvas { canvas ->
-                                    val paint = Paint().apply { alpha = 0.42f }
-                                    canvas.saveLayer(Rect(0f, 0f, size.width, size.height), paint)
-                                    this@drawWithContent.drawContent()
-                                    canvas.restore()
-                                }
+                                this@drawWithContent.drawContent()
                                 drawRect(
                                     color = Color.Black.copy(alpha = 0.30f),
                                     topLeft = Offset(g.backL, 0f),

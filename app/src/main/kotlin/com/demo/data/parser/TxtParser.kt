@@ -37,17 +37,23 @@ class TxtParser(
         val author: String
     )
 
-    private val patterns = listOf(
-        Regex("""^\s*第\s*[0-9零一二三四五六七八九十百千万两]+\s*[章节節回卷篇部集].{0,40}$"""),
-        Regex("""^\s*(Chapter|CHAPTER|chapter|CHAPTIR)\s*[0-9IVXLC]+.{0,40}$"""),
-        Regex("""^\s*(序章|序言|前言|楔子|引子|尾声|后记|後記|番外|终章|終章|(?:內容)?[简簡]介).{0,30}$"""),
-        Regex("""^\s*(卷[0-9零一二三四五六七八九十百千万]+).{0,40}$"""),
-    )
-
     private companion object {
+        val CHAPTER_PATTERNS = listOf(
+            Regex("""^\s*第\s*[0-9零一二三四五六七八九十百千万两]+\s*[章节節回卷篇部集].{0,40}$"""),
+            Regex("""^\s*(Chapter|CHAPTER|chapter|CHAPTIR)\s*[0-9IVXLC]+.{0,40}$"""),
+            Regex("""^\s*(序章|序言|前言|楔子|引子|尾声|后记|後記|番外|终章|終章|(?:內容)?[简簡]介).{0,30}$"""),
+            Regex("""^\s*(卷[0-9零一二三四五六七八九十百千万]+).{0,40}$"""),
+        )
+        /** 空行分段 */
+        val PARAGRAPH_SPLIT_REGEX = Regex("""\n\s*\n+""")
+        /** 段内空白折叠 */
+        val BLANK_FOLD_REGEX = Regex("""[ \t　]+""")
+        /** 空白 / 全角空格归一化 */
+        val WS_NORMALIZE_REGEX = Regex("""[\s　]+""")
+
         const val HEAD_SNIFF_BYTES = 8 * 1024
-        /** 单章最大读取字节（约 2MB，超长章节截断保护） */
-        const val MAX_CHAPTER_BYTES = 2 * 1024 * 1024
+        /** 单章最大读取字节（8MB，超长章节截断保护；与 EPUB 单章上限对齐） */
+        const val MAX_CHAPTER_BYTES = 8 * 1024 * 1024
         /** 单行字节上限（异常长行截断，避免缓冲区无限增长） */
         const val MAX_LINE_BYTES = 64 * 1024
         /** 前言内容探测的最大读取字节 */
@@ -92,7 +98,7 @@ class TxtParser(
                 line.length in 1..40 &&
                     !JUNK_LINE.containsMatchIn(line) &&
                     !META_LINE.containsMatchIn(line) &&      // "作者：xxx" 这种行不当书名
-                    patterns.none { it.matches(line) }        // 章节标题行不当书名
+                    CHAPTER_PATTERNS.none { it.matches(line) }        // 章节标题行不当书名
             }
             ?.trim('《', '》')
             .orEmpty()
@@ -183,7 +189,7 @@ class TxtParser(
                 val trimmed = foldInlineRepeat(
                     text.trim().replace("\uFEFF", "").replace("\u200B", "")
                 )
-                if (trimmed.length in 1..40 && patterns.any { it.matches(trimmed) }) {
+                if (trimmed.length in 1..40 && CHAPTER_PATTERNS.any { it.matches(trimmed) }) {
                     titles.add(start to trimmed)
                 }
             }
@@ -244,7 +250,7 @@ class TxtParser(
 
     /** 标题归一化：忽略空白、全半角与常见分隔符差异 */
     private fun normalizeTitle(raw: String): String = raw
-        .replace(Regex("""[\s\u3000]+"""), "")
+        .replace(WS_NORMALIZE_REGEX, "")
         .trim('《', '》', '【', '】', '「', '」', '（', '）', '(', ')', '.', '。', '、', '：', ':')
         .lowercase()
 
@@ -255,7 +261,7 @@ class TxtParser(
     private fun foldInlineRepeat(raw: String): String {
         val core = raw.trim()
         if (core.length < 8) return core
-        val normalized = core.replace(Regex("""[\s\u3000]+"""), "")
+        val normalized = core.replace(WS_NORMALIZE_REGEX, "")
         val half = normalized.length / 2
         if (normalized.length % 2 == 0 && half >= 4 &&
             normalized.substring(0, half) == normalized.substring(half)
@@ -337,14 +343,15 @@ class TxtParser(
             BufferedInputStream(fis, 1 shl 16).use { input ->
                 val buf = ByteArray(1 shl 16)
                 var line = ByteArray(256)
-                var lineLen = 0
+                var lineLen = 0          // 实际保留在缓冲里的字节数
+                var lineBytes = 0        // 该行在文件中的真实字节数（含被截断丢弃的部分）
                 var pos = 0L
 
-                /** 追加字节；超过单行上限的部分直接丢弃（异常长行保护） */
-                fun append(src: ByteArray, from: Int, len: Int) {
-                    if (len <= 0) return
+                /** 追加字节；超过单行上限的部分直接丢弃（异常长行保护）。返回实际写入字节数 */
+                fun append(src: ByteArray, from: Int, len: Int): Int {
+                    if (len <= 0) return 0
                     val take = len.coerceAtMost(MAX_LINE_BYTES - lineLen)
-                    if (take <= 0) return
+                    if (take <= 0) return 0
                     val need = lineLen + take
                     if (need > line.size) {
                         var cap = line.size
@@ -353,12 +360,17 @@ class TxtParser(
                     }
                     System.arraycopy(src, from, line, lineLen, take)
                     lineLen += take
+                    return take
                 }
 
+                /**
+                 * 结束一行：偏移量必须按"文件里的真实字节数"累加。
+                 */
                 fun emit(byteLen: Int) {
                     onLine(String(line, 0, lineLen, charset), pos, byteLen)
                     pos += byteLen
                     lineLen = 0
+                    lineBytes = 0
                 }
 
                 while (true) {
@@ -367,14 +379,16 @@ class TxtParser(
                     var start = 0
                     for (i in 0 until n) {
                         if (buf[i] == '\n'.code.toByte()) {
-                            append(buf, start, i - start)
-                            emit(lineLen + 1)
+                            val written = append(buf, start, i - start)
+                            val skipped = (i - start) - written   // 被上限丢弃的字节
+                            emit(lineBytes + written + skipped + 1)
                             start = i + 1
                         }
                     }
-                    append(buf, start, n - start)
+                    val tail = append(buf, start, n - start)
+                    lineBytes += tail + ((n - start) - tail)
                 }
-                if (lineLen > 0) onLine(String(line, 0, lineLen, charset), pos, lineLen)
+                if (lineLen > 0) onLine(String(line, 0, lineLen, charset), pos, lineBytes)
             }
         }
     }
@@ -396,19 +410,18 @@ class TxtParser(
                 .distinct()
 
             val blocks = ArrayList<BookBlock>()
-            text.split(Regex("""\n\s*\n+"""))
+            text.split(PARAGRAPH_SPLIT_REGEX)
                 .asSequence()
                 .map { it.trim() }
                 .filter { it.isNotBlank() }
                 .forEach { paragraph ->
                     // 段内换行保留（观感：换行显示），仅折叠行尾多余空格
-                    val body = paragraph.replace(Regex("""[ \t　]+"""), " ")
+                    val body = paragraph.replace(BLANK_FOLD_REGEX, " ")
                     if (body.isNotBlank()) blocks.add(BookBlock.Paragraph(body))
                 }
             if (blocks.isEmpty()) return emptyList()
 
             // 顶部已显示章节名：剥掉正文开头重复的标题
-            // （旧实现只比对"整段 == 标题"，标题行和正文之间没有空行时合成一段，就漏掉了）
             val peeled = VolumeSplitter.peelLeadingTitles(blocks, titleCandidates)
             return VolumeSplitter.stripTitles(peeled, titleCandidates)
                 .ifEmpty { listOf(BookBlock.Paragraph("（本章无正文内容）")) }
@@ -427,10 +440,14 @@ class TxtParser(
                         skipped += n
                     }
                 }
-                val limit = if (chapter.endOffset > chapter.startOffset) {
-                    (chapter.endOffset - chapter.startOffset).coerceAtMost(MAX_CHAPTER_BYTES.toLong())
-                } else MAX_CHAPTER_BYTES
-                val buf = ByteArray(limit.toInt())
+                // 这里按"章节跨度 ∩ 文件剩余字节 ∩ 上限"取最小值，并把上限放宽到 8MB（长篇网文常见大章）。
+                val remaining = (file.length() - chapter.startOffset).coerceAtLeast(0)
+                val span = if (chapter.endOffset > chapter.startOffset) {
+                    chapter.endOffset - chapter.startOffset
+                } else remaining
+                val limit = minOf(span, remaining, MAX_CHAPTER_BYTES.toLong())
+                    .toInt().coerceAtLeast(1)
+                val buf = ByteArray(limit)
                 var read = 0
                 while (read < buf.size) {
                     val n = fis.read(buf, read, buf.size - read)

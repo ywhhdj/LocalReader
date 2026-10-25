@@ -12,10 +12,6 @@ import com.demo.assembly.cleanup.ExitCleanup
 import com.demo.assembly.di.AppContainer
 import com.demo.assembly.di.ImageLoaderFactory
 
-object BuildConfig {
-  const val DEBUG = false
-}
-
 class App : Application() {
 
     lateinit var container: AppContainer

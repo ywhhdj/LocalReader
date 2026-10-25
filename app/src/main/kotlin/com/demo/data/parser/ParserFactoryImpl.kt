@@ -16,7 +16,8 @@ class ParserFactoryImpl(
     coverStore: CoverStore,
     pageCache: PageCache,
     bookCacheDir: File,
-    textCoverFactory: TextCoverFactory = TextCoverFactory()
+    textCoverFactory: TextCoverFactory = TextCoverFactory(),
+    context: android.content.Context? = null
 ) : ParserFactory {
 
     private val novelParsers: List<NovelParser> = listOf(

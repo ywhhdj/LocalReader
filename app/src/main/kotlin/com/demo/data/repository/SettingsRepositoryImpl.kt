@@ -89,9 +89,12 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
 
     override suspend fun current(): AppSettings = observe().first()
 
+    /**
+     * 单事务更新：在 edit{} 内部读取再转换。
+     */
     override suspend fun update(transform: (AppSettings) -> AppSettings) {
-        val next = transform(current())
         context.settingsDataStore.edit { p ->
+            val next = transform(p.toSettings())
             p[Keys.THEME] = next.themeMode.value
             p[Keys.DYNAMIC] = next.dynamicColor
             p[Keys.GLASS] = next.glassLevel

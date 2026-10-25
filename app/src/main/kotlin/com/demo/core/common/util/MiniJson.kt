@@ -28,6 +28,9 @@ sealed interface Json {
 
 object MiniJson {
 
+    /** 最大嵌套深度：超过即抛错，避免深度嵌套把解析栈打爆 */
+    private const val MAX_DEPTH = 64
+
     fun parse(text: String): Json {
         val src = text.trim()
         if (src.isEmpty()) return Json.Null
@@ -123,6 +126,17 @@ object MiniJson {
     // ---------- 解析 ----------
     private class Parser(private val s: String) {
         private var pos = 0
+        /** 嵌套深度：恶意/损坏的深度嵌套会直接把解析栈打爆 */
+        private var depth = 0
+
+        private inline fun <T> withDepth(block: () -> T): T {
+            if (++depth > MAX_DEPTH) throw IllegalArgumentException("JSON 嵌套过深（> $MAX_DEPTH）")
+            return try {
+                block()
+            } finally {
+                depth--
+            }
+        }
 
         fun parseValue(): Json {
             skipWs()
@@ -138,7 +152,7 @@ object MiniJson {
             }.also { skipWs() }
         }
 
-        private fun parseObject(): Json.Obj {
+        private fun parseObject(): Json.Obj = withDepth {
             pos++ // {
             val map = LinkedHashMap<String, Json>()
             skipWs()
@@ -161,7 +175,7 @@ object MiniJson {
             return Json.Obj(map)
         }
 
-        private fun parseArray(): Json.Arr {
+        private fun parseArray(): Json.Arr = withDepth {
             pos++ // [
             val items = ArrayList<Json>()
             skipWs()

@@ -50,7 +50,19 @@ object FormatUtil {
         return cal.timeInMillis
     }
 
-    fun dayKey(millis: Long): Long = millis / 86_400_000L
+    /**
+     * 当前本地时区相对 UTC 的偏移毫秒（含夏令时）。
+     * SQL 分组需要与 Kotlin 侧使用同一偏移，否则"今日时长 / 柱状图 / 连续天数"三者口径不一致
+     * （东八区下会变成以本地早上 8:00 分界）。
+     */
+    fun zoneOffsetMillis(now: Long = System.currentTimeMillis()): Long =
+        java.util.TimeZone.getDefault().getOffset(now).toLong()
+
+    /**
+     * 本地日键。必须与 SQL 端 `(start_at + :offset) / 86400000` 保持同一公式，
+     * 且与 [startOfToday]（本地零点）对齐。
+     */
+    fun dayKey(millis: Long): Long = (millis + zoneOffsetMillis(millis)) / 86_400_000L
 
     fun weekdayLabel(millis: Long): String =
         SimpleDateFormat("EEE", Locale.getDefault()).format(Date(millis))

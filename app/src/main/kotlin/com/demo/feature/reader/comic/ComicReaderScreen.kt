@@ -76,8 +76,9 @@ fun ComicReaderScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val paths by viewModel.paths.collectAsStateWithLifecycle()
-    val aspects by viewModel.pageAspects.collectAsStateWithLifecycle()
+    // 直接读快照表（按 key 粒度订阅）：不再整体 collect Map，避免每解析一页整列重组
+    val paths = viewModel.paths
+    val aspects = viewModel.pageAspects
     val scroll by viewModel.scrollRequest.collectAsStateWithLifecycle()
     val pages = state.pages
     val range = state.chapterRange

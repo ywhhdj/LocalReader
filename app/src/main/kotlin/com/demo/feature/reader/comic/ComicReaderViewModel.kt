@@ -1,6 +1,7 @@
 package com.demo.feature.reader.comic
 
 import android.graphics.BitmapFactory
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
@@ -86,15 +87,34 @@ class ComicReaderViewModel(
     private val _scrollRequest = MutableStateFlow<PageScrollRequest?>(null)
     val scrollRequest: StateFlow<PageScrollRequest?> = _scrollRequest.asStateFlow()
 
-    /** index -> 本地缓存路径，仅保留窗口内 */
+    /**
+     * index -> 本地缓存路径，仅保留窗口内。
+     *
+     * 用 SnapshotStateMap 而非 StateFlow<Map>：旧实现每解析一页就 `resolved.toMap()`
+     * 复制整个 Map 并整体发布，快速滚动时几十次复制 + 同等次数的整列重组；
+     * 现在按 key 写入，只有读到该 key 的那一项会重组。
+     */
     private val resolved = HashMap<Int, String>()
-    private val pagePaths = MutableStateFlow<Map<Int, String>>(emptyMap())
-    val paths: StateFlow<Map<Int, String>> = pagePaths.asStateFlow()
+    private val pagePathsSnapshot = mutableStateMapOf<Int, String>()
+    val paths: Map<Int, String> get() = pagePathsSnapshot
 
-    /** index -> 宽高比（未解码时按此比例占位，避免图片到位后跳动） */
+    /** index -> 宽高比（未解码时按此比例占位，避免图片到位后跳动）；同样按 key 粒度发布 */
     private val aspectMap = HashMap<Int, Float>()
-    private val pageAspectsState = MutableStateFlow<Map<Int, Float>>(emptyMap())
-    val pageAspects: StateFlow<Map<Int, Float>> = pageAspectsState.asStateFlow()
+    private val pageAspectsSnapshot = mutableStateMapOf<Int, Float>()
+    val pageAspects: Map<Int, Float> get() = pageAspectsSnapshot
+
+    /** 窗口内页路径整体同步到快照（进入新窗口 / 退出清理时用） */
+    private fun publishPaths() {
+        val stale = pagePathsSnapshot.keys.filter { it !in resolved }
+        stale.forEach { pagePathsSnapshot.remove(it) }
+        resolved.forEach { (k, v) -> pagePathsSnapshot[k] = v }
+    }
+
+    private fun publishAspects() {
+        val stale = pageAspectsSnapshot.keys.filter { it !in aspectMap }
+        stale.forEach { pageAspectsSnapshot.remove(it) }
+        aspectMap.forEach { (k, v) -> pageAspectsSnapshot[k] = v }
+    }
 
     private var content: ComicContent? = null
     private var sessionId: Long = 0L
@@ -123,7 +143,7 @@ class ComicReaderViewModel(
         // 已解析的页路径保留，避免正在看的几页突然变空白。
         unregisterMemoryPressure = MemoryPressure.register {
             aspectMap.clear()
-            pageAspectsState.value = emptyMap()
+            pageAspectsSnapshot.clear()
         }
         viewModelScope.launch {
             settingsRepository.observe().collectLatest { settings ->
@@ -131,10 +151,17 @@ class ComicReaderViewModel(
                 _uiState.update { it.copy(settings = settings) }
             }
         }
+        // 采样节流：每 PROGRESS_THROTTLE_MS 落库一次"期间最新页"。
+        // 旧写法 collectLatest { delay(...) } 会被新页位置取消等待，连续翻页时进度几乎不落库。
         viewModelScope.launch {
-            pendingProgress.collectLatest { index ->
+            var latest: Int? = null
+            launch { pendingProgress.collect { latest = it } }
+            while (true) {
                 delay(PROGRESS_THROTTLE_MS)
-                commitProgress(index)
+                latest?.let { index ->
+                    latest = null
+                    commitProgress(index)
+                }
             }
         }
     }
@@ -283,8 +310,8 @@ class ComicReaderViewModel(
         aspectMap.entries.iterator().let { itr ->
             while (itr.hasNext()) if (itr.next().key !in keepFrom..keepTo) itr.remove()
         }
-        pagePaths.value = resolved.toMap()
-        pageAspectsState.value = aspectMap.toMap()
+        publishPaths()
+        publishAspects()
 
         windowJob?.cancel()
         windowJob = viewModelScope.launch {
@@ -301,10 +328,10 @@ class ComicReaderViewModel(
                 // 先量出宽高比再发布路径：占位与最终图片高度一致，滚动不跳动
                 if (ratio > 0f) {
                     aspectMap[i] = ratio
-                    pageAspectsState.value = aspectMap.toMap()
+                    pageAspectsSnapshot[i] = ratio
                 }
                 resolved[i] = path
-                pagePaths.value = resolved.toMap()
+                pagePathsSnapshot[i] = path
             }
         }
     }
@@ -337,9 +364,9 @@ class ComicReaderViewModel(
         content?.close()
         content = null
         resolved.clear()
-        pagePaths.value = emptyMap()
+        pagePathsSnapshot.clear()
         aspectMap.clear()
-        pageAspectsState.value = emptyMap()
+        pageAspectsSnapshot.clear()
     }
 
     private companion object {

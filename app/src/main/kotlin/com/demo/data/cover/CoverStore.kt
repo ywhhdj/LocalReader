@@ -38,8 +38,15 @@ class CoverStore(filesDir: File) {
         return write(scaled, sourceKey, recycled = bitmap !== scaled)
     }
 
-    fun save(stream: InputStream, sourceKey: String): String? =
-        save(stream.readBytes(), sourceKey)
+    /**
+     * 从流生成封面：流式解码。
+     * EPUB 内嵌封面经常是 5MB 的原图
+     */
+    fun save(stream: InputStream, sourceKey: String): String? {
+        val bitmap = ImageTools.decodeSampled(stream, Constants.COVER_MAX_EDGE) ?: return null
+        val scaled = ImageTools.scaleIfNeeded(bitmap, Constants.COVER_MAX_EDGE)
+        return write(scaled, sourceKey, recycled = bitmap !== scaled)
+    }
 
     fun save(bitmap: Bitmap, sourceKey: String): String? {
         val scaled = ImageTools.scaleIfNeeded(bitmap, Constants.COVER_MAX_EDGE)

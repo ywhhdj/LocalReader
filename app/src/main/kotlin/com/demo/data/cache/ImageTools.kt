@@ -22,6 +22,40 @@ object ImageTools {
         return opts.outWidth to opts.outHeight
     }
 
+    /** 从流里读边界（只解头部，不分配像素内存） */
+    fun decodeBounds(stream: java.io.InputStream): Pair<Int, Int> {
+        val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        stream.mark(Int.MAX_VALUE)
+        BitmapFactory.decodeStream(stream, null, opts)
+        runCatching { stream.reset() }
+        return opts.outWidth to opts.outHeight
+    }
+
+    /**
+     * 流式采样解码：不把整份字节读进内存。
+     * 用于 EPUB 内嵌封面（可能是 5MB 的原图）——旧实现 readBytes() 会先整份入内存再解码，
+     * 峰值内存直接翻倍。
+     */
+    fun decodeSampled(stream: java.io.InputStream, maxEdge: Int): Bitmap? {
+        if (!stream.markSupported()) {
+            // 不支持回退（如 ZipInputStream）：先落临时字节数组，仍走原路径
+            return decodeSampled(stream.readBytes(), maxEdge)
+        }
+        val (w, h) = decodeBounds(stream)
+        if (w <= 0 || h <= 0) return null
+        val sample = calculateInSampleSize(w, h, maxEdge)
+        val opts = BitmapFactory.Options().apply {
+            inSampleSize = sample
+            inPreferredConfig = Bitmap.Config.RGB_565
+        }
+        return try {
+            BitmapFactory.decodeStream(stream, null, opts)
+        } catch (e: Throwable) {
+            Log.w("ImageTools", "decode stream failed", e)
+            null
+        }
+    }
+
     fun decodeSampled(bytes: ByteArray, maxEdge: Int): Bitmap? {
         val (w, h) = decodeBounds(bytes)
         if (w <= 0 || h <= 0) return null
@@ -43,7 +77,9 @@ object ImageTools {
         var sample = 1
         val longEdge = max(width, height)
         while (longEdge / (sample * 2) >= maxEdge) sample *= 2
-        return min(sample, 8)
+        // 上限提到 32：8000px 的图旧上限只有 8，解码到 1000px 后还要再缩放一次，
+        // 峰值内存与耗时都白白翻倍。
+        return min(sample, 32)
     }
 
     fun scaleIfNeeded(bitmap: Bitmap, maxEdge: Int): Bitmap {

@@ -17,6 +17,8 @@ object EncodingDetector {
 
     /** GB18030 放首位：它是全字节覆盖且兼容 GBK，普通 GBK 文本打分不会低于 GBK */
     private val CANDIDATES = listOf("GB18030", "GBK", "BIG5", "EUC-KR", "Shift_JIS")
+    /** 尾部允许的最大不完整多字节字符数（UTF-8 最长 4 字节，采样截断最多残留 3） */
+    private const val MAX_TRAILING_BAD = 3
     
 
     fun detect(file: File, sample: Int = 96 * 1024): Charset {
@@ -91,21 +93,26 @@ object EncodingDetector {
      */
     private fun isStrictUtf8(bytes: ByteArray): Boolean {
         if (bytes.isEmpty()) return true
-        // 依次尝试去掉末尾 0~3 字节
-        for (trim in 0..3) {
-            val len = bytes.size - trim
-            if (len <= 0) return true
-            try {
-                val decoder = StandardCharsets.UTF_8.newDecoder()
-                    .onMalformedInput(CodingErrorAction.REPORT)
-                    .onUnmappableCharacter(CodingErrorAction.REPORT)
-                decoder.decode(ByteBuffer.wrap(bytes, 0, len))
-                return true
-            } catch (e: Exception) {
-                // 继续尝试更短尾部
+        // 只解码一次（旧实现最多解码 4 次、每次新建 decoder，每个 TXT 入库前都要跑一遍）。
+        // 用 REPLACE 统计替换符 U+FFFD 的数量与位置：
+        //  0 个 → 合法 UTF-8；
+        //  仅出现在输出末尾 ≤3 个 → 采样正好切在多字节汉字中间，仍按 UTF-8 处理
+        //    （不放宽的话 UTF-8 会被误判成 GBK，整本乱码）。
+        val decoder = StandardCharsets.UTF_8.newDecoder()
+            .onMalformedInput(CodingErrorAction.REPLACE)
+            .onUnmappableCharacter(CodingErrorAction.REPLACE)
+        val cb = runCatching { decoder.decode(ByteBuffer.wrap(bytes)) }
+            .getOrNull() ?: return false
+        var count = 0
+        var firstBadFromEnd = -1
+        for (i in cb.length - 1 downTo 0) {
+            if (cb[i] == '�') {
+                count++
+                if (firstBadFromEnd < 0) firstBadFromEnd = i
             }
         }
-        return false
+        if (count == 0) return true
+        return count <= MAX_TRAILING_BAD && firstBadFromEnd >= cb.length - MAX_TRAILING_BAD
     }
 
     /** 打分：CJK/中文标点正向，替换符/控制符负向；无 CJK 的候选重罚 */

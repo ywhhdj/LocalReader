@@ -23,6 +23,18 @@ object MemoryUtils {
         return max(32L * 1024 * 1024, avail / 8)
     }
 
+    /**
+     * PDF 单页渲染的长边上限：按设备内存分档。
+     * 2048 长边的 ARGB_8888 位图约 16MB，低端机连续翻页很容易 OOM。
+     */
+    fun pdfPageMaxEdge(context: Context?): Int {
+        if (context == null) return 1600
+        val lowRam = runCatching { isLowRamDevice(context) }.getOrDefault(false)
+        if (lowRam) return 1280
+        val budget = imageBudgetBytes(context)
+        return if (budget >= 96L * 1024 * 1024) 2048 else 1600
+    }
+
     /** 依据内存等级给出漫画预加载页数：4-6 */
     fun preloadPageCount(context: Context): Int {
         if (isLowRamDevice(context)) return 4

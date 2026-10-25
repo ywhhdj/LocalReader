@@ -38,10 +38,14 @@ object FileUtil {
         .trim()
 
     /** 删除目录及其内容 */
+    /**
+     * 递归删除。
+     * 旧实现先手工递归删一遍子项、再调 File#deleteRecursively() 又递归一遍 ——
+     * 目录树被遍历两次，删除一本漫画的缓存要付双倍 IO。这里只保留一次递归。
+     */
     fun deleteRecursively(file: File?): Boolean {
         if (file == null) return false
         return try {
-            if (file.isDirectory) file.listFiles()?.forEach { deleteRecursively(it) }
             file.deleteRecursively()
         } catch (e: Exception) {
             false

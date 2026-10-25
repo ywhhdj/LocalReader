@@ -22,10 +22,25 @@ class BookRepositoryImpl(
     private val bookCacheDir: java.io.File? = null
 ) : BookRepository {
 
+    /**
+     * LIKE 通配符转义：用户输入 `%` / `_` 时不该命中全部书籍
+     * （SQL 侧统一带 ESCAPE '\'，这里负责把通配符转成字面量）。
+     */
+    private fun escapeLike(keyword: String): String = buildString(keyword.length + 8) {
+        keyword.forEach { c ->
+            when (c) {
+                '\\' -> append("\\\\")
+                '%' -> append("\\%")
+                '_' -> append("\\_")
+                else -> append(c)
+            }
+        }
+    }
+
     override suspend fun page(filter: BookFilter): List<Book> = withContext(Dispatchers.IO) {
         val type = filter.type?.value
         val fav = if (filter.favoriteOnly) 1 else 0
-        val kw = filter.keyword.trim()
+        val kw = escapeLike(filter.keyword.trim())
         val entities = when (filter.sort) {
             SortOrder.LAST_READ -> bookDao.pagedByLastRead(filter.groupId, type, fav, kw, filter.limit, filter.offset)
             SortOrder.RECENT_ADDED -> bookDao.pagedByRecentAdded(filter.groupId, type, fav, kw, filter.limit, filter.offset)
@@ -48,7 +63,7 @@ class BookRepositoryImpl(
     }
 
     override suspend fun search(keyword: String, limit: Int): List<Book> = withContext(Dispatchers.IO) {
-        bookDao.pagedByLastRead(null, null, 0, keyword.trim(), limit, 0).map { it.toModel() }
+        bookDao.pagedByLastRead(null, null, 0, escapeLike(keyword.trim()), limit, 0).map { it.toModel() }
     }
 
     override suspend fun getById(id: Long): Book? = withContext(Dispatchers.IO) {
@@ -57,6 +72,9 @@ class BookRepositoryImpl(
 
     override fun observeShelf(groupId: Long?, type: String?, limit: Int): Flow<List<Book>> =
         bookDao.observeShelf(groupId, type, limit).map { list -> list.map { it.toModel() } }
+
+    override fun observeCount(groupId: Long?, type: String?, favoriteOnly: Boolean): Flow<Int> =
+        bookDao.observeCount(groupId, type, if (favoriteOnly) 1 else 0)
 
     override suspend fun upsert(book: Book): Long = withContext(Dispatchers.IO) {
         bookDao.upsert(book.toEntity())

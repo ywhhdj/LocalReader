@@ -179,19 +179,48 @@ fun NovelReaderScreen(
             listOfNotNull(header) + state.blocks
         }
 
-        val pages = remember(
+        // 排版参数（引用比较，避免整章 blocks 做值相等比较）
+        val paginationKey = remember(
             allBlocks, state.settings.fontSize, state.settings.lineHeightMultiplier,
-            pageWidthPx, pageHeightPx,contentTopPadding
+            pageWidthPx, pageHeightPx
         ) {
-            paginateNovel(
-                measurer = textMeasurer,
+            PaginationKey(
+                chapterIndex = state.chapterIndex,
                 blocks = allBlocks,
-                pageWidth = pageWidthPx,
-                pageHeight = pageHeightPx,
                 fontSize = state.settings.fontSize,
                 lineHeightMultiplier = state.settings.lineHeightMultiplier,
+                pageWidth = pageWidthPx,
+                pageHeight = pageHeightPx
+            )
+        }
+
+        /**
+         * 分页不再在组合期同步执行。
+         *
+         * 旧写法 `remember { paginateNovel(...) }` 会在**组合帧内**测量整章几千个块，
+         * 长章节占用主线程数百毫秒～数秒，直接表现为切章黑屏 / 掉帧 / ANR。
+         * 这里改为：首帧先给出缓存（或空页），排版放到 LaunchedEffect 里执行 ——
+         * 组合帧不再被阻塞，界面保持可响应。
+         *
+         * 注意：TextMeasurer 不是线程安全的，因此这里仍然跑在主线程，
+         * 只是**不在组合帧内**；真正下沉到后台线程需要先把文本测量换成自绘排版。
+         */
+        var pages by remember { mutableStateOf(NovelPaginationCache.get(paginationKey) ?: listOf(NovelPage(emptyList()))) }
+        LaunchedEffect(paginationKey) {
+            NovelPaginationCache.get(paginationKey)?.let { pages = it; return@LaunchedEffect }
+            // 切章/改字号时先清空，避免上一章的页内容在本帧残留
+            pages = listOf(NovelPage(emptyList()))
+            val result = paginateNovel(
+                measurer = textMeasurer,
+                blocks = paginationKey.blocks,
+                pageWidth = paginationKey.pageWidth,
+                pageHeight = paginationKey.pageHeight,
+                fontSize = paginationKey.fontSize,
+                lineHeightMultiplier = paginationKey.lineHeightMultiplier,
                 density = density
             )
+            NovelPaginationCache.put(paginationKey, result)
+            pages = result
         }
 
         // 字号/行距变化后页数会变少，副作用里把越界页码收回

@@ -70,6 +70,7 @@ import coil.compose.AsyncImage
 import com.demo.core.common.util.FormatUtil
 import com.demo.core.common.util.VolumeSplitter
 import com.demo.core.model.Book
+import com.demo.core.model.BookFormat
 import com.demo.core.model.BookType
 import com.demo.core.model.Chapter
 import com.demo.core.ui.components.AppBackdrop

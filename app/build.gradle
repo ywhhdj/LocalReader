@@ -31,13 +31,17 @@ android {
         versionCode 1
         versionName "0.1.1"
     }
+    def keystoreFile = rootProject.file('../keystore/release.jks')
+    def hasReleaseSigning = keystoreFile.exists() && storePass && aliasName && keyPass
 
     signingConfigs {
         release {
-            storeFile file("../keystore/release.jks")
-            storePassword storePass
-            keyAlias aliasName
-            keyPassword keyPass
+            if (hasReleaseSigning) {
+                storeFile keystoreFile
+                storePassword storePass
+                keyAlias aliasName
+                keyPassword keyPass
+            }
         }
     }
     
@@ -46,7 +50,11 @@ android {
 
         release {
             ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }
-            signingConfig signingConfigs.release
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
             minifyEnabled true
             shrinkResources true
             proguardFiles(
@@ -59,6 +67,7 @@ android {
 
     buildFeatures {
         compose true
+        buildConfig = true
     }
 
     compileOptions {

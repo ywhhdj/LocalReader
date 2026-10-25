@@ -19,6 +19,8 @@ class StatsRepositoryImpl(
 
     override suspend fun stats(): ReadingStats = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
+        // 日界统一按本地时区：SQL 分组与 Kotlin 侧使用同一个偏移
+        val offset = FormatUtil.zoneOffsetMillis(now)
         val startOfToday = FormatUtil.startOfToday(now)
         val weekStart = startOfToday - 6L * 86_400_000L
 
@@ -26,7 +28,7 @@ class StatsRepositoryImpl(
         val week = sessionDao.sumSince(weekStart)
         val total = sessionDao.sumAll()
 
-        val daily = sessionDao.dailySince(weekStart).associate { it.dayKey to it.total }
+        val daily = sessionDao.dailySince(weekStart, offset).associate { it.dayKey to it.total }
         val last7 = (0..6).map { offset ->
             val millis = weekStart + offset * 86_400_000L
             val key = FormatUtil.dayKey(millis)
@@ -59,7 +61,7 @@ class StatsRepositoryImpl(
 
     /** 连续阅读天数：从今天（或昨天）向前累加 */
     private suspend fun streakDays(): Int {
-        val keys = sessionDao.recentDayKeys(400).toSet()
+        val keys = sessionDao.recentDayKeys(400, FormatUtil.zoneOffsetMillis()).toSet()
         if (keys.isEmpty()) return 0
         val today = FormatUtil.dayKey(System.currentTimeMillis())
         var cursor = if (keys.contains(today)) today else today - 1

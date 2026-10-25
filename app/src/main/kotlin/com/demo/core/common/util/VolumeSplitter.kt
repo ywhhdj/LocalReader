@@ -28,6 +28,12 @@ object VolumeSplitter {
     private val SPECIAL_MARK = Regex(
         """序章|序言|楔子|引子|前言|尾声|后记|後記|番外|终章|終章|内容简介|內容簡介|简介"""
     )
+    /** 空白 / 全角空格 */
+    private val WS_REGEX = Regex("""[\s　]+""")
+    /** 常见中英文标点 */
+    private val PUNCT_REGEX = Regex(
+        """[，。、！？：；“”‘’（）《》〈〉〔〕【】「」『』·—…\-_,.!?:;"'()\[\]{}|/\\~`*#]"""
+    )
 
     /** 卷标记必须出现在标题靠前位置，避免正文式长标题被误判 */
     private const val VOLUME_HEAD_LIMIT = 8
@@ -273,16 +279,14 @@ object VolumeSplitter {
             SPECIAL_MARK.containsMatchIn(title) ||
             VOLUME_MARK.containsMatchIn(title)
 
-    /** 归一化：去空白与标点，便于标题比对 */
+    /**
+     * 归一化：去空白与标点，便于标题比对。
+     * 标题比对是高频调用（每章多次），正则必须复用编译结果。
+     */
     fun normalize(text: String): String = text
         .replace("\uFEFF", "")
-        .replace(Regex("""[\s　]+"""), "")
-        .replace(
-            Regex(
-                """[，。、！？：；“”‘’（）《》〈〉〔〕【】「」『』·—…\-_,.!?:;"'()\[\]{}|/\\~`*#]"""
-            ),
-            ""
-        )
+        .replace(WS_REGEX, "")
+        .replace(PUNCT_REGEX, "")
 
     const val VOLUME_FIRST_TITLE = "卷首"
     /** 开头最多剥离几块（防止异常文本被剥空） */

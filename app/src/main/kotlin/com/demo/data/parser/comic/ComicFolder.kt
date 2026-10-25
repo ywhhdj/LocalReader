@@ -35,6 +35,9 @@ object ComicFolder {
     private val imageComparator = compareBy(NaturalOrderComparator) { f: File -> f.name }
     private val dirComparator = compareBy(NaturalOrderComparator) { f: File -> f.name }
 
+    private const val SNAPSHOT_TTL_MS = 5_000L
+    private const val SNAPSHOT_CACHE_MAX = 512
+
     /** 目录中的一话：话名 + 该话页面文件（自然序） */
     data class FolderChapter(
         val title: String,
@@ -46,9 +49,54 @@ object ComicFolder {
             FileUtil.extension(file.name) in Constants.IMAGE_EXTENSIONS
 
     /** 一次 listFiles 的结果快照：图片 + 可见子目录 */
-    private class Snapshot(val images: List<File>, val dirs: List<File>)
+    internal class Snapshot(val images: List<File>, val dirs: List<File>)
+
+    /**
+     * 快照缓存（短 TTL + 有界）。
+     *
+     * 目录判定的链路里同一个目录会被反复遍历：
+     * `isComicFolder()` 内部 snapshot + imagesInDeep 各算一遍，命中后 `chaptersOf()`
+     * 又完整算一遍 —— 每个漫画目录至少 2~4 次全目录遍历，扫描大目录时非常明显。
+     * 判定与建结构通常紧挨着发生，因此这里按路径缓存一次快照即可。
+     */
+    private val snapshotCache = LinkedHashMap<String, Pair<Snapshot, Long>>(64, 0.75f, true)
+
+    @Synchronized
+    private fun cachedSnapshot(dir: File): Snapshot? {
+        val hit = snapshotCache[dir.absolutePath] ?: return null
+        val (snap, at) = hit
+        if (System.currentTimeMillis() - at > SNAPSHOT_TTL_MS) {
+            snapshotCache.remove(dir.absolutePath)
+            return null
+        }
+        return snap
+    }
+
+    @Synchronized
+    private fun putSnapshot(dir: File, snap: Snapshot) {
+        snapshotCache[dir.absolutePath] = snap to System.currentTimeMillis()
+        if (snapshotCache.size > SNAPSHOT_CACHE_MAX) {
+            val it = snapshotCache.keys.iterator()
+            var drop = SNAPSHOT_CACHE_MAX / 4
+            while (drop-- > 0 && it.hasNext()) {
+                it.next()
+                it.remove()
+            }
+        }
+    }
+
+    /** 扫描 / 导入结束后调用，释放缓存并避免读到过期结构 */
+    @Synchronized
+    fun clearSnapshotCache() = snapshotCache.clear()
 
     private fun snapshot(dir: File): Snapshot {
+        cachedSnapshot(dir)?.let { return it }
+        val snap = scanSnapshot(dir)
+        putSnapshot(dir, snap)
+        return snap
+    }
+
+    private fun scanSnapshot(dir: File): Snapshot {
         val all = dir.listFiles()
         if (all.isNullOrEmpty()) return Snapshot(emptyList(), emptyList())
         val images = ArrayList<File>(all.size)

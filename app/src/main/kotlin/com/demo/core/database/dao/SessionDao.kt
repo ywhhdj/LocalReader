@@ -21,12 +21,14 @@ interface SessionDao {
     @Query("SELECT COALESCE(SUM(duration_ms), 0) FROM reading_sessions")
     suspend fun sumAll(): Long
 
+    // 日界按"本地时区 0 点"切分：start_at 是 UTC 毫秒，需先加本地偏移再整除。
+    // :offset 由调用方传入 FormatUtil.zoneOffsetMillis()，保证与 Kotlin 侧口径一致。
     @Query(
-        """SELECT start_at / 86400000 AS dayKey, COALESCE(SUM(duration_ms), 0) AS total
+        """SELECT (start_at + :offset) / 86400000 AS dayKey, COALESCE(SUM(duration_ms), 0) AS total
            FROM reading_sessions WHERE start_at >= :from
            GROUP BY dayKey ORDER BY dayKey ASC"""
     )
-    suspend fun dailySince(from: Long): List<DayAggregate>
+    suspend fun dailySince(from: Long, offset: Long): List<DayAggregate>
 
     @Query(
         """SELECT b.type AS typeName, COALESCE(SUM(s.duration_ms), 0) AS total
@@ -35,8 +37,11 @@ interface SessionDao {
     )
     suspend fun sumByType(): List<TypeAggregate>
 
-    @Query("SELECT DISTINCT start_at / 86400000 FROM reading_sessions ORDER BY 1 DESC LIMIT :limit")
-    suspend fun recentDayKeys(limit: Int): List<Long>
+    @Query(
+        """SELECT DISTINCT (start_at + :offset) / 86400000 FROM reading_sessions
+           ORDER BY 1 DESC LIMIT :limit"""
+    )
+    suspend fun recentDayKeys(limit: Int, offset: Long): List<Long>
 
     @Query("DELETE FROM reading_sessions")
     suspend fun clear()

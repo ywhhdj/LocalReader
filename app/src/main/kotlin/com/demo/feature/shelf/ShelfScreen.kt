@@ -91,7 +91,6 @@ import com.demo.core.ui.components.AppChipRow
 import com.demo.core.ui.components.AppLoading
 import com.demo.core.ui.glass.GlassIconButton
 
-
 import kotlinx.coroutines.launch
 
 @Composable
@@ -381,96 +380,6 @@ private fun GridModeMenuItem(
     )
 }
 
-// 详细列表模式的横向行卡片
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun BookListCard(
-    book: Book,
-    selected: Boolean,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit
-) {
-    val context = LocalContext.current
-    // 同上：请求对象缓存，避免每次重组重启加载
-    val coverRequest = remember(book.coverPath, context) {
-        if (book.coverPath.isNullOrBlank()) {
-            null
-        } else {
-            ImageRequest.Builder(context)
-                .data(book.coverPath)
-                .size(112, 152)
-                .crossfade(false)
-                .build()
-        }
-    }
-    val shape = RoundedCornerShape(12.dp)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
-            .then(
-                if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, shape)
-                else Modifier
-            )
-            .then(
-                Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            )
-            .padding(10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(width = 56.dp, height = 76.dp)
-                .clip(RoundedCornerShape(6.dp))
-                .background(Brush.linearGradient(listOf(CoverPlaceholderA, CoverPlaceholderB))),
-            contentAlignment = Alignment.Center
-        ) {
-            if (coverRequest != null) {
-                AsyncImage(
-                    model = coverRequest,
-                    contentDescription = book.title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Text(
-                    text = book.title.trim().firstOrNull()?.toString() ?: "书",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White
-                )
-            }
-        }
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = book.title,
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = book.author.ifBlank { book.displayMeta() },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            if (book.progress > 0f) {
-                Spacer(Modifier.height(8.dp))
-                LinearProgressIndicator(
-                    progress = { book.progress.coerceIn(0f, 1f) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(2.dp)
-                        .clip(RoundedCornerShape(50))
-                )
-            }
-        }
-    }
-}
 
 /** 筛选面板：类型 + 排序 */
 @OptIn(ExperimentalMaterial3Api::class)

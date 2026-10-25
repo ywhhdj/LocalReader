@@ -12,6 +12,13 @@ import java.util.zip.ZipFile
 
 internal object EpubCover {
 
+    /** 封面扫描最多看几章 */
+    private const val COVER_SCAN_CHAPTERS = 3
+    /** 单章扫描上限：超过这个体积的条目不读（正文里嵌了大图的情况） */
+    private const val COVER_SCAN_MAX_ENTRY_BYTES = 256L * 1024
+
+    private val IMG_SRC_REGEX = Regex("""<img[^>]*src\s*=\s*["']([^"']+)["']""", RegexOption.IGNORE_CASE)
+
     fun resolve(
         zip: ZipFile,
         opf: Opf,
@@ -25,15 +32,14 @@ internal object EpubCover {
         opf.coverId?.let { opf.manifest[it]?.href }?.let { hrefs.add(PathUtils.joinPath(basePath, it)) }
         opf.manifest.values.firstOrNull { it.mediaType.startsWith("image/") }
             ?.let { hrefs.add(PathUtils.joinPath(basePath, it.href)) }
-        chapters.firstNotNullOfOrNull { ch ->
+        chapters.take(COVER_SCAN_CHAPTERS).firstNotNullOfOrNull { ch ->
             val entry = zip.getEntry(ch.href)
-            if (entry == null) null
+            if (entry == null || entry.size > COVER_SCAN_MAX_ENTRY_BYTES) null
             else {
                 val bytes = ZipUtils.readEntryBytes(zip, entry)
                 val html = bytes?.let { String(it, XmlUtils.detectHtmlCharset(it)) }
                 html?.let {
-                    Regex("""<img[^>]*src\s*=\s*["']([^"']+)["']""", RegexOption.IGNORE_CASE).find(it)
-                        ?.groupValues?.get(1)
+                    IMG_SRC_REGEX.find(it)?.groupValues?.get(1)
                 }?.let { PathUtils.joinPath(entry.name.substringBeforeLast('/', ""), it) }
             }
         }?.let { hrefs.add(it) }

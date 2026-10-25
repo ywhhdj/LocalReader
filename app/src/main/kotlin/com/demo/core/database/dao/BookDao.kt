@@ -21,7 +21,7 @@ interface BookDao {
            WHERE (:groupId IS NULL OR group_id = :groupId)
              AND (:type IS NULL OR type = :type)
              AND (:favoriteOnly = 0 OR favorite = 1)
-             AND (:keyword = '' OR title LIKE '%' || :keyword || '%' OR author LIKE '%' || :keyword || '%')
+             AND (:keyword = '' OR title LIKE '%' || :keyword || '%' ESCAPE '\\' OR author LIKE '%' || :keyword || '%' ESCAPE '\\')
            ORDER BY last_read_at DESC, added_at DESC
            LIMIT :limit OFFSET :offset"""
     )
@@ -34,7 +34,7 @@ interface BookDao {
            WHERE (:groupId IS NULL OR group_id = :groupId)
              AND (:type IS NULL OR type = :type)
              AND (:favoriteOnly = 0 OR favorite = 1)
-             AND (:keyword = '' OR title LIKE '%' || :keyword || '%' OR author LIKE '%' || :keyword || '%')
+             AND (:keyword = '' OR title LIKE '%' || :keyword || '%' ESCAPE '\\' OR author LIKE '%' || :keyword || '%' ESCAPE '\\')
            ORDER BY added_at DESC
            LIMIT :limit OFFSET :offset"""
     )
@@ -47,7 +47,7 @@ interface BookDao {
            WHERE (:groupId IS NULL OR group_id = :groupId)
              AND (:type IS NULL OR type = :type)
              AND (:favoriteOnly = 0 OR favorite = 1)
-             AND (:keyword = '' OR title LIKE '%' || :keyword || '%' OR author LIKE '%' || :keyword || '%')
+             AND (:keyword = '' OR title LIKE '%' || :keyword || '%' ESCAPE '\\' OR author LIKE '%' || :keyword || '%' ESCAPE '\\')
            ORDER BY title COLLATE NOCASE ASC
            LIMIT :limit OFFSET :offset"""
     )
@@ -60,7 +60,7 @@ interface BookDao {
            WHERE (:groupId IS NULL OR group_id = :groupId)
              AND (:type IS NULL OR type = :type)
              AND (:favoriteOnly = 0 OR favorite = 1)
-             AND (:keyword = '' OR title LIKE '%' || :keyword || '%' OR author LIKE '%' || :keyword || '%')
+             AND (:keyword = '' OR title LIKE '%' || :keyword || '%' ESCAPE '\\' OR author LIKE '%' || :keyword || '%' ESCAPE '\\')
            ORDER BY progress DESC, last_read_at DESC
            LIMIT :limit OFFSET :offset"""
     )
@@ -145,6 +145,19 @@ interface BookDao {
            ORDER BY last_read_at DESC LIMIT :limit"""
     )
     fun observeShelf(groupId: Long?, type: String?, limit: Int): Flow<List<BookEntity>>
+
+    /**
+     * 当前筛选下的书籍总数（Flow）。
+     * 书架用它做"库是否变了"的信号：Room 会在 books 表发生写入后重新发射，
+     * 因此删书 / 改分组 / 导入后首页能自动刷新，不再依赖调用方手动 refresh()。
+     */
+    @Query(
+        """SELECT COUNT(*) FROM books
+           WHERE (:groupId IS NULL OR group_id = :groupId)
+             AND (:type IS NULL OR type = :type)
+             AND (:favoriteOnly = 0 OR favorite = 1)"""
+    )
+    fun observeCount(groupId: Long?, type: String?, favoriteOnly: Int): Flow<Int>
 
     @Transaction
     suspend fun replaceAll(books: List<BookEntity>) {

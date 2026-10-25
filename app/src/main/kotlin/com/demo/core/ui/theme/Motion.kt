@@ -8,6 +8,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.withFrameNanos
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 
 import com.demo.core.common.util.DeviceTier
 
@@ -50,10 +53,14 @@ fun rememberBackdropProgress(
 ): Float {
     var progress by remember(enabled) { mutableFloatStateOf(0f) }
     if (!enabled) return 0.5f
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(enabled, frameIntervalMs, durationMs) {
-        while (true) {
-            runThrottledFrameLoop(durationMs.toLong(), frameIntervalMs) { progress = it }
-            runThrottledFrameLoop(durationMs.toLong(), frameIntervalMs) { progress = 1f - it }
+        // 应用进入后台（onStop）时挂起帧循环：
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                runThrottledFrameLoop(durationMs.toLong(), frameIntervalMs) { progress = it }
+                runThrottledFrameLoop(durationMs.toLong(), frameIntervalMs) { progress = 1f - it }
+            }
         }
     }
     return progress

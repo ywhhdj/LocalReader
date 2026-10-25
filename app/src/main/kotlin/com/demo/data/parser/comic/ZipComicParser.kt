@@ -100,8 +100,20 @@ class ZipComicParser(
             val name = page.entryName ?: return null
             return runCatching {
                 val entry = zip().getEntry(name) ?: return null
-                val bytes = zip().getInputStream(entry).use { it.readBytes() }
-                pageCache.putBytes(bookId, index, bytes)
+                val ext = name.substringAfterLast('.', "")
+                // CBZ/ZIP 里的图片本来就是 jpg/png/webp：能原样落盘就绝不解码再重编码。
+                if (PageCache.canStoreRaw(ext, PageCache.safeSize(entry.size))) {
+                    zip().getInputStream(entry).use { input ->
+                        pageCache.putRawStream(bookId, index, ext) { output -> input.copyTo(output) }
+                    } ?: run {
+                        // 原样落盘失败（磁盘满 / 目录异常）→ 回退到"解码 + 重编码"
+                        val bytes = zip().getInputStream(entry).use { it.readBytes() }
+                        pageCache.putBytes(bookId, index, bytes)
+                    }
+                } else {
+                    val bytes = zip().getInputStream(entry).use { it.readBytes() }
+                    pageCache.putBytes(bookId, index, bytes)
+                }
             }.getOrNull()
         }
 

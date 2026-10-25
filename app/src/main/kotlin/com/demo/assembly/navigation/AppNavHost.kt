@@ -92,8 +92,12 @@ fun AppNavHost(
                         selected = currentRoute == ShelfRoute.HOME,
                         onClick = {
                             navController.navigate(ShelfRoute.HOME) {
-                                popUpTo(ShelfRoute.HOME) { inclusive = false }
+                                popUpTo(ShelfRoute.HOME) {
+                                    inclusive = false
+                                    saveState = true
+                                }
                                 launchSingleTop = true
+                                restoreState = true
                             }
                         }
                     ),
@@ -103,8 +107,9 @@ fun AppNavHost(
                         selected = currentRoute == ShelfRoute.FAVORITES,
                         onClick = {
                             navController.navigate(ShelfRoute.FAVORITES) {
-                                popUpTo(ShelfRoute.HOME)
+                                popUpTo(ShelfRoute.HOME) { saveState = true }
                                 launchSingleTop = true
+                                restoreState = true
                             }
                         }
                     ),
@@ -114,8 +119,9 @@ fun AppNavHost(
                         selected = currentRoute == ProfileRoute.PROFILE,
                         onClick = {
                             navController.navigate(ProfileRoute.PROFILE) {
-                                popUpTo(ShelfRoute.HOME)
+                                popUpTo(ShelfRoute.HOME) { saveState = true }
                                 launchSingleTop = true
+                                restoreState = true
                             }
                         }
                     )

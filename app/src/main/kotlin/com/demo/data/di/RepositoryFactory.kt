@@ -77,11 +77,14 @@ object RepositoryFactory {
         val onlineDir = File(appContext.filesDir, Constants.ONLINE_DIR).apply { mkdirs() }
         val safCacheDir = File(appContext.filesDir, Constants.SAF_CACHE_DIR).apply { mkdirs() }
 
-        val parserFactory: ParserFactory = ParserFactoryImpl(coverStore, pageCache, bookCacheDir, textCoverFactory)
+        val parserFactory: ParserFactory = ParserFactoryImpl(
+            coverStore, pageCache, bookCacheDir, textCoverFactory, appContext
+        )
         val settingsRepository = SettingsRepositoryImpl(appContext)
         val safScanner = SafScanner(appContext, safCacheDir)
 
-        val bookRepository = BookRepositoryImpl(database.bookDao(), coverStore)
+        // pageCache / bookCacheDir 必须传入：delete() 依赖它们清理解压页与 EPUB 图片缓存，
+        val bookRepository = BookRepositoryImpl(database.bookDao(), coverStore, pageCache, bookCacheDir)
         return Repositories(
             bookRepository = bookRepository,
             groupRepository = GroupRepositoryImpl(database.groupDao(), database.bookDao()),
