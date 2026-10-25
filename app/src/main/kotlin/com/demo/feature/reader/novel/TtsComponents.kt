@@ -54,8 +54,8 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -264,9 +264,9 @@ fun DraggableTtsProgressOrb(
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = if (side == OrbHiddenSide.Left) {
-                            Icons.Filled.KeyboardArrowRight
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight
                         } else {
-                            Icons.Filled.KeyboardArrowLeft
+                            Icons.AutoMirrored.Filled.KeyboardArrowLeft
                         },
                         contentDescription = "展开朗读控制",
                         modifier = Modifier.size(20.dp),
