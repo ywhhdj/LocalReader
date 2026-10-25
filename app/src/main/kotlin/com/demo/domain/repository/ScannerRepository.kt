@@ -42,7 +42,6 @@ data class ScanProgress(
   val failed: Int = 0,
   val current: String = "",
   val done: Boolean = false,
-  /** 提示信息：如"RAR/CBR 暂不支持，请转为 CBZ/ZIP" */
   val message: String? = null
 )
 

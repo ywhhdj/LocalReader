@@ -32,9 +32,9 @@ private const val TAP_ZONE_HEIGHT_RATIO = 0.22f
 fun BoxScope.ReaderTapZone(
   alignment: Alignment,
   enabled: Boolean,
-  label: String,
-  textColor: Color,
   onClick: () -> Unit,
+  label: String? = null,
+  textColor: Color? = null,
   modifier: Modifier = Modifier,
   widthRatio: Float = TAP_ZONE_WIDTH_RATIO,
   heightRatio: Float = TAP_ZONE_HEIGHT_RATIO
@@ -56,17 +56,17 @@ fun BoxScope.ReaderTapZone(
         } else Modifier
       )
   ) {
-    if (enabled) {
+    if (enabled && label != null) {
       Text(
         text = label,
         style = MaterialTheme.typography.labelSmall,
-        color = textColor.copy(alpha = 0.25f),
+        color = if (textColor != null) textColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
         modifier = Modifier
-          .align(
-            if (alignment == Alignment.BottomStart) Alignment.BottomStart
-            else Alignment.BottomEnd
-          )
-          .padding(12.dp)
+        .align(
+          if (alignment == Alignment.BottomStart) Alignment.BottomStart
+          else Alignment.BottomEnd
+        )
+        .padding(12.dp)
       )
     }
   }

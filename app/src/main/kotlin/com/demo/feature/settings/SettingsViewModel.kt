@@ -113,9 +113,15 @@ class SettingsViewModel(
   fun removeScanDir(raw: String) = update { s -> s.copy(scanDirs = s.scanDirs - raw) }
 
   // ---------- 朗读 ----------
-  fun setTtsRate(value: Float) = update { it.copy(ttsRate = value.coerceIn(0.5f, 2.0f)) }
-  fun setTtsPitch(value: Float) = viewModelScope.launch {
-    update { it.copy(ttsPitch = value.coerceIn(0.5f, 2.0f)) }
+  fun setTtsRate(value: Float) {
+    val v = value.coerceIn(0.5f, 2.0f)
+    viewModelScope.launch { runCatching { ttsRepository.setRate(v) } }
+    update { it.copy(ttsRate = v) }
+  }
+  fun setTtsPitch(value: Float) {
+    val v = value.coerceIn(0.5f, 2.0f)
+    viewModelScope.launch { runCatching { ttsRepository.setPitch(v) } }
+    update { it.copy(ttsPitch = v) }
   }
   fun setTtsAutoNext(enabled: Boolean) = update { it.copy(ttsAutoNext = enabled) }
   /**
@@ -137,7 +143,13 @@ class SettingsViewModel(
     fun setTtsTimbre(timbre: TtsTimbre) = viewModelScope.launch {
     ttsRepository.setPitch(timbre.pitch)
     ttsRepository.setRate(timbre.rate)
-    update { it.copy(ttsTimbre = timbre) }
+    update {
+      it.copy(
+        ttsTimbre = timbre,
+        ttsPitch = timbre.pitch.coerceIn(0.5f, 2.0f),
+        ttsRate = timbre.rate.coerceIn(0.5f, 2.0f)
+      )
+    }
   }
   fun setTtsVoice(name: String) = viewModelScope.launch {
     ttsRepository.setVoice(name)

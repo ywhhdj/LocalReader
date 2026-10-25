@@ -49,6 +49,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.layout.Arrangement
 
 import coil.compose.AsyncImage
 
@@ -83,7 +99,7 @@ fun NovelReaderScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showChrome by remember { mutableStateOf(false) }
-    var pageIndex by remember { mutableIntStateOf(0) }
+    var pageIndex by remember(state.chapterIndex) { mutableIntStateOf(0) }
     val ttsProgress by viewModel.ttsProgress.collectAsStateWithLifecycle()
     var showTtsSettings by remember { mutableStateOf(false) }
     var forward by remember { mutableStateOf(true) }
@@ -97,6 +113,7 @@ fun NovelReaderScreen(
     // 前景色随背景走：夜间背景下正文/目录/底栏文字自动转浅色
     val contentColor = readerContentColor(state.settings.readerBackground)
     val motion = LocalMotionConfig.current
+    
     // 关闭动效时翻页退化为直接切换
     val turnMode = if (motion.animationsEnabled) state.settings.pageTurnMode else PageTurnMode.NONE
     val currentChapter = state.chapters.getOrNull(state.chapterIndex)
@@ -112,9 +129,8 @@ fun NovelReaderScreen(
     }
 
     // 章节切换 → 回到该章首页
-    LaunchedEffect(state.chapterIndex) {
-        pageIndex = 0
-        viewModel.onScrollPosition(state.chapterIndex, 0)
+    LaunchedEffect(state.chapterIndex, pageIndex) {
+        viewModel.onScrollPosition(state.chapterIndex, pageIndex)
     }
 
     if (state.loading && state.blocks.isEmpty()) {
@@ -135,11 +151,21 @@ fun NovelReaderScreen(
         val density = LocalDensity.current
         val textMeasurer = rememberTextMeasurer()
 
+        val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+        val topHeaderTop = if (state.settings.immersiveMode) 10.dp else 10.dp+insets.top
+        val topHeaderHeight = if (state.settings.immersiveMode) {
+            statusBarHeight.coerceAtLeast(24.dp)
+        } else {
+            32.dp
+        }
+        // 正文从章节名下方开始（+4dp 视觉间隔）；分页测量与渲染共用这一个值
+        val contentTopPadding = topHeaderTop + topHeaderHeight
+
         val pageWidthPx = with(density) {
             (maxWidth - ContentHorizontalPadding * 2).toPx().toInt().coerceAtLeast(1)
         }
         val pageHeightPx = with(density) {
-            (maxHeight - insets.top - insets.bottom).toPx().toInt().coerceAtLeast(1)
+            (maxHeight - contentTopPadding - insets.bottom).toPx().toInt().coerceAtLeast(1)
         }
 
         // 合成：章节标题 + 本章 blocks
@@ -155,7 +181,7 @@ fun NovelReaderScreen(
 
         val pages = remember(
             allBlocks, state.settings.fontSize, state.settings.lineHeightMultiplier,
-            pageWidthPx, pageHeightPx
+            pageWidthPx, pageHeightPx,contentTopPadding
         ) {
             paginateNovel(
                 measurer = textMeasurer,
@@ -176,71 +202,156 @@ fun NovelReaderScreen(
 
         fun goNext() {
             forward = true
-            if (pageIndex < pages.lastIndex) pageIndex++
+            if (safePageIndex < pages.lastIndex) pageIndex = safePageIndex + 1
             else if (state.canNext) viewModel.nextChapter()
         }
 
         fun goPrev() {
             forward = false
-            if (pageIndex > 0) pageIndex--
+            if (safePageIndex > 0) pageIndex = safePageIndex - 1
             else if (state.canPrev) viewModel.prevChapter()
         }
 
         // ---------- 当前页内容（含左右滑动手势 + 可切换的翻页动画） ----------
-        PageTurnContainer(
-            pageIndex = safePageIndex,
-            forward = forward,
-            mode = turnMode,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    start = ContentHorizontalPadding,
-                    end = ContentHorizontalPadding,
-                    top = insets.top,
-                    bottom = insets.bottom
-                )
-                .pointerInput(safePageIndex, pages.size) {
-                    var accumulated = 0f
-                    detectHorizontalDragGestures(
-                        onDragStart = { accumulated = 0f },
-                        onDragEnd = {
-                            val threshold = size.width * 0.15f
-                            when {
-                                accumulated < -threshold -> goNext()
-                                accumulated > threshold -> goPrev()
-                            }
-                        },
-                        onHorizontalDrag = { change, dragAmount ->
-                            change.consume()
-                            accumulated += dragAmount
-                        }
+        val renderPageContent: @Composable (Int) -> Unit = { idx ->
+            val page = pages.getOrNull(idx)
+            Column(Modifier.fillMaxSize()) {
+                page?.items?.forEach { item ->
+                    BlockView(
+                        block = item.block,
+                        fontSize = state.settings.fontSize,
+                        lineHeight = state.settings.lineHeightMultiplier,
+                        color = contentColor,
+                        isContinuation = item.isContinuation
                     )
                 }
-                // 轻点：切换顶栏 / 底栏
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        showChrome = !showChrome
-                        viewModel.toggleSettings(false)
-                        viewModel.toggleToc(false)
-                    })
-                }
-        ) { idx ->
-            val page = pages.getOrNull(idx)
-            // 整页一个选择容器：旧实现每段包一层，一页几十个 SelectionContainer
-            // 既拖慢组合速度，又让选区无法跨段落。
-            SelectionContainer {
-                Column(Modifier.fillMaxSize()) {
-                    page?.items?.forEach { item ->
-                        BlockView(
-                            block = item.block,
-                            fontSize = state.settings.fontSize,
-                            lineHeight = state.settings.lineHeightMultiplier,
-                            color = contentColor,
-                            isContinuation = item.isContinuation
+            }
+        }
+
+        // ---------- 当前页内容（含手势 + 翻页动画） ----------
+        Box(Modifier.fillMaxSize()) {
+
+            // ---------- 翻页层（底层）：正文从顶部章节名下方开始 ----------
+            PageTurnContainer(
+                pageIndex = safePageIndex,
+                forward = forward,
+                mode = turnMode,
+                backgroundColor = bgColor,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        start = ContentHorizontalPadding,
+                        end = ContentHorizontalPadding,
+                        top = contentTopPadding,
+                        bottom = insets.bottom
+                    )
+                    .pointerInput(safePageIndex, pages.size) {
+                        var accumulated = 0f
+                        detectHorizontalDragGestures(
+                            onDragStart = { accumulated = 0f },
+                            onDragEnd = {
+                                val threshold = size.width * 0.15f
+                                when {
+                                    accumulated < -threshold -> goNext()
+                                    accumulated > threshold -> goPrev()
+                                }
+                            },
+                            onHorizontalDrag = { change, dragAmount ->
+                                change.consume()
+                                accumulated += dragAmount
+                            }
                         )
                     }
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = {
+                            showChrome = !showChrome
+                            viewModel.toggleSettings(false)
+                            viewModel.toggleToc(false)
+                        })
+                    }
+            ) { idx ->
+                SelectionContainer { renderPageContent(idx) }
+            }
+
+            // ---------- 顶部章节名（上层，不与正文重叠） ----------
+            // 除每章第一页外都显示；沉浸模式贴顶顶替状态栏，非沉浸模式在状态栏下方
+            if (safePageIndex > 0) {
+                val topChapterTitle = remember(state.chapterIndex, currentChapter) {
+                    currentChapter?.let { VolumeSplitter.displayTitle(it) }.orEmpty()
+                }
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .fillMaxWidth()
+                        .padding(top = topHeaderTop)
+                        .height(topHeaderHeight)
+                        .padding(start = ContentHorizontalPadding, end = ContentHorizontalPadding),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "返回",
+                        tint = contentColor.copy(alpha = 0.55f),
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = onBack
+                            )
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = topChapterTitle,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = contentColor.copy(alpha = 0.5f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
+
+            // ---------- 右上/右下角按住预览真实下一页内容 ----------
+            PageCornerPeekLayer(
+                enabled = turnMode == PageTurnMode.SIMULATION,
+                onPeekCommit = { goNext() },
+                previewContent = {
+                    val nextIdx = safePageIndex + 1
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(bgColor)
+                            .padding(
+                                start = ContentHorizontalPadding,
+                                end = ContentHorizontalPadding,
+                                top = contentTopPadding,
+                                bottom = insets.bottom
+                            )
+                    ) {
+                        if (nextIdx < pages.size) {
+                            renderPageContent(nextIdx)
+                        } else {
+                            Column(
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(end = 22.dp, bottom = 22.dp),
+                                horizontalAlignment = Alignment.End,
+                            ) {
+                                Text(
+                                    "下一章",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                                Text(
+                                    "第 ${state.chapterIndex + 2} 章",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = contentColor.copy(alpha = 0.65f),
+                                )
+                            }
+                        }
+                    }
+                }
+            )
         }
 
         // ---------- 左下 / 右下热区 ----------
@@ -249,8 +360,6 @@ fun NovelReaderScreen(
             alignment = Alignment.BottomStart,
             enabled = !showChrome && !state.showToc && !state.showSettings &&
                 (canPrevPage || state.canPrev),
-            label = if (canPrevPage) "上一页" else "上一章",
-            textColor = contentColor,
             onClick = { goPrev() }
         )
 
@@ -259,8 +368,6 @@ fun NovelReaderScreen(
             alignment = Alignment.BottomEnd,
             enabled = !showChrome && !state.showToc && !state.showSettings &&
                 (canNextPage || state.canNext),
-            label = if (canNextPage) "下一页" else "下一章",
-            textColor = contentColor,
             onClick = { goNext() }
         )
 

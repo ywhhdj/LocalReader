@@ -14,11 +14,7 @@ fun readerColors(background: ReaderBackground): Color {
     ReaderBackground.CREAM -> Color(0xFFF6EFE2)
     ReaderBackground.GREEN -> Color(0xFFE8F0E3)
     ReaderBackground.NIGHT -> Color(0xFF12141A)
-    ReaderBackground.PAPER -> if (dark) {
-      Color(0xFF15181E)
-    } else {
-      Color(0xFFFAFAFA)
-    }
+    ReaderBackground.PAPER -> Color(0xFFFAFAFA)
   }
 }
 
