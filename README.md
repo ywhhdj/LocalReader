@@ -13,11 +13,11 @@
 
 - **方式一（推荐，无需全盘权限）**：首页「导入 → 选择目录…」用系统文件选择器授权目录，授权会持久化，重启后可一键重扫。
 - **方式二**：授予「所有文件访问权限」（设置页 / 首页均有「去授权」入口），之后可直接扫描 `/sdcard` 等公共目录。
-- Android 13+ 只申请 `READ_MEDIA_IMAGES`（阅读器只需要读取图片：漫画页与封面）；Android 12- 使用 `READ_EXTERNAL_STORAGE`；App 会在启动时申请。
+- Android 13+ 只申请 `READ_MEDIA_IMAGES`（阅读器只需要读取图片：漫画页与封面）；
+- Android 12- 使用 `READ_EXTERNAL_STORAGE`；App 会在启动时申请。
   - 文档类书籍（EPUB/TXT/PDF）不在媒体库覆盖范围内，仍需走 SAF 或「所有文件访问」授权。
   - 已移除与本应用无关的 `READ_MEDIA_AUDIO`、`READ_MEDIA_VIDEO`、`POST_NOTIFICATIONS`。
 - 无权限时导入对话框会明确提示当前状态；RAR5 / 加密包暂不支持（提示转 CBZ/ZIP）。
-- `MANAGE_EXTERNAL_STORAGE` 保留：上架 Google Play 需按政策声明用途，默认路径仍是 SAF。
 
 ## 扩展能力
 
@@ -26,9 +26,6 @@
 | WebDAV 备份 | 默认关闭 | 备份书库元数据、进度、分组与阅读会话；支持测试连接、立即备份、远端列表恢复、导出到本地 |
 | TTS 朗读 | 默认可用，音色下载 **默认关闭** | 小说阅读器顶栏「朗读」按钮，支持语速/音调、读完自动进入下一章；按批入队，暂停/续播精确到句 |
 | 在线书源 | **默认关闭** | 需自行配置书源规则；关闭时不产生任何网络请求；结果只能另存为 TXT 到本地书库 |
-
-> 隐私：`android:allowBackup="false"`（数据库可能含 WebDAV 账号，避免被 adb 备份导出）。
-> `targetSdk 34` 默认禁止明文流量，WebDAV 请使用 https，否则会静默失败。
 
 ## 阅读体验
 
@@ -103,8 +100,3 @@ keytool -genkeypair -v -keystore keystore/release.jks \
 >
 > 注意：`AppDatabase` 当前 `version = 1` 且未登记迁移，实体变更后需同步维护 `schema.sql`
 > 与 Room 导出的 `schemas/` JSON，否则 Room 会直接抛异常。
-
-## 依赖说明
-
-未使用（已移除）：Hilt/Dagger/Koin（手写容器）、OkHttp/Retrofit（纯本地）、Glide（Coil 更轻）、
-jsoup（代码中无引用，移除后 APK 减小约 500KB）。
