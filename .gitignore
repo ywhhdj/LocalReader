@@ -37,5 +37,6 @@ replay_pid*
 keystore/
 local.properties
 .cxx/
+mipmap-*dpi/
 
 docs/

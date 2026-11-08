@@ -20,7 +20,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- 数据库可能含 WebDAV 账号/备份数据：关闭 adb 备份，避免明文外泄 -->
-
     <application
         android:name=".App"
         android:allowBackup="false"
