@@ -103,11 +103,3 @@ keytool -genkeypair -v -keystore keystore/release.jks \
 
 ## 本地数据库 SQLite
 > 请根据指示 `schema.sql` 创建数据库。
->
-> 注意：`AppDatabase` 当前 `version = 1` 且未登记迁移，实体变更后需同步维护 `schema.sql`
-> 与 Room 导出的 `schemas/` JSON，否则 Room 会直接抛异常。
-
-## 依赖说明
-
-未使用（已移除）：Hilt/Dagger/Koin（手写容器）、OkHttp/Retrofit（纯本地）、Glide（Coil 更轻）、
-jsoup（代码中无引用，移除后 APK 减小约 500KB）。
