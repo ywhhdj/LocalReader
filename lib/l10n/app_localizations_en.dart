@@ -12,9 +12,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Local Reader';
 
   @override
-  String get feedbackNoCredentials => '';
-
-  @override
   String get aboutParagraph1 =>
       'Supports Android, iOS and HarmonyOS. This is not an official Wenku8 app.';
 
@@ -2519,4 +2516,666 @@ class AppLocalizationsEn extends AppLocalizations {
   String uiArbStats(String p0, String p1, String p2) {
     return '$p0 keys · $p1 templates · $p2 to review';
   }
+
+  @override
+  String get uiDiscover => 'Discover';
+
+  @override
+  String get uiDiscoverEyebrow => '01 / DISCOVER';
+
+  @override
+  String get uiShelfEyebrow => '02 / LIBRARY';
+
+  @override
+  String get uiStatsEyebrow => '03 / STATISTICS';
+
+  @override
+  String get uiMineEyebrow => '04 / PERSONAL ARCHIVE';
+
+  @override
+  String get uiDiscoverSubtitle =>
+      'Light novels · rankings / search / bookcase';
+
+  @override
+  String get uiShelfSubtitle => 'Local library & cloud sources';
+
+  @override
+  String get uiStatsSubtitle => 'Reading records, library & bookmarks';
+
+  @override
+  String get uiMineSubtitle => 'Personal archive & all settings';
+
+  @override
+  String get uiReadingHistory => 'Reading history';
+
+  @override
+  String get uiImport => 'Import';
+
+  @override
+  String get uiSearch => 'Search';
+
+  @override
+  String get uiLogin => 'Sign in';
+
+  @override
+  String get uiRefresh => 'Refresh';
+
+  @override
+  String get uiLayout => 'Layout';
+
+  @override
+  String get uiFilter => 'Filter';
+
+  @override
+  String get uiCategory => 'Category';
+
+  @override
+  String get uiLocalScope => 'Local';
+
+  @override
+  String get uiCloudScope => 'Cloud';
+
+  @override
+  String get uiAllCategories => 'All categories';
+
+  @override
+  String get uiCustomGroups => 'Custom groups';
+
+  @override
+  String get uiCloudCategories => 'Wenku8 categories';
+
+  @override
+  String get uiCloudSource => 'Cloud sources';
+
+  @override
+  String get uiGridLayout => 'Grid';
+
+  @override
+  String get uiShelf3dLayout => '3D shelf';
+
+  @override
+  String get uiListLayout => 'List';
+
+  @override
+  String get uiFilterFavorites => 'Favorites only';
+
+  @override
+  String get uiShelfToolbarNote =>
+      'This bar is data-only: category / source / layout / filter';
+
+  @override
+  String get uiImportLocalOnlyNote =>
+      'Import appears only when Local is selected';
+
+  @override
+  String get uiAccountSyncing => 'Shelf syncing';
+
+  @override
+  String get uiAccountGuest => 'Not signed in';
+
+  @override
+  String get uiPoints => 'Points';
+
+  @override
+  String get uiNewcomer => 'Newcomer';
+
+  @override
+  String get uiMenuStats => 'Stats';
+
+  @override
+  String get uiMenuStatsSubtitle => 'Reading records, library & bookmarks';
+
+  @override
+  String get uiMenuBookmarks => 'Bookmarks';
+
+  @override
+  String get uiMenuBookmarksSubtitle => 'Saved lines & reading positions';
+
+  @override
+  String get uiMenuSettings => 'Settings';
+
+  @override
+  String get uiMenuSettingsSubtitle =>
+      'Reading, appearance, performance & local data';
+
+  @override
+  String get uiMenuAbout => 'About';
+
+  @override
+  String get uiMenuAboutSubtitle =>
+      'Version & all compliance / source / format notes';
+
+  @override
+  String get uiMenuSupport => 'Support & feedback';
+
+  @override
+  String get uiMenuSupportSubtitle => 'Voluntary support · feedback';
+
+  @override
+  String get uiVersion => 'Version';
+
+  @override
+  String get uiAppVersionValue => '0.5.6';
+
+  @override
+  String get uiSelectToOpen => 'Open by selection, no permanent bottom tab';
+
+  @override
+  String get aboutUnifiedTitle => 'About';
+
+  @override
+  String get aboutUnifiedNote =>
+      'All about, compliance, source, import-format and hint notes live here; other pages keep one short line.';
+
+  @override
+  String get aboutSectionVersion => 'Version & license';
+
+  @override
+  String get aboutSectionCompliance => 'Compliance & content boundary';
+
+  @override
+  String get aboutSectionSources => 'Sources & online';
+
+  @override
+  String get aboutSectionImport => 'Import formats & permissions';
+
+  @override
+  String get aboutSectionHints => 'Hints & static boundary';
+
+  @override
+  String get aboutSectionFeedback => 'Feedback & support';
+
+  @override
+  String get aboutHintIndexNote =>
+      'Unified index of short page hints, still read from the same catalog.';
+
+  @override
+  String get aboutOpenFromMine => 'Entry: Mine → About';
+
+  @override
+  String get cloudCacheTitle => 'Cloud cache';
+
+  @override
+  String get cloudCacheNote =>
+      'Caches listings, TOCs and chapters you opened; cleared on sign-out, never bulk download or redistribution.';
+
+  @override
+  String get cloudCacheEnabled => 'Enable cloud cache';
+
+  @override
+  String get cloudCacheOffline => 'Allow offline reading of cached chapters';
+
+  @override
+  String get cloudCacheTtl => 'Cache TTL';
+
+  @override
+  String get cloudCacheSize => 'Cache usage';
+
+  @override
+  String get cloudCacheClear => 'Clear cache';
+
+  @override
+  String get cloudCacheCleared => 'Cache cleared';
+
+  @override
+  String get cloudCacheHit => 'Cache hit';
+
+  @override
+  String get cloudCacheStale => 'Cache expired, fetching again';
+
+  @override
+  String get frozenFeaturesTitle => 'Implemented platform features';
+
+  @override
+  String get frozenFeaturesNote =>
+      'Three-platform native code is wired via channels; no SDK here, device build needs local run.';
+
+  @override
+  String get platformNativeNote =>
+      'Provided by native code; verify with local flutter run';
+
+  @override
+  String get settingsSectionAppearance => 'Appearance & reading';
+
+  @override
+  String get settingsSectionSources => 'Sources & online';
+
+  @override
+  String get settingsSectionLibrary => 'Library & import';
+
+  @override
+  String get settingsSectionFavorites => 'Favorites';
+
+  @override
+  String get settingsSectionAbout => 'About';
+
+  @override
+  String get settingsSectionSupport => 'Support & feedback';
+
+  @override
+  String get uiBackToMine => 'Back to Mine';
+
+  @override
+  String get wenkuCatFantasy => 'Fantasy / Isekai';
+
+  @override
+  String get wenkuCatSchool => 'School / Youth';
+
+  @override
+  String get wenkuCatRomance => 'Romance / Harem';
+
+  @override
+  String get wenkuCatScifi => 'Sci-fi / Mecha';
+
+  @override
+  String get wenkuCatMystery => 'Mystery / Detective';
+
+  @override
+  String get wenkuCatDaily => 'Slice of life';
+
+  @override
+  String get wenkuCatOther => 'Other / Extras';
+
+  @override
+  String get mineHeroTitle => 'Mine';
+
+  @override
+  String get mineHeroSubtitle => '04 / PERSONAL ARCHIVE';
+
+  @override
+  String get mineAccountDemo => '2081688398';
+
+  @override
+  String minePoints(Object p0) {
+    return '$p0 points';
+  }
+
+  @override
+  String get mineLevel => 'Newcomer';
+
+  @override
+  String mineSyncStatus(Object p0) {
+    return 'Syncing $p0 books';
+  }
+
+  @override
+  String get mineStatsTitle => 'Statistics';
+
+  @override
+  String get mineStatsSubtitle => 'Reading records, library and bookmarks';
+
+  @override
+  String get mineBookmarksTitle => 'Bookmarks';
+
+  @override
+  String get mineBookmarksSubtitle => 'Saved lines and reading positions';
+
+  @override
+  String get mineSettingsTitle => 'Settings';
+
+  @override
+  String get mineSettingsSubtitle =>
+      'Reading, appearance, performance and local data';
+
+  @override
+  String get mineAboutTitle => 'About';
+
+  @override
+  String get mineAboutSubtitle => 'Version 0.5.6';
+
+  @override
+  String get mineSupportTitle => 'Support & Feedback';
+
+  @override
+  String get mineSupportSubtitle => 'Optional support and issue feedback';
+
+  @override
+  String get settingsHeroTitle => 'Settings';
+
+  @override
+  String get settingsHeroSubtitle => '05 / PREFERENCES';
+
+  @override
+  String get settingsGeneralTitle => 'General';
+
+  @override
+  String get settingsAppearanceTitle => 'Appearance & Reading';
+
+  @override
+  String get settingsCacheTitle => 'Cache & Static Notes';
+
+  @override
+  String get wenkuCacheNote =>
+      'Cloud cache keeps listings, tables of contents and opened chapters only; no full-book download or redistribution.';
+
+  @override
+  String get aboutVersionTitle => 'Version';
+
+  @override
+  String get aboutAllNotesTitle => 'About & Statements';
+
+  @override
+  String get aboutPromptsTitle => 'All notices';
+
+  @override
+  String get aboutStaticTitle => 'Static delivery notes';
+
+  @override
+  String get freeStatementTitle => 'Free to use';
+
+  @override
+  String get bookmarksHeroTitle => 'Bookmarks';
+
+  @override
+  String get bookmarksHeroSubtitle => '03 / KEEPSAKES';
+
+  @override
+  String get bookmarksEmptyTitle => 'No bookmarks yet';
+
+  @override
+  String get bookmarksEmptyBody =>
+      'Select lines while reading to save excerpts';
+
+  @override
+  String get shelfHeroTitle => 'Bookshelf';
+
+  @override
+  String get shelfHeroSubtitle => '02 / LIBRARY';
+
+  @override
+  String get shelfHistoryTip => 'Reading history';
+
+  @override
+  String get shelfImportTip => 'Import';
+
+  @override
+  String get shelfSearchTip => 'Search';
+
+  @override
+  String get shelfLayoutTip => 'Layout';
+
+  @override
+  String get shelfFilterTip => 'Filter';
+
+  @override
+  String get shelfCategoryTip => 'Category';
+
+  @override
+  String get shelfLayout3d => '3D shelf';
+
+  @override
+  String get shelfLayoutGrid => 'Grid';
+
+  @override
+  String get shelfLayoutList => 'List';
+
+  @override
+  String get detailTitle => 'Book details';
+
+  @override
+  String get detailStatusOngoing => 'Ongoing';
+
+  @override
+  String get detailCached => 'Cached';
+
+  @override
+  String get detailUpdatedOn => 'Updated';
+
+  @override
+  String get detailCacheFailed =>
+      'GAMERS bonus short cache failed, tap to retry';
+
+  @override
+  String get detailReadTo => 'Reading';
+
+  @override
+  String get detailChapterPercent => 'Chapter';
+
+  @override
+  String get detailSynopsisIndex => '01 / SYNOPSIS';
+
+  @override
+  String get detailSynopsisTitle => 'Synopsis';
+
+  @override
+  String get detailExpandAll => 'Expand all';
+
+  @override
+  String get detailCollapse => 'Collapse';
+
+  @override
+  String get detailAddToShelf => 'Add to shelf';
+
+  @override
+  String get detailCloudFavorite => 'Cloud favorite';
+
+  @override
+  String get detailLocalFavorite => 'Local favorite';
+
+  @override
+  String get detailComments => 'Comments';
+
+  @override
+  String get detailGrouping => 'Group';
+
+  @override
+  String get detailContinueReading => 'Continue reading';
+
+  @override
+  String get detailStartReading => 'Start reading';
+
+  @override
+  String get detailCloudDownload => 'Cloud download / cache';
+
+  @override
+  String get detailDeleteBook => 'Delete book';
+
+  @override
+  String get detailResetProgress => 'Reset progress';
+
+  @override
+  String get detailLocalActions => 'Local book actions';
+
+  @override
+  String get detailStaticActionNote =>
+      'Static build records the action only; no real download or deletion';
+
+  @override
+  String get detailTagSchool => 'School';
+
+  @override
+  String get detailTagBattle => 'Mind games';
+
+  @override
+  String get detailTagYouth => 'Youth';
+
+  @override
+  String get detailTagRomance => 'Romance';
+
+  @override
+  String get detailTagHarem => 'Harem';
+
+  @override
+  String get detailSynopsisDemo1 => 'What are true strength and equality?';
+
+  @override
+  String get detailSynopsisDemo2 =>
+      'A top school that almost guarantees university admission and employment.';
+
+  @override
+  String get detailSynopsisDemo3 => 'Welcome to a dreamlike campus life.';
+
+  @override
+  String get readerTapToggle => 'Hide / show controls';
+
+  @override
+  String get readerPrevPage => 'Previous page';
+
+  @override
+  String get readerNextPage => 'Next page';
+
+  @override
+  String get readerImmersionOn => 'Immersive reading on';
+
+  @override
+  String get readerImmersionOff => 'Immersive reading off';
+
+  @override
+  String get readerTtsStart => 'Read aloud';
+
+  @override
+  String get readerTtsPause => 'Pause';
+
+  @override
+  String get readerTtsResume => 'Resume';
+
+  @override
+  String get readerTtsClose => 'Stop read aloud';
+
+  @override
+  String get readerTtsExpand => 'Expand read-aloud controls';
+
+  @override
+  String get readerTtsSettings => 'Read-aloud settings';
+
+  @override
+  String get readerTtsTimbre => 'Timbre';
+
+  @override
+  String get readerTtsTimbreSoft => 'Soft';
+
+  @override
+  String get readerTtsTimbreNormal => 'Normal';
+
+  @override
+  String get readerTtsTimbreBright => 'Bright';
+
+  @override
+  String get readerTtsTimbreNote =>
+      'Timbre combines pitch and rate; no voice packs downloaded';
+
+  @override
+  String get readerTtsRate => 'Rate';
+
+  @override
+  String get readerTtsPitch => 'Pitch';
+
+  @override
+  String get readerTtsAutoNext => 'Auto next chapter';
+
+  @override
+  String get readerTtsVoice => 'Voice (system TTS)';
+
+  @override
+  String get readerTtsSystemSettings => 'System settings';
+
+  @override
+  String get readerTtsNoVoice =>
+      'No installed voices detected; the default voice can be used';
+
+  @override
+  String get readerTtsDefaultVoice => 'System default';
+
+  @override
+  String get readerTtsStaticNote =>
+      'Platform TTS and system settings require device verification';
+
+  @override
+  String get perfSectionTitle => 'Performance & Motion';
+
+  @override
+  String get perfFrameRate => 'Frame rate';
+
+  @override
+  String get perfFrameRateAuto => 'Follow device';
+
+  @override
+  String get perfFrameRate30 => 'Power 30';
+
+  @override
+  String get perfFrameRate60 => 'Standard 60';
+
+  @override
+  String get perfFrameRate120 => 'High 120';
+
+  @override
+  String get perfFrameRateNote =>
+      'Frame-rate preference is stored; the system schedules the actual refresh rate';
+
+  @override
+  String get perfDeviceDetection => 'Device detection';
+
+  @override
+  String get perfDeviceTier => 'Device tier';
+
+  @override
+  String get perfDeviceUnknown => 'Unknown (static build)';
+
+  @override
+  String get perfDeviceLow => 'Low-end';
+
+  @override
+  String get perfDeviceMid => 'Mid-range';
+
+  @override
+  String get perfDeviceHigh => 'High-end';
+
+  @override
+  String get perfDeviceRam => 'Memory';
+
+  @override
+  String get perfDeviceCores => 'Cores';
+
+  @override
+  String get perfDeviceRefresh => 'Max refresh rate';
+
+  @override
+  String get perfDeviceRedetect => 'Re-detect';
+
+  @override
+  String get perfDeviceStaticNote =>
+      'Real device detection comes from platform bridges; static builds return unknown';
+
+  @override
+  String get perfVisualEffects => 'Visual effects';
+
+  @override
+  String get perfVisualFull => 'Full (glass, shadows, highlights)';
+
+  @override
+  String get perfVisualReduced => 'Reduced (light blur)';
+
+  @override
+  String get perfVisualMinimal => 'Minimal (flat, no shadows)';
+
+  @override
+  String get perfReduceMotion => 'Reduce interaction motion';
+
+  @override
+  String get perfReduceMotionNote =>
+      'Stops orb rotation, edge snap and card animations';
+
+  @override
+  String get perfAutoDegrade => 'Auto-degrade by device';
+
+  @override
+  String get perfAutoDegradeNote =>
+      'Low-end devices automatically use reduced visuals and frame rate';
+
+  @override
+  String get perfDegradedNote => 'Automatically downgraded for this device';
+
+  @override
+  String get perfImmersive => 'Immersive reading (hide system bars)';
+
+  @override
+  String get perfImmersiveNote =>
+      'Off by default; hides system bars while reading';
+
+  @override
+  String get perfMotionMasterNote =>
+      'Options lock automatically when interface motion is off';
+
+  @override
+  String get uiClose => 'Close';
 }

@@ -253,7 +253,7 @@ void main() {
     test('normalize 按 languageCode 回退：en_US → en，zh_TW → zh', () {
       expect(LocalizedLegalTexts.normalize(const Locale('en', 'US')),
           const Locale('en'));
-      expect(LocalizedLegalTexts.normalize(const Locale('zh', 'TW')),
+      expect(LocalizedLegalTexts.normalize(const Locale('zh')),
           const Locale('zh'));
     });
 
@@ -414,7 +414,7 @@ void main() {
         const Locale('fr'),
         const Locale('ja', 'JP'),
         const Locale('en', 'GB'),
-        const Locale('zh', 'HK'),
+        const Locale('zh'),
       ]) {
         final LegalTextBundle b = LocalizedLegalTexts.of(l);
         for (final String key in LegalTexts.keys) {

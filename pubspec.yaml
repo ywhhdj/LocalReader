@@ -1,4 +1,4 @@
-name: local_reader
+name: "Local_reader"
 description: 纯本地优先的轻小说 / 漫画阅读器 Flutter
 publish_to: "none"
 version: 1.0.0+1

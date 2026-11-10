@@ -104,12 +104,6 @@ abstract class AppLocalizations {
   /// **'本地阅读'**
   String get appTitle;
 
-  /// No description provided for @feedbackNoCredentials.
-  ///
-  /// In zh, this message translates to:
-  /// **''**
-  String get feedbackNoCredentials;
-
   /// 关于与问题反馈段落 1
   ///
   /// In zh, this message translates to:
@@ -449,7 +443,7 @@ abstract class AppLocalizations {
   /// 业务 / 合规 / 空状态文案：keepsakeStaticNote
   ///
   /// In zh, this message translates to:
-  /// **'纪念物由阅读统计与摘录自动生成，不手写演示条目；只保存在本地内存，不上传、不联网。五种季节手账配色可在书架页切换，桌面小组件本体需三端原生'**
+  /// **'纪念物由阅读统计与摘录自动生成，不手写演示条目；只保存在本地内存，不上传、不联网。五种季节手账配色可在书架页切换，桌面小组件本体需三端原生（❄️ 冻结）。'**
   String get keepsakeStaticNote;
 
   /// 业务 / 合规 / 空状态文案：calendarStaticNote
@@ -4219,6 +4213,1272 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'{p0} 键 · {p1} 模板 · {p2} 待润色'**
   String uiArbStats(String p0, String p1, String p2);
+
+  /// No description provided for @uiDiscover.
+  ///
+  /// In zh, this message translates to:
+  /// **'发现'**
+  String get uiDiscover;
+
+  /// No description provided for @uiDiscoverEyebrow.
+  ///
+  /// In zh, this message translates to:
+  /// **'01 / DISCOVER'**
+  String get uiDiscoverEyebrow;
+
+  /// No description provided for @uiShelfEyebrow.
+  ///
+  /// In zh, this message translates to:
+  /// **'02 / LIBRARY'**
+  String get uiShelfEyebrow;
+
+  /// No description provided for @uiStatsEyebrow.
+  ///
+  /// In zh, this message translates to:
+  /// **'03 / STATISTICS'**
+  String get uiStatsEyebrow;
+
+  /// No description provided for @uiMineEyebrow.
+  ///
+  /// In zh, this message translates to:
+  /// **'04 / PERSONAL ARCHIVE'**
+  String get uiMineEyebrow;
+
+  /// No description provided for @uiDiscoverSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'轻小说文库 · 榜单 / 搜索 / 个人书架'**
+  String get uiDiscoverSubtitle;
+
+  /// No description provided for @uiShelfSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'本地书库与云端来源'**
+  String get uiShelfSubtitle;
+
+  /// No description provided for @uiStatsSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'阅读记录、藏书与书签'**
+  String get uiStatsSubtitle;
+
+  /// No description provided for @uiMineSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'个人档案与全部设置'**
+  String get uiMineSubtitle;
+
+  /// No description provided for @uiReadingHistory.
+  ///
+  /// In zh, this message translates to:
+  /// **'阅读历史'**
+  String get uiReadingHistory;
+
+  /// No description provided for @uiImport.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入'**
+  String get uiImport;
+
+  /// No description provided for @uiSearch.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索'**
+  String get uiSearch;
+
+  /// No description provided for @uiLogin.
+  ///
+  /// In zh, this message translates to:
+  /// **'登录'**
+  String get uiLogin;
+
+  /// No description provided for @uiRefresh.
+  ///
+  /// In zh, this message translates to:
+  /// **'刷新'**
+  String get uiRefresh;
+
+  /// No description provided for @uiLayout.
+  ///
+  /// In zh, this message translates to:
+  /// **'布局'**
+  String get uiLayout;
+
+  /// No description provided for @uiFilter.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛选'**
+  String get uiFilter;
+
+  /// No description provided for @uiCategory.
+  ///
+  /// In zh, this message translates to:
+  /// **'分类'**
+  String get uiCategory;
+
+  /// No description provided for @uiLocalScope.
+  ///
+  /// In zh, this message translates to:
+  /// **'本地'**
+  String get uiLocalScope;
+
+  /// No description provided for @uiCloudScope.
+  ///
+  /// In zh, this message translates to:
+  /// **'云端'**
+  String get uiCloudScope;
+
+  /// No description provided for @uiAllCategories.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部分类'**
+  String get uiAllCategories;
+
+  /// No description provided for @uiCustomGroups.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义分组'**
+  String get uiCustomGroups;
+
+  /// No description provided for @uiCloudCategories.
+  ///
+  /// In zh, this message translates to:
+  /// **'Wenku8 分类'**
+  String get uiCloudCategories;
+
+  /// No description provided for @uiCloudSource.
+  ///
+  /// In zh, this message translates to:
+  /// **'云端来源'**
+  String get uiCloudSource;
+
+  /// No description provided for @uiGridLayout.
+  ///
+  /// In zh, this message translates to:
+  /// **'网格'**
+  String get uiGridLayout;
+
+  /// No description provided for @uiShelf3dLayout.
+  ///
+  /// In zh, this message translates to:
+  /// **'3D 书架'**
+  String get uiShelf3dLayout;
+
+  /// No description provided for @uiListLayout.
+  ///
+  /// In zh, this message translates to:
+  /// **'列表'**
+  String get uiListLayout;
+
+  /// No description provided for @uiFilterFavorites.
+  ///
+  /// In zh, this message translates to:
+  /// **'只看收藏'**
+  String get uiFilterFavorites;
+
+  /// No description provided for @uiShelfToolbarNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'这一栏只负责数据：分类 / 来源 / 布局 / 筛选'**
+  String get uiShelfToolbarNote;
+
+  /// No description provided for @uiImportLocalOnlyNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入按钮只在选择「本地」时出现'**
+  String get uiImportLocalOnlyNote;
+
+  /// No description provided for @uiAccountSyncing.
+  ///
+  /// In zh, this message translates to:
+  /// **'书架正在同步'**
+  String get uiAccountSyncing;
+
+  /// No description provided for @uiAccountGuest.
+  ///
+  /// In zh, this message translates to:
+  /// **'未登录'**
+  String get uiAccountGuest;
+
+  /// No description provided for @uiPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'积分'**
+  String get uiPoints;
+
+  /// No description provided for @uiNewcomer.
+  ///
+  /// In zh, this message translates to:
+  /// **'新手上路'**
+  String get uiNewcomer;
+
+  /// No description provided for @uiMenuStats.
+  ///
+  /// In zh, this message translates to:
+  /// **'统计'**
+  String get uiMenuStats;
+
+  /// No description provided for @uiMenuStatsSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'阅读记录、藏书与书签'**
+  String get uiMenuStatsSubtitle;
+
+  /// No description provided for @uiMenuBookmarks.
+  ///
+  /// In zh, this message translates to:
+  /// **'书签'**
+  String get uiMenuBookmarks;
+
+  /// No description provided for @uiMenuBookmarksSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'收藏喜欢的句子与阅读位置'**
+  String get uiMenuBookmarksSubtitle;
+
+  /// No description provided for @uiMenuSettings.
+  ///
+  /// In zh, this message translates to:
+  /// **'设置'**
+  String get uiMenuSettings;
+
+  /// No description provided for @uiMenuSettingsSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'阅读、外观、性能与本地数据'**
+  String get uiMenuSettingsSubtitle;
+
+  /// No description provided for @uiMenuAbout.
+  ///
+  /// In zh, this message translates to:
+  /// **'关于'**
+  String get uiMenuAbout;
+
+  /// No description provided for @uiMenuAboutSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'版本与全部合规 / 来源 / 格式说明'**
+  String get uiMenuAboutSubtitle;
+
+  /// No description provided for @uiMenuSupport.
+  ///
+  /// In zh, this message translates to:
+  /// **'赞助与反馈'**
+  String get uiMenuSupport;
+
+  /// No description provided for @uiMenuSupportSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'自愿赞助 · 最新版本问题反馈'**
+  String get uiMenuSupportSubtitle;
+
+  /// No description provided for @uiVersion.
+  ///
+  /// In zh, this message translates to:
+  /// **'版本'**
+  String get uiVersion;
+
+  /// No description provided for @uiAppVersionValue.
+  ///
+  /// In zh, this message translates to:
+  /// **'0.5.6'**
+  String get uiAppVersionValue;
+
+  /// No description provided for @uiSelectToOpen.
+  ///
+  /// In zh, this message translates to:
+  /// **'点选后才打开，不在底栏常驻'**
+  String get uiSelectToOpen;
+
+  /// No description provided for @aboutUnifiedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'关于'**
+  String get aboutUnifiedTitle;
+
+  /// No description provided for @aboutUnifiedNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'所有关于、合规、来源、导入格式与提示说明集中在本页；其它页面只保留一行短提示。'**
+  String get aboutUnifiedNote;
+
+  /// No description provided for @aboutSectionVersion.
+  ///
+  /// In zh, this message translates to:
+  /// **'版本与许可'**
+  String get aboutSectionVersion;
+
+  /// No description provided for @aboutSectionCompliance.
+  ///
+  /// In zh, this message translates to:
+  /// **'合规与内容边界'**
+  String get aboutSectionCompliance;
+
+  /// No description provided for @aboutSectionSources.
+  ///
+  /// In zh, this message translates to:
+  /// **'来源与在线'**
+  String get aboutSectionSources;
+
+  /// No description provided for @aboutSectionImport.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入格式与权限'**
+  String get aboutSectionImport;
+
+  /// No description provided for @aboutSectionHints.
+  ///
+  /// In zh, this message translates to:
+  /// **'提示与静态边界'**
+  String get aboutSectionHints;
+
+  /// No description provided for @aboutSectionFeedback.
+  ///
+  /// In zh, this message translates to:
+  /// **'反馈与支持'**
+  String get aboutSectionFeedback;
+
+  /// No description provided for @aboutHintIndexNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'以下为各页面短提示的统一索引，内容仍取自同一份文案表。'**
+  String get aboutHintIndexNote;
+
+  /// No description provided for @aboutOpenFromMine.
+  ///
+  /// In zh, this message translates to:
+  /// **'入口：我的 → 关于'**
+  String get aboutOpenFromMine;
+
+  /// No description provided for @cloudCacheTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'云端缓存'**
+  String get cloudCacheTitle;
+
+  /// No description provided for @cloudCacheNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'只缓存列表、目录与你点开的单章；退出登录或关闭纯本地模式时可清空，不整本下载、不分发。'**
+  String get cloudCacheNote;
+
+  /// No description provided for @cloudCacheEnabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'启用云端缓存'**
+  String get cloudCacheEnabled;
+
+  /// No description provided for @cloudCacheOffline.
+  ///
+  /// In zh, this message translates to:
+  /// **'允许已缓存章节离线阅读'**
+  String get cloudCacheOffline;
+
+  /// No description provided for @cloudCacheTtl.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存有效期'**
+  String get cloudCacheTtl;
+
+  /// No description provided for @cloudCacheSize.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存占用'**
+  String get cloudCacheSize;
+
+  /// No description provided for @cloudCacheClear.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空缓存'**
+  String get cloudCacheClear;
+
+  /// No description provided for @cloudCacheCleared.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存已清空'**
+  String get cloudCacheCleared;
+
+  /// No description provided for @cloudCacheHit.
+  ///
+  /// In zh, this message translates to:
+  /// **'命中缓存'**
+  String get cloudCacheHit;
+
+  /// No description provided for @cloudCacheStale.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存已过期，尝试重新读取'**
+  String get cloudCacheStale;
+
+  /// No description provided for @frozenFeaturesTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'已实现的平台能力'**
+  String get frozenFeaturesTitle;
+
+  /// No description provided for @frozenFeaturesNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'三端原生实现以平台通道接入；本环境无 SDK，真机编译与联调需本地执行。'**
+  String get frozenFeaturesNote;
+
+  /// No description provided for @platformNativeNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'由三端原生实现提供，需本地 flutter run 验证'**
+  String get platformNativeNote;
+
+  /// No description provided for @settingsSectionAppearance.
+  ///
+  /// In zh, this message translates to:
+  /// **'外观与阅读'**
+  String get settingsSectionAppearance;
+
+  /// No description provided for @settingsSectionSources.
+  ///
+  /// In zh, this message translates to:
+  /// **'来源与在线'**
+  String get settingsSectionSources;
+
+  /// No description provided for @settingsSectionLibrary.
+  ///
+  /// In zh, this message translates to:
+  /// **'书库与导入'**
+  String get settingsSectionLibrary;
+
+  /// No description provided for @settingsSectionFavorites.
+  ///
+  /// In zh, this message translates to:
+  /// **'收藏'**
+  String get settingsSectionFavorites;
+
+  /// No description provided for @settingsSectionAbout.
+  ///
+  /// In zh, this message translates to:
+  /// **'关于'**
+  String get settingsSectionAbout;
+
+  /// No description provided for @settingsSectionSupport.
+  ///
+  /// In zh, this message translates to:
+  /// **'支持与反馈'**
+  String get settingsSectionSupport;
+
+  /// No description provided for @uiBackToMine.
+  ///
+  /// In zh, this message translates to:
+  /// **'返回我的'**
+  String get uiBackToMine;
+
+  /// No description provided for @wenkuCatFantasy.
+  ///
+  /// In zh, this message translates to:
+  /// **'奇幻 / 异世界'**
+  String get wenkuCatFantasy;
+
+  /// No description provided for @wenkuCatSchool.
+  ///
+  /// In zh, this message translates to:
+  /// **'校园 / 青春'**
+  String get wenkuCatSchool;
+
+  /// No description provided for @wenkuCatRomance.
+  ///
+  /// In zh, this message translates to:
+  /// **'恋爱 / 后宫'**
+  String get wenkuCatRomance;
+
+  /// No description provided for @wenkuCatScifi.
+  ///
+  /// In zh, this message translates to:
+  /// **'科幻 / 机战'**
+  String get wenkuCatScifi;
+
+  /// No description provided for @wenkuCatMystery.
+  ///
+  /// In zh, this message translates to:
+  /// **'悬疑 / 推理'**
+  String get wenkuCatMystery;
+
+  /// No description provided for @wenkuCatDaily.
+  ///
+  /// In zh, this message translates to:
+  /// **'日常 / 治愈'**
+  String get wenkuCatDaily;
+
+  /// No description provided for @wenkuCatOther.
+  ///
+  /// In zh, this message translates to:
+  /// **'其它 / 番外'**
+  String get wenkuCatOther;
+
+  /// No description provided for @mineHeroTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'我的'**
+  String get mineHeroTitle;
+
+  /// No description provided for @mineHeroSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'04 / PERSONAL ARCHIVE'**
+  String get mineHeroSubtitle;
+
+  /// No description provided for @mineAccountDemo.
+  ///
+  /// In zh, this message translates to:
+  /// **'2081688398'**
+  String get mineAccountDemo;
+
+  /// No description provided for @minePoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'{p0} 积分'**
+  String minePoints(Object p0);
+
+  /// No description provided for @mineLevel.
+  ///
+  /// In zh, this message translates to:
+  /// **'新手上路'**
+  String get mineLevel;
+
+  /// No description provided for @mineSyncStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'书架正在同步（{p0} 册）'**
+  String mineSyncStatus(Object p0);
+
+  /// No description provided for @mineStatsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'统计'**
+  String get mineStatsTitle;
+
+  /// No description provided for @mineStatsSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'阅读记录、藏书与书签'**
+  String get mineStatsSubtitle;
+
+  /// No description provided for @mineBookmarksTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'书签'**
+  String get mineBookmarksTitle;
+
+  /// No description provided for @mineBookmarksSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'收藏喜欢的句子与阅读位置'**
+  String get mineBookmarksSubtitle;
+
+  /// No description provided for @mineSettingsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'设置'**
+  String get mineSettingsTitle;
+
+  /// No description provided for @mineSettingsSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'阅读、外观、性能与本地数据'**
+  String get mineSettingsSubtitle;
+
+  /// No description provided for @mineAboutTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'关于'**
+  String get mineAboutTitle;
+
+  /// No description provided for @mineAboutSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'版本 0.5.6'**
+  String get mineAboutSubtitle;
+
+  /// No description provided for @mineSupportTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'赞助与反馈'**
+  String get mineSupportTitle;
+
+  /// No description provided for @mineSupportSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'自愿赞助 · 最新版本问题反馈'**
+  String get mineSupportSubtitle;
+
+  /// No description provided for @settingsHeroTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'设置'**
+  String get settingsHeroTitle;
+
+  /// No description provided for @settingsHeroSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'05 / PREFERENCES'**
+  String get settingsHeroSubtitle;
+
+  /// No description provided for @settingsGeneralTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'常规'**
+  String get settingsGeneralTitle;
+
+  /// No description provided for @settingsAppearanceTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'外观与阅读'**
+  String get settingsAppearanceTitle;
+
+  /// No description provided for @settingsCacheTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存与静态说明'**
+  String get settingsCacheTitle;
+
+  /// No description provided for @wenkuCacheNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'云端缓存只保留列表、目录与点开的单章，不整本下载、不打包分发。'**
+  String get wenkuCacheNote;
+
+  /// No description provided for @aboutVersionTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'版本'**
+  String get aboutVersionTitle;
+
+  /// No description provided for @aboutAllNotesTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'关于与声明'**
+  String get aboutAllNotesTitle;
+
+  /// No description provided for @aboutPromptsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'提示汇总'**
+  String get aboutPromptsTitle;
+
+  /// No description provided for @aboutStaticTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'静态交付说明'**
+  String get aboutStaticTitle;
+
+  /// No description provided for @freeStatementTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'免费声明'**
+  String get freeStatementTitle;
+
+  /// No description provided for @bookmarksHeroTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'书签'**
+  String get bookmarksHeroTitle;
+
+  /// No description provided for @bookmarksHeroSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'03 / KEEPSAKES'**
+  String get bookmarksHeroSubtitle;
+
+  /// No description provided for @bookmarksEmptyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有书签'**
+  String get bookmarksEmptyTitle;
+
+  /// No description provided for @bookmarksEmptyBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'阅读时点选正文行即可摘下句子'**
+  String get bookmarksEmptyBody;
+
+  /// No description provided for @shelfHeroTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'书架'**
+  String get shelfHeroTitle;
+
+  /// No description provided for @shelfHeroSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'02 / LIBRARY'**
+  String get shelfHeroSubtitle;
+
+  /// No description provided for @shelfHistoryTip.
+  ///
+  /// In zh, this message translates to:
+  /// **'阅读历史'**
+  String get shelfHistoryTip;
+
+  /// No description provided for @shelfImportTip.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入'**
+  String get shelfImportTip;
+
+  /// No description provided for @shelfSearchTip.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索'**
+  String get shelfSearchTip;
+
+  /// No description provided for @shelfLayoutTip.
+  ///
+  /// In zh, this message translates to:
+  /// **'布局'**
+  String get shelfLayoutTip;
+
+  /// No description provided for @shelfFilterTip.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛选'**
+  String get shelfFilterTip;
+
+  /// No description provided for @shelfCategoryTip.
+  ///
+  /// In zh, this message translates to:
+  /// **'分类'**
+  String get shelfCategoryTip;
+
+  /// No description provided for @shelfLayout3d.
+  ///
+  /// In zh, this message translates to:
+  /// **'3D 书架'**
+  String get shelfLayout3d;
+
+  /// No description provided for @shelfLayoutGrid.
+  ///
+  /// In zh, this message translates to:
+  /// **'网格'**
+  String get shelfLayoutGrid;
+
+  /// No description provided for @shelfLayoutList.
+  ///
+  /// In zh, this message translates to:
+  /// **'列表'**
+  String get shelfLayoutList;
+
+  /// No description provided for @detailTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'图书详情'**
+  String get detailTitle;
+
+  /// No description provided for @detailStatusOngoing.
+  ///
+  /// In zh, this message translates to:
+  /// **'连载中'**
+  String get detailStatusOngoing;
+
+  /// No description provided for @detailCached.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存'**
+  String get detailCached;
+
+  /// No description provided for @detailUpdatedOn.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新于'**
+  String get detailUpdatedOn;
+
+  /// No description provided for @detailCacheFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'「GAMERS特典短篇」缓存失败，可重试'**
+  String get detailCacheFailed;
+
+  /// No description provided for @detailReadTo.
+  ///
+  /// In zh, this message translates to:
+  /// **'读到'**
+  String get detailReadTo;
+
+  /// No description provided for @detailChapterPercent.
+  ///
+  /// In zh, this message translates to:
+  /// **'本章'**
+  String get detailChapterPercent;
+
+  /// No description provided for @detailSynopsisIndex.
+  ///
+  /// In zh, this message translates to:
+  /// **'01 / SYNOPSIS'**
+  String get detailSynopsisIndex;
+
+  /// No description provided for @detailSynopsisTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'简介'**
+  String get detailSynopsisTitle;
+
+  /// No description provided for @detailExpandAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'展开全部'**
+  String get detailExpandAll;
+
+  /// No description provided for @detailCollapse.
+  ///
+  /// In zh, this message translates to:
+  /// **'收起'**
+  String get detailCollapse;
+
+  /// No description provided for @detailAddToShelf.
+  ///
+  /// In zh, this message translates to:
+  /// **'加入书架'**
+  String get detailAddToShelf;
+
+  /// No description provided for @detailCloudFavorite.
+  ///
+  /// In zh, this message translates to:
+  /// **'云端收藏'**
+  String get detailCloudFavorite;
+
+  /// No description provided for @detailLocalFavorite.
+  ///
+  /// In zh, this message translates to:
+  /// **'本地收藏'**
+  String get detailLocalFavorite;
+
+  /// No description provided for @detailComments.
+  ///
+  /// In zh, this message translates to:
+  /// **'评论'**
+  String get detailComments;
+
+  /// No description provided for @detailGrouping.
+  ///
+  /// In zh, this message translates to:
+  /// **'分组'**
+  String get detailGrouping;
+
+  /// No description provided for @detailContinueReading.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续阅读'**
+  String get detailContinueReading;
+
+  /// No description provided for @detailStartReading.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始阅读'**
+  String get detailStartReading;
+
+  /// No description provided for @detailCloudDownload.
+  ///
+  /// In zh, this message translates to:
+  /// **'云下载 / 缓存'**
+  String get detailCloudDownload;
+
+  /// No description provided for @detailDeleteBook.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除本书'**
+  String get detailDeleteBook;
+
+  /// No description provided for @detailResetProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'重置进度'**
+  String get detailResetProgress;
+
+  /// No description provided for @detailLocalActions.
+  ///
+  /// In zh, this message translates to:
+  /// **'本地书籍操作'**
+  String get detailLocalActions;
+
+  /// No description provided for @detailStaticActionNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'静态阶段仅记录操作，不触发真实下载或删除'**
+  String get detailStaticActionNote;
+
+  /// No description provided for @detailTagSchool.
+  ///
+  /// In zh, this message translates to:
+  /// **'校园'**
+  String get detailTagSchool;
+
+  /// No description provided for @detailTagBattle.
+  ///
+  /// In zh, this message translates to:
+  /// **'斗智'**
+  String get detailTagBattle;
+
+  /// No description provided for @detailTagYouth.
+  ///
+  /// In zh, this message translates to:
+  /// **'青春'**
+  String get detailTagYouth;
+
+  /// No description provided for @detailTagRomance.
+  ///
+  /// In zh, this message translates to:
+  /// **'恋爱'**
+  String get detailTagRomance;
+
+  /// No description provided for @detailTagHarem.
+  ///
+  /// In zh, this message translates to:
+  /// **'后宫'**
+  String get detailTagHarem;
+
+  /// No description provided for @detailSynopsisDemo1.
+  ///
+  /// In zh, this message translates to:
+  /// **'真正的实力、平等究竟为何？'**
+  String get detailSynopsisDemo1;
+
+  /// No description provided for @detailSynopsisDemo2.
+  ///
+  /// In zh, this message translates to:
+  /// **'几乎百分之百实现升学、就业目标的全国首屈一指的名校——高度育成高中。'**
+  String get detailSynopsisDemo2;
+
+  /// No description provided for @detailSynopsisDemo3.
+  ///
+  /// In zh, this message translates to:
+  /// **'欢迎来到梦幻般的校园生活。'**
+  String get detailSynopsisDemo3;
+
+  /// No description provided for @readerTapToggle.
+  ///
+  /// In zh, this message translates to:
+  /// **'收起 / 展开界面'**
+  String get readerTapToggle;
+
+  /// No description provided for @readerPrevPage.
+  ///
+  /// In zh, this message translates to:
+  /// **'上一页'**
+  String get readerPrevPage;
+
+  /// No description provided for @readerNextPage.
+  ///
+  /// In zh, this message translates to:
+  /// **'下一页'**
+  String get readerNextPage;
+
+  /// No description provided for @readerImmersionOn.
+  ///
+  /// In zh, this message translates to:
+  /// **'沉浸阅读已开启'**
+  String get readerImmersionOn;
+
+  /// No description provided for @readerImmersionOff.
+  ///
+  /// In zh, this message translates to:
+  /// **'沉浸阅读已关闭'**
+  String get readerImmersionOff;
+
+  /// No description provided for @readerTtsStart.
+  ///
+  /// In zh, this message translates to:
+  /// **'朗读'**
+  String get readerTtsStart;
+
+  /// No description provided for @readerTtsPause.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂停'**
+  String get readerTtsPause;
+
+  /// No description provided for @readerTtsResume.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续'**
+  String get readerTtsResume;
+
+  /// No description provided for @readerTtsClose.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭朗读'**
+  String get readerTtsClose;
+
+  /// No description provided for @readerTtsExpand.
+  ///
+  /// In zh, this message translates to:
+  /// **'展开朗读控制'**
+  String get readerTtsExpand;
+
+  /// No description provided for @readerTtsSettings.
+  ///
+  /// In zh, this message translates to:
+  /// **'听读设置'**
+  String get readerTtsSettings;
+
+  /// No description provided for @readerTtsTimbre.
+  ///
+  /// In zh, this message translates to:
+  /// **'音色'**
+  String get readerTtsTimbre;
+
+  /// No description provided for @readerTtsTimbreSoft.
+  ///
+  /// In zh, this message translates to:
+  /// **'柔和'**
+  String get readerTtsTimbreSoft;
+
+  /// No description provided for @readerTtsTimbreNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'标准'**
+  String get readerTtsTimbreNormal;
+
+  /// No description provided for @readerTtsTimbreBright.
+  ///
+  /// In zh, this message translates to:
+  /// **'明亮'**
+  String get readerTtsTimbreBright;
+
+  /// No description provided for @readerTtsTimbreNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'音色为音调/语速组合，不下载语音包'**
+  String get readerTtsTimbreNote;
+
+  /// No description provided for @readerTtsRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'语速'**
+  String get readerTtsRate;
+
+  /// No description provided for @readerTtsPitch.
+  ///
+  /// In zh, this message translates to:
+  /// **'音调'**
+  String get readerTtsPitch;
+
+  /// No description provided for @readerTtsAutoNext.
+  ///
+  /// In zh, this message translates to:
+  /// **'读完自动下一章'**
+  String get readerTtsAutoNext;
+
+  /// No description provided for @readerTtsVoice.
+  ///
+  /// In zh, this message translates to:
+  /// **'发声人（系统语音）'**
+  String get readerTtsVoice;
+
+  /// No description provided for @readerTtsSystemSettings.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统设置'**
+  String get readerTtsSystemSettings;
+
+  /// No description provided for @readerTtsNoVoice.
+  ///
+  /// In zh, this message translates to:
+  /// **'未检测到已安装语音，可先使用默认语音'**
+  String get readerTtsNoVoice;
+
+  /// No description provided for @readerTtsDefaultVoice.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统默认'**
+  String get readerTtsDefaultVoice;
+
+  /// No description provided for @readerTtsStaticNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'平台语音与系统朗读设置需真机验证'**
+  String get readerTtsStaticNote;
+
+  /// No description provided for @perfSectionTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'性能与动效'**
+  String get perfSectionTitle;
+
+  /// No description provided for @perfFrameRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'帧率'**
+  String get perfFrameRate;
+
+  /// No description provided for @perfFrameRateAuto.
+  ///
+  /// In zh, this message translates to:
+  /// **'跟随设备'**
+  String get perfFrameRateAuto;
+
+  /// No description provided for @perfFrameRate30.
+  ///
+  /// In zh, this message translates to:
+  /// **'省电 30'**
+  String get perfFrameRate30;
+
+  /// No description provided for @perfFrameRate60.
+  ///
+  /// In zh, this message translates to:
+  /// **'标准 60'**
+  String get perfFrameRate60;
+
+  /// No description provided for @perfFrameRate120.
+  ///
+  /// In zh, this message translates to:
+  /// **'高刷 120'**
+  String get perfFrameRate120;
+
+  /// No description provided for @perfFrameRateNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'帧率偏好写入设置；实际刷新率由系统调度'**
+  String get perfFrameRateNote;
+
+  /// No description provided for @perfDeviceDetection.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备检测'**
+  String get perfDeviceDetection;
+
+  /// No description provided for @perfDeviceTier.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备档位'**
+  String get perfDeviceTier;
+
+  /// No description provided for @perfDeviceUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'未检测（静态交付）'**
+  String get perfDeviceUnknown;
+
+  /// No description provided for @perfDeviceLow.
+  ///
+  /// In zh, this message translates to:
+  /// **'低端设备'**
+  String get perfDeviceLow;
+
+  /// No description provided for @perfDeviceMid.
+  ///
+  /// In zh, this message translates to:
+  /// **'中端设备'**
+  String get perfDeviceMid;
+
+  /// No description provided for @perfDeviceHigh.
+  ///
+  /// In zh, this message translates to:
+  /// **'高端设备'**
+  String get perfDeviceHigh;
+
+  /// No description provided for @perfDeviceRam.
+  ///
+  /// In zh, this message translates to:
+  /// **'内存'**
+  String get perfDeviceRam;
+
+  /// No description provided for @perfDeviceCores.
+  ///
+  /// In zh, this message translates to:
+  /// **'核心数'**
+  String get perfDeviceCores;
+
+  /// No description provided for @perfDeviceRefresh.
+  ///
+  /// In zh, this message translates to:
+  /// **'最高刷新率'**
+  String get perfDeviceRefresh;
+
+  /// No description provided for @perfDeviceRedetect.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新检测'**
+  String get perfDeviceRedetect;
+
+  /// No description provided for @perfDeviceStaticNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'真实设备探测由三端平台桥接提供，静态阶段返回未知'**
+  String get perfDeviceStaticNote;
+
+  /// No description provided for @perfVisualEffects.
+  ///
+  /// In zh, this message translates to:
+  /// **'视觉效果'**
+  String get perfVisualEffects;
+
+  /// No description provided for @perfVisualFull.
+  ///
+  /// In zh, this message translates to:
+  /// **'完整（玻璃 + 阴影 + 高光）'**
+  String get perfVisualFull;
+
+  /// No description provided for @perfVisualReduced.
+  ///
+  /// In zh, this message translates to:
+  /// **'精简（弱模糊）'**
+  String get perfVisualReduced;
+
+  /// No description provided for @perfVisualMinimal.
+  ///
+  /// In zh, this message translates to:
+  /// **'最低（纯色 + 无阴影）'**
+  String get perfVisualMinimal;
+
+  /// No description provided for @perfReduceMotion.
+  ///
+  /// In zh, this message translates to:
+  /// **'减少交互动效'**
+  String get perfReduceMotion;
+
+  /// No description provided for @perfReduceMotionNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭悬浮球旋转、贴边过渡与卡片动画'**
+  String get perfReduceMotionNote;
+
+  /// No description provided for @perfAutoDegrade.
+  ///
+  /// In zh, this message translates to:
+  /// **'按设备自动降级'**
+  String get perfAutoDegrade;
+
+  /// No description provided for @perfAutoDegradeNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'低端设备自动切到精简视觉与低帧率'**
+  String get perfAutoDegradeNote;
+
+  /// No description provided for @perfDegradedNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'已按设备档位自动降级'**
+  String get perfDegradedNote;
+
+  /// No description provided for @perfImmersive.
+  ///
+  /// In zh, this message translates to:
+  /// **'沉浸阅读（收起系统栏）'**
+  String get perfImmersive;
+
+  /// No description provided for @perfImmersiveNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'默认关闭；开启后阅读时隐藏系统状态栏与导航栏'**
+  String get perfImmersiveNote;
+
+  /// No description provided for @perfMotionMasterNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭界面动效后，本组选项自动锁定'**
+  String get perfMotionMasterNote;
+
+  /// No description provided for @uiClose.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭'**
+  String get uiClose;
 }
 
 class _AppLocalizationsDelegate

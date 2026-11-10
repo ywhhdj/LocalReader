@@ -44,10 +44,8 @@ class RenderPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         try {
             when (call.method) {
                 "open" -> {
-                    val id = call.argument<String>("documentId") ?: 
-                        return result.error("ARG", "documentId 缺失", null)
-                    val path = call.argument<String>("localPath") ?: 
-                        return result.error("ARG", "localPath 缺失", null)
+                    val id = call.argument<String>("documentId") ?: return result.error("ARG", "documentId 缺失", null)
+                    val path = call.argument<String>("localPath") ?: return result.error("ARG", "localPath 缺失", null)
                     val h = nextHandle++
                     // TODO(P2): PDFium JNI/FFI 打开；CBZ/ZIP 用 archive 解包；RAR5 直接返回 UNSUPPORTED 并提示转 CBZ/ZIP
                     handles[h] = DocumentHandle(h, path, textures!!)
@@ -57,9 +55,7 @@ class RenderPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 "pageInfo" -> {
                     val h = handles[handleOf(call)] ?: return result.error("HANDLE", "句柄已释放", null)
                     val i = call.argument<Int>("index") ?: 0
-                    result.success(
-                        mapOf("w" to h.pageWidth(i), "h" to h.pageHeight(i), "aspect" to h.aspect(i))
-                    )
+                    result.success(mapOf("w" to h.pageWidth(i), "h" to h.pageHeight(i), "aspect" to h.aspect(i)))
                 }
                 "render" -> {
                     val h = handles[handleOf(call)] ?: return result.error("HANDLE", "句柄已释放", null)

@@ -1,13 +1,8 @@
-import 'package:flutter/widgets.dart';
+import 'assembly/app_bootstrap.dart';
 
-import 'app.dart';
-
+/// 对应原项目 `MainActivity.kt`：单入口，只做一件事——交给装配层启动。
+/// App.kt 的初始化项（崩溃兜底 / 图片缓存裁剪 / 容器）全部在
+/// `assembly/app_bootstrap.dart`，页面与业务层不散写启动代码。
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // TODO(P1): 初始化数据库（Drift/Isar）、平台通道、崩溃兜底。
-  // 对应原 Kotlin 工程 App.kt（Coil / 崩溃兜底 / 容器 / 内存裁剪）与 CrashGuard.kt。
-  // FlutterError.onError / PlatformDispatcher.onError 需在此注册，并保留「连续崩溃保护」语义。
-
-  runApp(const LocalReaderApp());
+  AppBootstrap.run();
 }

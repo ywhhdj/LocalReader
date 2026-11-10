@@ -645,6 +645,258 @@
   "uiNoDataOmitted": " (no data, all omitted)",
   "uiAligned": " (aligned)",
   "uiMisaligned": " (misaligned)",
+  "uiEnabled": "On",
+  "uiDisabled": "Off",
+  "uiLightInnerHighlight": "light inner highlight",
+  "uiBlackShadow": "black shadow",
+  "uiSpecialEpisode": "special",
+  "uiSpine": "spine",
+  "uiWideSolo": "wide solo",
+  "uiPhrase000": "多：{p0}",
+  "uiPhrase001": "缺：{p0}",
+  "uiSampleDataN1": "{p0} · Sample data",
+  "uiPhrase003": "{p0}",
+  "uiCurrentContents": "{p0} · current在线contents：",
+  "uiPhrase005": "{p0}\n关键词：「{p1}」",
+  "uiCurrentN1": "{p0}\ncurrent关键词：「{p1}」",
+  "uiPhrase007": "{p0}",
+  "uiAboutParagraphsItems": " · about paragraphs {p0}  items",
+  "uiShade": "shade {p0} · {p1}",
+  "uiPhrase010": "{p0}",
+  "uiPhrase011": "{p0}",
+  "uiPhrase012": "{p0}",
+  "uiPhrase013": "{p0}",
+  "uiKeepsakesN1": "{p0}  keepsakes{p1}",
+  "uiDaysTotalPages": "近 7  days · total {p0}  pages · {p1}",
+  "uiItemsN1": "{p0} · 《{p1}》 · {p2}  items",
+  "uiPhrase017": "{p0}",
+  "uiChaptersN1": "{p0}  chapters · {p1}",
+  "uiBooksN1": "已写入 {p0}  books{p1}",
+  "uiVolumesChapters": "{p0} · {p1}  volumes / {p2}  chapters",
+  "uiPhrase021": "{p0}",
+  "uiExcerptCaptureSource": "《{p0}》· {p1}{p2}",
+  "uiBookMetaLine": "{p0} · {p1}{p2}",
+  "uiWidgetSpecLine": "{p0} · {p1}{p2}{p3}",
+  "uiVolumeN": "Volume {p0}",
+  "uiVolumePrefixN": " · Volume {p0}",
+  "uiDeferredN": " · {p0} deferred",
+  "uiSpecialEpisodePrefix": " · Special",
+  "uiWideSoloN": " · {p0} wide spreads",
+  "uiSpineN": " · {p0} spines",
+  "uiSimplifiedChinese": "Simplified Chinese",
+  "uiArbSourceNote": "Source: lib/l10n/app_zh.arb and app_en.arb. Edit only these two files, then run tool/sync_arb.py.",
+  "uiArbStats": "{p0} keys · {p1} templates · {p2} to review",
+  "uiDiscover": "Discover",
+  "uiDiscoverEyebrow": "01 / DISCOVER",
+  "uiShelfEyebrow": "02 / LIBRARY",
+  "uiStatsEyebrow": "03 / STATISTICS",
+  "uiMineEyebrow": "04 / PERSONAL ARCHIVE",
+  "uiDiscoverSubtitle": "Light novels · rankings / search / bookcase",
+  "uiShelfSubtitle": "Local library & cloud sources",
+  "uiStatsSubtitle": "Reading records, library & bookmarks",
+  "uiMineSubtitle": "Personal archive & all settings",
+  "uiReadingHistory": "Reading history",
+  "uiImport": "Import",
+  "uiSearch": "Search",
+  "uiLogin": "Sign in",
+  "uiRefresh": "Refresh",
+  "uiLayout": "Layout",
+  "uiFilter": "Filter",
+  "uiCategory": "Category",
+  "uiLocalScope": "Local",
+  "uiCloudScope": "Cloud",
+  "uiAllCategories": "All categories",
+  "uiCustomGroups": "Custom groups",
+  "uiCloudCategories": "Wenku8 categories",
+  "uiCloudSource": "Cloud sources",
+  "uiGridLayout": "Grid",
+  "uiShelf3dLayout": "3D shelf",
+  "uiListLayout": "List",
+  "uiFilterFavorites": "Favorites only",
+  "uiShelfToolbarNote": "This bar is data-only: category / source / layout / filter",
+  "uiImportLocalOnlyNote": "Import appears only when Local is selected",
+  "uiAccountSyncing": "Shelf syncing",
+  "uiAccountGuest": "Not signed in",
+  "uiPoints": "Points",
+  "uiNewcomer": "Newcomer",
+  "uiMenuStats": "Stats",
+  "uiMenuStatsSubtitle": "Reading records, library & bookmarks",
+  "uiMenuBookmarks": "Bookmarks",
+  "uiMenuBookmarksSubtitle": "Saved lines & reading positions",
+  "uiMenuSettings": "Settings",
+  "uiMenuSettingsSubtitle": "Reading, appearance, performance & local data",
+  "uiMenuAbout": "About",
+  "uiMenuAboutSubtitle": "Version & all compliance / source / format notes",
+  "uiMenuSupport": "Support & feedback",
+  "uiMenuSupportSubtitle": "Voluntary support · feedback",
+  "uiVersion": "Version",
+  "uiAppVersionValue": "0.5.6",
+  "uiSelectToOpen": "Open by selection, no permanent bottom tab",
+  "aboutUnifiedTitle": "About",
+  "aboutUnifiedNote": "All about, compliance, source, import-format and hint notes live here; other pages keep one short line.",
+  "aboutSectionVersion": "Version & license",
+  "aboutSectionCompliance": "Compliance & content boundary",
+  "aboutSectionSources": "Sources & online",
+  "aboutSectionImport": "Import formats & permissions",
+  "aboutSectionHints": "Hints & static boundary",
+  "aboutSectionFeedback": "Feedback & support",
+  "aboutHintIndexNote": "Unified index of short page hints, still read from the same catalog.",
+  "aboutOpenFromMine": "Entry: Mine → About",
+  "cloudCacheTitle": "Cloud cache",
+  "cloudCacheNote": "Caches listings, TOCs and chapters you opened; cleared on sign-out, never bulk download or redistribution.",
+  "cloudCacheEnabled": "Enable cloud cache",
+  "cloudCacheOffline": "Allow offline reading of cached chapters",
+  "cloudCacheTtl": "Cache TTL",
+  "cloudCacheSize": "Cache usage",
+  "cloudCacheClear": "Clear cache",
+  "cloudCacheCleared": "Cache cleared",
+  "cloudCacheHit": "Cache hit",
+  "cloudCacheStale": "Cache expired, fetching again",
+  "frozenFeaturesTitle": "Implemented platform features",
+  "frozenFeaturesNote": "Three-platform native code is wired via channels; no SDK here, device build needs local run.",
+  "platformNativeNote": "Provided by native code; verify with local flutter run",
+  "settingsSectionAppearance": "Appearance & reading",
+  "settingsSectionSources": "Sources & online",
+  "settingsSectionLibrary": "Library & import",
+  "settingsSectionFavorites": "Favorites",
+  "settingsSectionAbout": "About",
+  "settingsSectionSupport": "Support & feedback",
+  "uiBackToMine": "Back to Mine",
+  "wenkuCatFantasy": "Fantasy / Isekai",
+  "wenkuCatSchool": "School / Youth",
+  "wenkuCatRomance": "Romance / Harem",
+  "wenkuCatScifi": "Sci-fi / Mecha",
+  "wenkuCatMystery": "Mystery / Detective",
+  "wenkuCatDaily": "Slice of life",
+  "wenkuCatOther": "Other / Extras",
+  "mineHeroTitle": "Mine",
+  "mineHeroSubtitle": "04 / PERSONAL ARCHIVE",
+  "mineAccountDemo": "2081688398",
+  "minePoints": "{p0} points",
+  "mineLevel": "Newcomer",
+  "mineSyncStatus": "Syncing {p0} books",
+  "mineStatsTitle": "Statistics",
+  "mineStatsSubtitle": "Reading records, library and bookmarks",
+  "mineBookmarksTitle": "Bookmarks",
+  "mineBookmarksSubtitle": "Saved lines and reading positions",
+  "mineSettingsTitle": "Settings",
+  "mineSettingsSubtitle": "Reading, appearance, performance and local data",
+  "mineAboutTitle": "About",
+  "mineAboutSubtitle": "Version 0.5.6",
+  "mineSupportTitle": "Support & Feedback",
+  "mineSupportSubtitle": "Optional support and issue feedback",
+  "settingsHeroTitle": "Settings",
+  "settingsHeroSubtitle": "05 / PREFERENCES",
+  "settingsGeneralTitle": "General",
+  "settingsAppearanceTitle": "Appearance & Reading",
+  "settingsCacheTitle": "Cache & Static Notes",
+  "wenkuCacheNote": "Cloud cache keeps listings, tables of contents and opened chapters only; no full-book download or redistribution.",
+  "aboutVersionTitle": "Version",
+  "aboutAllNotesTitle": "About & Statements",
+  "aboutPromptsTitle": "All notices",
+  "aboutStaticTitle": "Static delivery notes",
+  "freeStatementTitle": "Free to use",
+  "bookmarksHeroTitle": "Bookmarks",
+  "bookmarksHeroSubtitle": "03 / KEEPSAKES",
+  "bookmarksEmptyTitle": "No bookmarks yet",
+  "bookmarksEmptyBody": "Select lines while reading to save excerpts",
+  "shelfHeroTitle": "Bookshelf",
+  "shelfHeroSubtitle": "02 / LIBRARY",
+  "shelfHistoryTip": "Reading history",
+  "shelfImportTip": "Import",
+  "shelfSearchTip": "Search",
+  "shelfLayoutTip": "Layout",
+  "shelfFilterTip": "Filter",
+  "shelfCategoryTip": "Category",
+  "shelfLayout3d": "3D shelf",
+  "shelfLayoutGrid": "Grid",
+  "shelfLayoutList": "List",
+  "detailTitle": "Book details",
+  "detailStatusOngoing": "Ongoing",
+  "detailCached": "Cached",
+  "detailUpdatedOn": "Updated",
+  "detailCacheFailed": "GAMERS bonus short cache failed, tap to retry",
+  "detailReadTo": "Reading",
+  "detailChapterPercent": "Chapter",
+  "detailSynopsisIndex": "01 / SYNOPSIS",
+  "detailSynopsisTitle": "Synopsis",
+  "detailExpandAll": "Expand all",
+  "detailCollapse": "Collapse",
+  "detailAddToShelf": "Add to shelf",
+  "detailCloudFavorite": "Cloud favorite",
+  "detailLocalFavorite": "Local favorite",
+  "detailComments": "Comments",
+  "detailGrouping": "Group",
+  "detailContinueReading": "Continue reading",
+  "detailStartReading": "Start reading",
+  "detailCloudDownload": "Cloud download / cache",
+  "detailDeleteBook": "Delete book",
+  "detailResetProgress": "Reset progress",
+  "detailLocalActions": "Local book actions",
+  "detailStaticActionNote": "Static build records the action only; no real download or deletion",
+  "detailTagSchool": "School",
+  "detailTagBattle": "Mind games",
+  "detailTagYouth": "Youth",
+  "detailTagRomance": "Romance",
+  "detailTagHarem": "Harem",
+  "detailSynopsisDemo1": "What are true strength and equality?",
+  "detailSynopsisDemo2": "A top school that almost guarantees university admission and employment.",
+  "detailSynopsisDemo3": "Welcome to a dreamlike campus life.",
+  "readerTapToggle": "Hide / show controls",
+  "readerPrevPage": "Previous page",
+  "readerNextPage": "Next page",
+  "readerImmersionOn": "Immersive reading on",
+  "readerImmersionOff": "Immersive reading off",
+  "readerTtsStart": "Read aloud",
+  "readerTtsPause": "Pause",
+  "readerTtsResume": "Resume",
+  "readerTtsClose": "Stop read aloud",
+  "readerTtsExpand": "Expand read-aloud controls",
+  "readerTtsSettings": "Read-aloud settings",
+  "readerTtsTimbre": "Timbre",
+  "readerTtsTimbreSoft": "Soft",
+  "readerTtsTimbreNormal": "Normal",
+  "readerTtsTimbreBright": "Bright",
+  "readerTtsTimbreNote": "Timbre combines pitch and rate; no voice packs downloaded",
+  "readerTtsRate": "Rate",
+  "readerTtsPitch": "Pitch",
+  "readerTtsAutoNext": "Auto next chapter",
+  "readerTtsVoice": "Voice (system TTS)",
+  "readerTtsSystemSettings": "System settings",
+  "readerTtsNoVoice": "No installed voices detected; the default voice can be used",
+  "readerTtsDefaultVoice": "System default",
+  "readerTtsStaticNote": "Platform TTS and system settings require device verification",
+  "perfSectionTitle": "Performance & Motion",
+  "perfFrameRate": "Frame rate",
+  "perfFrameRateAuto": "Follow device",
+  "perfFrameRate30": "Power 30",
+  "perfFrameRate60": "Standard 60",
+  "perfFrameRate120": "High 120",
+  "perfFrameRateNote": "Frame-rate preference is stored; the system schedules the actual refresh rate",
+  "perfDeviceDetection": "Device detection",
+  "perfDeviceTier": "Device tier",
+  "perfDeviceUnknown": "Unknown (static build)",
+  "perfDeviceLow": "Low-end",
+  "perfDeviceMid": "Mid-range",
+  "perfDeviceHigh": "High-end",
+  "perfDeviceRam": "Memory",
+  "perfDeviceCores": "Cores",
+  "perfDeviceRefresh": "Max refresh rate",
+  "perfDeviceRedetect": "Re-detect",
+  "perfDeviceStaticNote": "Real device detection comes from platform bridges; static builds return unknown",
+  "perfVisualEffects": "Visual effects",
+  "perfVisualFull": "Full (glass, shadows, highlights)",
+  "perfVisualReduced": "Reduced (light blur)",
+  "perfVisualMinimal": "Minimal (flat, no shadows)",
+  "perfReduceMotion": "Reduce interaction motion",
+  "perfReduceMotionNote": "Stops orb rotation, edge snap and card animations",
+  "perfAutoDegrade": "Auto-degrade by device",
+  "perfAutoDegradeNote": "Low-end devices automatically use reduced visuals and frame rate",
+  "perfDegradedNote": "Automatically downgraded for this device",
+  "perfImmersive": "Immersive reading (hide system bars)",
+  "perfImmersiveNote": "Off by default; hides system bars while reading",
+  "perfMotionMasterNote": "Options lock automatically when interface motion is off",
+  "uiClose": "Close",
   "@appTitle": {
     "description": "MaterialApp.onGenerateTitle 使用的应用标题"
   },
@@ -3291,35 +3543,27 @@
   "@uiMisaligned": {
     "description": "插值表达式内部的中文子字面量"
   },
-  "uiEnabled": "On",
   "@uiEnabled": {
     "description": "插值表达式内部的中文子字面量"
   },
-  "uiDisabled": "Off",
   "@uiDisabled": {
     "description": "插值表达式内部的中文子字面量"
   },
-  "uiLightInnerHighlight": "light inner highlight",
   "@uiLightInnerHighlight": {
     "description": "插值表达式内部的中文子字面量"
   },
-  "uiBlackShadow": "black shadow",
   "@uiBlackShadow": {
     "description": "插值表达式内部的中文子字面量"
   },
-  "uiSpecialEpisode": "special",
   "@uiSpecialEpisode": {
     "description": "插值表达式内部的中文子字面量"
   },
-  "uiSpine": "spine",
   "@uiSpine": {
     "description": "插值表达式内部的中文子字面量"
   },
-  "uiWideSolo": "wide solo",
   "@uiWideSolo": {
     "description": "插值表达式内部的中文子字面量"
   },
-  "uiPhrase000": "多：{p0}",
   "@uiPhrase000": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：多：${extra.join('、')} | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
     "placeholders": {
@@ -3329,7 +3573,6 @@
       }
     }
   },
-  "uiPhrase001": "缺：{p0}",
   "@uiPhrase001": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：缺：${missing.join('、')} | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
     "placeholders": {
@@ -3339,7 +3582,6 @@
       }
     }
   },
-  "uiSampleDataN1": "{p0} · Sample data",
   "@uiSampleDataN1": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${entry['author']} · 示意数据",
     "placeholders": {
@@ -3349,7 +3591,6 @@
       }
     }
   },
-  "uiPhrase003": "{p0}",
   "@uiPhrase003": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${state.onlineEnabled ? '已开启' : '未开启'}",
     "placeholders": {
@@ -3359,7 +3600,6 @@
       }
     }
   },
-  "uiCurrentContents": "{p0} · current在线contents：",
   "@uiCurrentContents": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${context.t('freeStatement')} · 当前在线目录： | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
     "placeholders": {
@@ -3369,7 +3609,6 @@
       }
     }
   },
-  "uiPhrase005": "{p0}\n关键词：「{p1}」",
   "@uiPhrase005": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${context.t('noResultBody')} 关键词：「$query」 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
     "placeholders": {
@@ -3383,7 +3622,6 @@
       }
     }
   },
-  "uiCurrentN1": "{p0}\ncurrent关键词：「{p1}」",
   "@uiCurrentN1": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${context.t('noResultBody')} 当前关键词：「$query」 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
     "placeholders": {
@@ -3397,7 +3635,6 @@
       }
     }
   },
-  "uiPhrase007": "{p0}",
   "@uiPhrase007": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${_verticalMode ? '' : ' · $directionLabel'}",
     "placeholders": {
@@ -3407,7 +3644,6 @@
       }
     }
   },
-  "uiAboutParagraphsItems": " · about paragraphs {p0}  items",
   "@uiAboutParagraphsItems": {
     "description": "UI 短标签（嵌套插值补齐） | 原文： · 关于段落 ${bundle.list('aboutParagraphs').length} 条",
     "placeholders": {
@@ -3417,7 +3653,6 @@
       }
     }
   },
-  "uiShade": "shade {p0} · {p1}",
   "@uiShade": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：渐暗 $level · ${spec.onDarkBackground ? '浅色内高光' : '黑色阴影'}",
     "placeholders": {
@@ -3431,7 +3666,6 @@
       }
     }
   },
-  "uiPhrase010": "{p0}",
   "@uiPhrase010": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${_spineShadeLabel.isEmpty ? '' : ' · $_spineShadeLabel'}",
     "placeholders": {
@@ -3441,7 +3675,6 @@
       }
     }
   },
-  "uiPhrase011": "{p0}",
   "@uiPhrase011": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${episode.kind == ComicEpisodeKind.special ? ' · 番外' : ''}",
     "placeholders": {
@@ -3451,7 +3684,6 @@
       }
     }
   },
-  "uiPhrase012": "{p0}",
   "@uiPhrase012": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${book.volumeOrder == 0 ? '' : ' · 第 ${book.volumeOrder} 卷'}",
     "placeholders": {
@@ -3461,7 +3693,6 @@
       }
     }
   },
-  "uiPhrase013": "{p0}",
   "@uiPhrase013": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${LocalizedLegalTexts.paragraphsAligned() ? '（中英对齐）' : '（未对齐）'}",
     "placeholders": {
@@ -3471,7 +3702,6 @@
       }
     }
   },
-  "uiKeepsakesN1": "{p0}  keepsakes{p1}",
   "@uiKeepsakesN1": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${visible.length} 枚${scopeLabel.isEmpty ? '' : ' · $scopeLabel'}",
     "placeholders": {
@@ -3485,7 +3715,6 @@
       }
     }
   },
-  "uiDaysTotalPages": "近 7  days · total {p0}  pages · {p1}",
   "@uiDaysTotalPages": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：近 7 天 · 共 ${snapshot.totalPages} 页 · ${context.t('demoDataNote')} | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
     "placeholders": {
@@ -3499,7 +3728,6 @@
       }
     }
   },
-  "uiItemsN1": "{p0} · 《{p1}》 · {p2}  items",
   "@uiItemsN1": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${context.t('bookExcerptTitle')} · 《$scopedTitle》 · $scopedCount 条",
     "placeholders": {
@@ -3517,7 +3745,6 @@
       }
     }
   },
-  "uiPhrase017": "{p0}",
   "@uiPhrase017": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${_layout.wideSpreadCount > 0 ? ' · 宽幅独占 ${_layout.wideSpreadCount} 跨' : ''}",
     "placeholders": {
@@ -3527,7 +3754,6 @@
       }
     }
   },
-  "uiChaptersN1": "{p0}  chapters · {p1}",
   "@uiChaptersN1": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：$chapterCount 章 · ${book.volumeOrder == 0 ? '未分卷' : '第 ${book.volumeOrder} 卷'}",
     "placeholders": {
@@ -3541,7 +3767,6 @@
       }
     }
   },
-  "uiBooksN1": "已写入 {p0}  books{p1}",
   "@uiBooksN1": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：已写入 $added 册${commit.deferredCount > 0 ? ' · ${commit.deferredCount} 项延后处理' : '' | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
     "placeholders": {
@@ -3555,7 +3780,6 @@
       }
     }
   },
-  "uiVolumesChapters": "{p0} · {p1}  volumes / {p2}  chapters",
   "@uiVolumesChapters": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${context.t('wenkuDetailToc')} · ${detail.volumes.length} 卷 / ${detail.chapterCo",
     "placeholders": {
@@ -3573,7 +3797,6 @@
       }
     }
   },
-  "uiPhrase021": "{p0}",
   "@uiPhrase021": {
     "description": "UI 短标签（嵌套插值补齐） | 原文：${ComicSpreadGutter.spineCount(_layout) > 0 ? ' · 书脊 ${ComicSpreadGutter.spineCo",
     "placeholders": {
@@ -3583,7 +3806,6 @@
       }
     }
   },
-  "uiExcerptCaptureSource": "《{p0}》· {p1}{p2}",
   "@uiExcerptCaptureSource": {
     "description": "相邻字符串拼接合并后的 UI 行模板（第二十八轮）",
     "placeholders": {
@@ -3601,7 +3823,6 @@
       }
     }
   },
-  "uiBookMetaLine": "{p0} · {p1}{p2}",
   "@uiBookMetaLine": {
     "description": "相邻字符串拼接合并后的 UI 行模板（第二十八轮）",
     "placeholders": {
@@ -3619,7 +3840,6 @@
       }
     }
   },
-  "uiWidgetSpecLine": "{p0} · {p1}{p2}{p3}",
   "@uiWidgetSpecLine": {
     "description": "相邻字符串拼接合并后的 UI 行模板（第二十八轮）",
     "placeholders": {
@@ -3641,7 +3861,6 @@
       }
     }
   },
-  "uiVolumeN": "Volume {p0}",
   "@uiVolumeN": {
     "description": "第二十八轮：从插值表达式 / 语言名收进 ARB",
     "placeholders": {
@@ -3651,7 +3870,6 @@
       }
     }
   },
-  "uiVolumePrefixN": " · Volume {p0}",
   "@uiVolumePrefixN": {
     "description": "第二十八轮：从插值表达式 / 语言名收进 ARB",
     "placeholders": {
@@ -3661,7 +3879,6 @@
       }
     }
   },
-  "uiDeferredN": " · {p0} deferred",
   "@uiDeferredN": {
     "description": "第二十八轮：从插值表达式 / 语言名收进 ARB",
     "placeholders": {
@@ -3671,11 +3888,9 @@
       }
     }
   },
-  "uiSpecialEpisodePrefix": " · Special",
   "@uiSpecialEpisodePrefix": {
     "description": "第二十八轮：从插值表达式 / 语言名收进 ARB"
   },
-  "uiWideSoloN": " · {p0} wide spreads",
   "@uiWideSoloN": {
     "description": "第二十八轮：从插值表达式 / 语言名收进 ARB",
     "placeholders": {
@@ -3685,7 +3900,6 @@
       }
     }
   },
-  "uiSpineN": " · {p0} spines",
   "@uiSpineN": {
     "description": "第二十八轮：从插值表达式 / 语言名收进 ARB",
     "placeholders": {
@@ -3695,15 +3909,12 @@
       }
     }
   },
-  "uiSimplifiedChinese": "Simplified Chinese",
   "@uiSimplifiedChinese": {
     "description": "第二十八轮：从插值表达式 / 语言名收进 ARB"
   },
-  "uiArbSourceNote": "Source: lib/l10n/app_zh.arb and app_en.arb. Edit only these two files, then run tool/sync_arb.py.",
   "@uiArbSourceNote": {
     "description": "本地化资源面板：文案唯一源说明"
   },
-  "uiArbStats": "{p0} keys · {p1} templates · {p2} to review",
   "@uiArbStats": {
     "description": "本地化资源面板：ARB 统计",
     "placeholders": {
@@ -3719,6 +3930,16 @@
         "type": "String",
         "example": "83"
       }
+    }
+  },
+  "@minePoints": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "@mineSyncStatus": {
+    "placeholders": {
+      "p0": {}
     }
   }
 }

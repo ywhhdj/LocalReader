@@ -12,9 +12,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appTitle => '本地阅读';
 
   @override
-  String get feedbackNoCredentials => '';
-
-  @override
   String get aboutParagraph1 => '支持 Android、iOS 与 HarmonyOS，不是 Wenku8 官方应用。';
 
   @override
@@ -202,7 +199,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get keepsakeStaticNote =>
-      '纪念物由阅读统计与摘录自动生成，不手写演示条目；只保存在本地内存，不上传、不联网。五种季节手账配色可在书架页切换，桌面小组件本体需三端原生';
+      '纪念物由阅读统计与摘录自动生成，不手写演示条目；只保存在本地内存，不上传、不联网。五种季节手账配色可在书架页切换，桌面小组件本体需三端原生（❄️ 冻结）。';
 
   @override
   String get calendarStaticNote =>
@@ -2408,4 +2405,641 @@ class AppLocalizationsZh extends AppLocalizations {
   String uiArbStats(String p0, String p1, String p2) {
     return '$p0 键 · $p1 模板 · $p2 待润色';
   }
+
+  @override
+  String get uiDiscover => '发现';
+
+  @override
+  String get uiDiscoverEyebrow => '01 / DISCOVER';
+
+  @override
+  String get uiShelfEyebrow => '02 / LIBRARY';
+
+  @override
+  String get uiStatsEyebrow => '03 / STATISTICS';
+
+  @override
+  String get uiMineEyebrow => '04 / PERSONAL ARCHIVE';
+
+  @override
+  String get uiDiscoverSubtitle => '轻小说文库 · 榜单 / 搜索 / 个人书架';
+
+  @override
+  String get uiShelfSubtitle => '本地书库与云端来源';
+
+  @override
+  String get uiStatsSubtitle => '阅读记录、藏书与书签';
+
+  @override
+  String get uiMineSubtitle => '个人档案与全部设置';
+
+  @override
+  String get uiReadingHistory => '阅读历史';
+
+  @override
+  String get uiImport => '导入';
+
+  @override
+  String get uiSearch => '搜索';
+
+  @override
+  String get uiLogin => '登录';
+
+  @override
+  String get uiRefresh => '刷新';
+
+  @override
+  String get uiLayout => '布局';
+
+  @override
+  String get uiFilter => '筛选';
+
+  @override
+  String get uiCategory => '分类';
+
+  @override
+  String get uiLocalScope => '本地';
+
+  @override
+  String get uiCloudScope => '云端';
+
+  @override
+  String get uiAllCategories => '全部分类';
+
+  @override
+  String get uiCustomGroups => '自定义分组';
+
+  @override
+  String get uiCloudCategories => 'Wenku8 分类';
+
+  @override
+  String get uiCloudSource => '云端来源';
+
+  @override
+  String get uiGridLayout => '网格';
+
+  @override
+  String get uiShelf3dLayout => '3D 书架';
+
+  @override
+  String get uiListLayout => '列表';
+
+  @override
+  String get uiFilterFavorites => '只看收藏';
+
+  @override
+  String get uiShelfToolbarNote => '这一栏只负责数据：分类 / 来源 / 布局 / 筛选';
+
+  @override
+  String get uiImportLocalOnlyNote => '导入按钮只在选择「本地」时出现';
+
+  @override
+  String get uiAccountSyncing => '书架正在同步';
+
+  @override
+  String get uiAccountGuest => '未登录';
+
+  @override
+  String get uiPoints => '积分';
+
+  @override
+  String get uiNewcomer => '新手上路';
+
+  @override
+  String get uiMenuStats => '统计';
+
+  @override
+  String get uiMenuStatsSubtitle => '阅读记录、藏书与书签';
+
+  @override
+  String get uiMenuBookmarks => '书签';
+
+  @override
+  String get uiMenuBookmarksSubtitle => '收藏喜欢的句子与阅读位置';
+
+  @override
+  String get uiMenuSettings => '设置';
+
+  @override
+  String get uiMenuSettingsSubtitle => '阅读、外观、性能与本地数据';
+
+  @override
+  String get uiMenuAbout => '关于';
+
+  @override
+  String get uiMenuAboutSubtitle => '版本与全部合规 / 来源 / 格式说明';
+
+  @override
+  String get uiMenuSupport => '赞助与反馈';
+
+  @override
+  String get uiMenuSupportSubtitle => '自愿赞助 · 最新版本问题反馈';
+
+  @override
+  String get uiVersion => '版本';
+
+  @override
+  String get uiAppVersionValue => '0.5.6';
+
+  @override
+  String get uiSelectToOpen => '点选后才打开，不在底栏常驻';
+
+  @override
+  String get aboutUnifiedTitle => '关于';
+
+  @override
+  String get aboutUnifiedNote => '所有关于、合规、来源、导入格式与提示说明集中在本页；其它页面只保留一行短提示。';
+
+  @override
+  String get aboutSectionVersion => '版本与许可';
+
+  @override
+  String get aboutSectionCompliance => '合规与内容边界';
+
+  @override
+  String get aboutSectionSources => '来源与在线';
+
+  @override
+  String get aboutSectionImport => '导入格式与权限';
+
+  @override
+  String get aboutSectionHints => '提示与静态边界';
+
+  @override
+  String get aboutSectionFeedback => '反馈与支持';
+
+  @override
+  String get aboutHintIndexNote => '以下为各页面短提示的统一索引，内容仍取自同一份文案表。';
+
+  @override
+  String get aboutOpenFromMine => '入口：我的 → 关于';
+
+  @override
+  String get cloudCacheTitle => '云端缓存';
+
+  @override
+  String get cloudCacheNote => '只缓存列表、目录与你点开的单章；退出登录或关闭纯本地模式时可清空，不整本下载、不分发。';
+
+  @override
+  String get cloudCacheEnabled => '启用云端缓存';
+
+  @override
+  String get cloudCacheOffline => '允许已缓存章节离线阅读';
+
+  @override
+  String get cloudCacheTtl => '缓存有效期';
+
+  @override
+  String get cloudCacheSize => '缓存占用';
+
+  @override
+  String get cloudCacheClear => '清空缓存';
+
+  @override
+  String get cloudCacheCleared => '缓存已清空';
+
+  @override
+  String get cloudCacheHit => '命中缓存';
+
+  @override
+  String get cloudCacheStale => '缓存已过期，尝试重新读取';
+
+  @override
+  String get frozenFeaturesTitle => '已实现的平台能力';
+
+  @override
+  String get frozenFeaturesNote => '三端原生实现以平台通道接入；本环境无 SDK，真机编译与联调需本地执行。';
+
+  @override
+  String get platformNativeNote => '由三端原生实现提供，需本地 flutter run 验证';
+
+  @override
+  String get settingsSectionAppearance => '外观与阅读';
+
+  @override
+  String get settingsSectionSources => '来源与在线';
+
+  @override
+  String get settingsSectionLibrary => '书库与导入';
+
+  @override
+  String get settingsSectionFavorites => '收藏';
+
+  @override
+  String get settingsSectionAbout => '关于';
+
+  @override
+  String get settingsSectionSupport => '支持与反馈';
+
+  @override
+  String get uiBackToMine => '返回我的';
+
+  @override
+  String get wenkuCatFantasy => '奇幻 / 异世界';
+
+  @override
+  String get wenkuCatSchool => '校园 / 青春';
+
+  @override
+  String get wenkuCatRomance => '恋爱 / 后宫';
+
+  @override
+  String get wenkuCatScifi => '科幻 / 机战';
+
+  @override
+  String get wenkuCatMystery => '悬疑 / 推理';
+
+  @override
+  String get wenkuCatDaily => '日常 / 治愈';
+
+  @override
+  String get wenkuCatOther => '其它 / 番外';
+
+  @override
+  String get mineHeroTitle => '我的';
+
+  @override
+  String get mineHeroSubtitle => '04 / PERSONAL ARCHIVE';
+
+  @override
+  String get mineAccountDemo => '2081688398';
+
+  @override
+  String minePoints(Object p0) {
+    return '$p0 积分';
+  }
+
+  @override
+  String get mineLevel => '新手上路';
+
+  @override
+  String mineSyncStatus(Object p0) {
+    return '书架正在同步（$p0 册）';
+  }
+
+  @override
+  String get mineStatsTitle => '统计';
+
+  @override
+  String get mineStatsSubtitle => '阅读记录、藏书与书签';
+
+  @override
+  String get mineBookmarksTitle => '书签';
+
+  @override
+  String get mineBookmarksSubtitle => '收藏喜欢的句子与阅读位置';
+
+  @override
+  String get mineSettingsTitle => '设置';
+
+  @override
+  String get mineSettingsSubtitle => '阅读、外观、性能与本地数据';
+
+  @override
+  String get mineAboutTitle => '关于';
+
+  @override
+  String get mineAboutSubtitle => '版本 0.5.6';
+
+  @override
+  String get mineSupportTitle => '赞助与反馈';
+
+  @override
+  String get mineSupportSubtitle => '自愿赞助 · 最新版本问题反馈';
+
+  @override
+  String get settingsHeroTitle => '设置';
+
+  @override
+  String get settingsHeroSubtitle => '05 / PREFERENCES';
+
+  @override
+  String get settingsGeneralTitle => '常规';
+
+  @override
+  String get settingsAppearanceTitle => '外观与阅读';
+
+  @override
+  String get settingsCacheTitle => '缓存与静态说明';
+
+  @override
+  String get wenkuCacheNote => '云端缓存只保留列表、目录与点开的单章，不整本下载、不打包分发。';
+
+  @override
+  String get aboutVersionTitle => '版本';
+
+  @override
+  String get aboutAllNotesTitle => '关于与声明';
+
+  @override
+  String get aboutPromptsTitle => '提示汇总';
+
+  @override
+  String get aboutStaticTitle => '静态交付说明';
+
+  @override
+  String get freeStatementTitle => '免费声明';
+
+  @override
+  String get bookmarksHeroTitle => '书签';
+
+  @override
+  String get bookmarksHeroSubtitle => '03 / KEEPSAKES';
+
+  @override
+  String get bookmarksEmptyTitle => '还没有书签';
+
+  @override
+  String get bookmarksEmptyBody => '阅读时点选正文行即可摘下句子';
+
+  @override
+  String get shelfHeroTitle => '书架';
+
+  @override
+  String get shelfHeroSubtitle => '02 / LIBRARY';
+
+  @override
+  String get shelfHistoryTip => '阅读历史';
+
+  @override
+  String get shelfImportTip => '导入';
+
+  @override
+  String get shelfSearchTip => '搜索';
+
+  @override
+  String get shelfLayoutTip => '布局';
+
+  @override
+  String get shelfFilterTip => '筛选';
+
+  @override
+  String get shelfCategoryTip => '分类';
+
+  @override
+  String get shelfLayout3d => '3D 书架';
+
+  @override
+  String get shelfLayoutGrid => '网格';
+
+  @override
+  String get shelfLayoutList => '列表';
+
+  @override
+  String get detailTitle => '图书详情';
+
+  @override
+  String get detailStatusOngoing => '连载中';
+
+  @override
+  String get detailCached => '缓存';
+
+  @override
+  String get detailUpdatedOn => '更新于';
+
+  @override
+  String get detailCacheFailed => '「GAMERS特典短篇」缓存失败，可重试';
+
+  @override
+  String get detailReadTo => '读到';
+
+  @override
+  String get detailChapterPercent => '本章';
+
+  @override
+  String get detailSynopsisIndex => '01 / SYNOPSIS';
+
+  @override
+  String get detailSynopsisTitle => '简介';
+
+  @override
+  String get detailExpandAll => '展开全部';
+
+  @override
+  String get detailCollapse => '收起';
+
+  @override
+  String get detailAddToShelf => '加入书架';
+
+  @override
+  String get detailCloudFavorite => '云端收藏';
+
+  @override
+  String get detailLocalFavorite => '本地收藏';
+
+  @override
+  String get detailComments => '评论';
+
+  @override
+  String get detailGrouping => '分组';
+
+  @override
+  String get detailContinueReading => '继续阅读';
+
+  @override
+  String get detailStartReading => '开始阅读';
+
+  @override
+  String get detailCloudDownload => '云下载 / 缓存';
+
+  @override
+  String get detailDeleteBook => '删除本书';
+
+  @override
+  String get detailResetProgress => '重置进度';
+
+  @override
+  String get detailLocalActions => '本地书籍操作';
+
+  @override
+  String get detailStaticActionNote => '静态阶段仅记录操作，不触发真实下载或删除';
+
+  @override
+  String get detailTagSchool => '校园';
+
+  @override
+  String get detailTagBattle => '斗智';
+
+  @override
+  String get detailTagYouth => '青春';
+
+  @override
+  String get detailTagRomance => '恋爱';
+
+  @override
+  String get detailTagHarem => '后宫';
+
+  @override
+  String get detailSynopsisDemo1 => '真正的实力、平等究竟为何？';
+
+  @override
+  String get detailSynopsisDemo2 => '几乎百分之百实现升学、就业目标的全国首屈一指的名校——高度育成高中。';
+
+  @override
+  String get detailSynopsisDemo3 => '欢迎来到梦幻般的校园生活。';
+
+  @override
+  String get readerTapToggle => '收起 / 展开界面';
+
+  @override
+  String get readerPrevPage => '上一页';
+
+  @override
+  String get readerNextPage => '下一页';
+
+  @override
+  String get readerImmersionOn => '沉浸阅读已开启';
+
+  @override
+  String get readerImmersionOff => '沉浸阅读已关闭';
+
+  @override
+  String get readerTtsStart => '朗读';
+
+  @override
+  String get readerTtsPause => '暂停';
+
+  @override
+  String get readerTtsResume => '继续';
+
+  @override
+  String get readerTtsClose => '关闭朗读';
+
+  @override
+  String get readerTtsExpand => '展开朗读控制';
+
+  @override
+  String get readerTtsSettings => '听读设置';
+
+  @override
+  String get readerTtsTimbre => '音色';
+
+  @override
+  String get readerTtsTimbreSoft => '柔和';
+
+  @override
+  String get readerTtsTimbreNormal => '标准';
+
+  @override
+  String get readerTtsTimbreBright => '明亮';
+
+  @override
+  String get readerTtsTimbreNote => '音色为音调/语速组合，不下载语音包';
+
+  @override
+  String get readerTtsRate => '语速';
+
+  @override
+  String get readerTtsPitch => '音调';
+
+  @override
+  String get readerTtsAutoNext => '读完自动下一章';
+
+  @override
+  String get readerTtsVoice => '发声人（系统语音）';
+
+  @override
+  String get readerTtsSystemSettings => '系统设置';
+
+  @override
+  String get readerTtsNoVoice => '未检测到已安装语音，可先使用默认语音';
+
+  @override
+  String get readerTtsDefaultVoice => '系统默认';
+
+  @override
+  String get readerTtsStaticNote => '平台语音与系统朗读设置需真机验证';
+
+  @override
+  String get perfSectionTitle => '性能与动效';
+
+  @override
+  String get perfFrameRate => '帧率';
+
+  @override
+  String get perfFrameRateAuto => '跟随设备';
+
+  @override
+  String get perfFrameRate30 => '省电 30';
+
+  @override
+  String get perfFrameRate60 => '标准 60';
+
+  @override
+  String get perfFrameRate120 => '高刷 120';
+
+  @override
+  String get perfFrameRateNote => '帧率偏好写入设置；实际刷新率由系统调度';
+
+  @override
+  String get perfDeviceDetection => '设备检测';
+
+  @override
+  String get perfDeviceTier => '设备档位';
+
+  @override
+  String get perfDeviceUnknown => '未检测（静态交付）';
+
+  @override
+  String get perfDeviceLow => '低端设备';
+
+  @override
+  String get perfDeviceMid => '中端设备';
+
+  @override
+  String get perfDeviceHigh => '高端设备';
+
+  @override
+  String get perfDeviceRam => '内存';
+
+  @override
+  String get perfDeviceCores => '核心数';
+
+  @override
+  String get perfDeviceRefresh => '最高刷新率';
+
+  @override
+  String get perfDeviceRedetect => '重新检测';
+
+  @override
+  String get perfDeviceStaticNote => '真实设备探测由三端平台桥接提供，静态阶段返回未知';
+
+  @override
+  String get perfVisualEffects => '视觉效果';
+
+  @override
+  String get perfVisualFull => '完整（玻璃 + 阴影 + 高光）';
+
+  @override
+  String get perfVisualReduced => '精简（弱模糊）';
+
+  @override
+  String get perfVisualMinimal => '最低（纯色 + 无阴影）';
+
+  @override
+  String get perfReduceMotion => '减少交互动效';
+
+  @override
+  String get perfReduceMotionNote => '关闭悬浮球旋转、贴边过渡与卡片动画';
+
+  @override
+  String get perfAutoDegrade => '按设备自动降级';
+
+  @override
+  String get perfAutoDegradeNote => '低端设备自动切到精简视觉与低帧率';
+
+  @override
+  String get perfDegradedNote => '已按设备档位自动降级';
+
+  @override
+  String get perfImmersive => '沉浸阅读（收起系统栏）';
+
+  @override
+  String get perfImmersiveNote => '默认关闭；开启后阅读时隐藏系统状态栏与导航栏';
+
+  @override
+  String get perfMotionMasterNote => '关闭界面动效后，本组选项自动锁定';
+
+  @override
+  String get uiClose => '关闭';
 }
