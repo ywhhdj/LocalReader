@@ -1,0 +1,3724 @@
+{
+  "@@locale": "en",
+  "appTitle": "Local Reader",
+  "aboutParagraph1": "Supports Android, iOS and HarmonyOS. This is not an official Wenku8 app.",
+  "aboutParagraph2": "The app is entirely free and voluntarily supported. All features are free; no memberships, activation codes or feature unlocks are sold. Beware of anyone charging for access in the name of this project or its developer.",
+  "aboutParagraph3": "Only Wenku8 and local imports are supported. Other sources and custom book sources are not supported.",
+  "aboutParagraph4": "Novels, covers and illustrations belong to their respective rights holders; the source-code license does not grant rights to that content. Access only content you are entitled to use and follow the source website's rules. Do not bypass access restrictions, break DRM, or copy, distribute or sell content without permission.",
+  "aboutParagraph5": "When reporting an issue, include the app version, device, OS version and steps to reproduce. Never include passwords, cookies or tokens in issue reports.",
+  "aboutParagraph6": "Third-party services may change, rate-limit requests, or become unavailable.",
+  "appDisclaimer": "This is a third-party reading client for reading and managing local books. It does not operate an online library, publish novels, or bundle novel files. Online content and availability are determined by Wenku8; the app does not provide online access to books withdrawn for copyright reasons.",
+  "nonOfficial": "Supports Android, iOS and HarmonyOS. This is not an official Wenku8 app.",
+  "freeStatement": "The app is entirely free and voluntarily supported. All features are free; no memberships, activation codes or feature unlocks are sold. Beware of anyone charging for access in the name of this project or its developer.",
+  "sources": "Only Wenku8 and local imports are supported. Other sources and custom book sources are not supported.",
+  "contentRights": "Novels, covers and illustrations belong to their respective rights holders; the source-code license does not grant rights to that content. Access only content you are entitled to use and follow the source website's rules. Do not bypass access restrictions, break DRM, or copy, distribute or sell content without permission.",
+  "thirdPartyService": "Third-party services may change, rate-limit requests, or become unavailable.",
+  "onlineAvailability": "Online content and availability are determined by Wenku8; third-party services may change, rate-limit requests, or become unavailable.",
+  "issueGuidance": "When reporting an issue, include the app version, device, OS version and steps to reproduce. Never include passwords, cookies or tokens in issue reports.",
+  "onlineEntryNote": "Only online listings, details and table-of-contents metadata are shown here. Reading content must be imported into the local library by the user. The app does not bundle, package or distribute novel files, and does not provide online access to books withdrawn for copyright reasons.",
+  "localOnlyNote": "Pure-local mode is on by default; when enabled the app makes no network requests. Online listings and WebDAV are off by default.",
+  "importFormats": "TXT (encoding detection + chapter splitting), EPUB, CBZ/ZIP, image folders, PDF (page rendering), RAR4 and earlier.",
+  "archiveNotice": "RAR5 and encrypted archives are not supported; convert them to CBZ/ZIP.",
+  "permissionNotice": "Permissions: on Android 13+ only image-read access is requested. Document-type books are not covered by the media store and still require directory authorization through the system file picker or 'All files access'. No audio, video or notification permissions are requested. The import dialog clearly reports the current state when permission is missing.",
+  "importChannels": "Import through OpenList / WebDAV or Quark Drive (experimental); OneDrive, Google Drive and similar services are reachable through the system document picker. Authorization is persisted and can be rescanned after restart.",
+  "importBody": "TXT (encoding detection + chapter splitting), EPUB, CBZ/ZIP, image folders, PDF (page rendering), RAR4 and earlier.\nRAR5 and encrypted archives are not supported; convert them to CBZ/ZIP.\n\nPermissions: on Android 13+ only image-read access is requested. Document-type books are not covered by the media store and still require directory authorization through the system file picker or 'All files access'. No audio, video or notification permissions are requested. The import dialog clearly reports the current state when permission is missing.\n\nImport through OpenList / WebDAV or Quark Drive (experimental); OneDrive, Google Drive and similar services are reachable through the system document picker. Authorization is persisted and can be rescanned after restart.\n\nPure-local mode is on by default; when enabled the app makes no network requests. Online listings and WebDAV are off by default.",
+  "importTitle": "Import books",
+  "importWizardTitle": "Import wizard",
+  "importWizardStaticNote": "Static delivery mode: authorization and scanning use local demo data only. No system file picker is opened, no file bytes are read, nothing is extracted, and no network request is made. Real SAF persistence and file scanning require platform implementations (frozen).",
+  "importRar5Reason": "RAR5 is not supported; convert to CBZ/ZIP and scan again.",
+  "importEncryptedReason": "Encrypted archives are not supported; convert to CBZ/ZIP and scan again.",
+  "importUnsupportedReason": "Unregistered format; the static build does not guess file contents. Please check the extension.",
+  "importNoModeHint": "Choose an authorization method before continuing.",
+  "importNoGrantHint": "Authorization is not confirmed. In the static build this only records your choice; no system permission is requested.",
+  "importScanEmpty": "No importable book files were found in this directory.",
+  "importNoAcceptedHint": "No importable files. Handle unsupported formats first, then scan again.",
+  "importConflictNote": "A book with the same title already exists. The demo library is read-only, so 'Replace' and 'Merge records' are deferred; 'Keep both' creates a copy.",
+  "importDoneNote": "Import results are written to the in-memory library only and reset to demo data on restart; the read-only demo books are never modified.",
+  "importWizardEntry": "Open import wizard",
+  "emptyLibraryTitle": "Your library is empty",
+  "emptyLibraryBody": "Authorize a directory with the system file picker, then import local books. TXT / EPUB / CBZ / PDF and more are supported. Document-type books are not covered by the media store and need directory authorization or 'All files access'.",
+  "noResultTitle": "No books found",
+  "noResultBody": "Try a shorter title or author name, or switch keywords. Search runs only against the local library and makes no network requests.",
+  "demoDataNote": "Demo data is shown; edits are kept in memory and reset on restart.",
+  "excerptLocalNote": "Excerpts are kept locally in memory only; nothing is uploaded and no network is used. Demo data returns on restart.",
+  "excerptExportNote": "Export produces a local plain-text preview only: no file is written, no system share is invoked and nothing is uploaded. Writing to disk and sharing require platform capabilities and are not implemented in the static build.",
+  "excerptReadOnlyNote": "Demo excerpts are read-only; you can edit notes, change highlight colors, or delete entries you captured yourself.",
+  "excerptEmptyTitle": "No excerpts yet",
+  "excerptEmptyBody": "Select one or more lines in the reader, then tap the bookmark icon in the top bar to capture an excerpt.",
+  "excerptNoResultTitle": "No matching excerpts",
+  "excerptNoResultBody": "Try a shorter keyword, or clear the book / highlight / scope filters.",
+  "comicPlaceholderNote": "Pages are placeholders sized by aspect ratio; real page pixels require the three-platform BookRenderBridge. The static build does not decode images.",
+  "comicTocNote": "Chapters are recognized from directory and file names inside the archive; nothing is extracted and no file contents are read. Unrecognized pages go to 'Unsorted' and are never silently dropped. The recognition rate is shown when incomplete.",
+  "comicLocalNote": "Comic reading and chapter detection are fully local: no network, no upload. Page pixel rendering requires platform capabilities (frozen).",
+  "favoriteLocalNote": "Favorites are kept locally in memory only; nothing is uploaded and no network is used. Demo favorites return on restart.",
+  "favoriteEmptyTitle": "No favorites yet",
+  "favoriteEmptyBody": "Tap the star on a book detail page or in the reader top bar to add it here.",
+  "favoritesOnlyHint": "Favorites only",
+  "screenshotNote": "The screenshots use demo book data. The app interface is in Chinese.",
+  "keepsakeTitle": "Keepsakes",
+  "calendarMonthTitle": "Reading calendar - Month",
+  "keepsakeStaticNote": "Keepsakes are generated from reading stats and excerpts; no demo entries are hand-written. They are kept locally in memory only, with no upload and no network. Five seasonal journal styles can be switched on the shelf; desktop widgets require native implementations on all three platforms (frozen).",
+  "calendarStaticNote": "The month view aggregates the 35-day demo heatmap and excerpts, starting on Monday with a fixed six-week grid. Cross-month padding cells align the grid only and are excluded from monthly totals. The static build does not read a real reading database.",
+  "keepsakeEmptyTitle": "No keepsakes yet",
+  "keepsakeEmptyBody": "Keep reading, reach a goal, or capture a line, and keepsakes will appear here automatically.",
+  "calendarNoRecordNote": "No reading record for this day",
+  "calendarOutOfRangeNote": "You have reached the edge of the demo data range",
+  "calendarOpenMonth": "View month",
+  "calendarBackToThisMonth": "Back to this month",
+  "calendarAllMonths": "All",
+  "localizationTitle": "Text catalog and language preview",
+  "localizationPreviewTitle": "Preview texts by language",
+  "localizationDefaultNote": "Chinese by default - does not follow the system language",
+  "localizationStaticNote": "The released app interface is in Chinese (see the reference README: The app interface is in Chinese). The static build only validates the multilingual catalog structure and fallback rules: it does not follow the system language and does not switch in-app texts page by page. Pages still read the Chinese default bundle. Full per-page localization is a later candidate.",
+  "comicSpreadTitle": "Two-page spreads and reading direction",
+  "comicBlankSlotNote": "Blank filler - not a missing page",
+  "comicVerticalLockNote": "Continuous vertical scrolling has no left/right axis, so it is locked to single-page, left-to-right. Switch to paged spreads to enable two-page and right-to-left preferences.",
+  "comicSpreadStaticNote": "Two-page spreads only arrange page order and visual slots: the cover occupies its own spread, and odd trailing pages get a labelled blank filler - never a silently dropped page or a fabricated image. Right-to-left changes slot order and the forward paging direction, not reading order. The static build still uses aspect-ratio placeholders: it does not decode images or read file bytes. Page pixels and real gestures require the three-platform BookRenderBridge (frozen).",
+  "bookExcerptTitle": "Excerpts from this book",
+  "bookExcerptEmptyTitle": "No excerpts for this book yet",
+  "bookExcerptEmptyBody": "Select one or more lines in the reader, then tap the bookmark icon in the top bar to capture an excerpt; come back here to see it. You can also clear the filter to browse excerpts from every book.",
+  "bookExcerptScopedNote": "Only this book is shown; tap \"All books\" to browse every excerpt. Filtering uses the bookId, so editing the title on the detail page never breaks the filter.",
+  "bookExcerptPinnedNote": "This book has no excerpts yet, but it stays in the book filter with a 0 count instead of becoming an invisible active filter.",
+  "bookExcerptStaticNote": "The detail page passes only a bookId; the excerpt library applies the filter itself, so features never depend on each other. Excerpts stay in memory: no network, no upload, no disk writes. Desktop widgets and persistence remain frozen.",
+  "bookExcerptMissingNote": "This book is not in the current library (it may have been removed or come from a previous import session). Excerpts are still matched by bookId; tap \"All books\" to browse the rest.",
+  "excerptSearchTitleNote": "Book-name search matches both the current library title and the title captured with the excerpt, so either the new or the old name still finds it after a rename.",
+  "excerptExportSnapshotNote": "Exported text keeps the book name captured at the time of the excerpt, so a historical export stays reproducible; on-screen titles, search, sorting and grouping use the current library name.",
+  "keepsakeAllKinds": "All types",
+  "keepsakeOpenLibrary": "View all keepsakes",
+  "keepsakeLibraryTitle": "Keepsake library",
+  "keepsakeFilterHint": "Type and month filters combine. The count beside each type changes with the month and keyword, not with the type you have selected.",
+  "keepsakeKindEmptyTitle": "No keepsakes of this type yet",
+  "keepsakeKindEmptyBody": "Keepsakes are generated from reading records and excerpts, so this type appears once its condition is met. Clear the filters to browse other types.",
+  "keepsakeNoResultTitle": "No keepsakes match these filters",
+  "keepsakeNoResultBody": "Try another type, month, or keyword, or clear the filters to see every keepsake.",
+  "keepsakeFilterStaticNote": "Keepsakes are aggregated only from the stats snapshot and excerpts. They live in memory only: no network, no persistence, no list caching. Native home-screen widgets remain frozen.",
+  "keepsakeWidgetKindNote": "When the content is Keepsakes, each widget can show a single type on its own; leave it unset to show all. Multiple widgets stay independent.",
+  "keepsakeMonthPreviewNote": "\"This month\" follows the fixed reference day of the stats snapshot, so it stays aligned with the heatmap and keepsake library. Native home-screen widgets remain frozen; this is an in-app preview only.",
+  "keepsakeMonthPreviewOpen": "View this month keepsakes",
+  "keepsakeMonthEmptyBody": "No keepsakes this month yet. They are generated from reading records and excerpts, so this card fills in once a condition is met.",
+  "keepsakeMonthKindEmptyBody": "This month has keepsakes, but none of the selected type. Clear the type filter to see all of them.",
+  "keepsakeMonthNoResultBody": "Nothing matches the current filters this month. Try another type or clear the filters.",
+  "comicWideSoloTitle": "Wide pages get their own spread",
+  "comicWideSoloNote": "Panorama and two-page illustration spreads are never paired with a neighbouring page. Neighbouring pages get an explicit blank slot marked as padding, not a missing page.",
+  "comicWideSoloSingleNote": "In single-page mode every page already has its own spread, so this preference is kept but has no visual effect.",
+  "excerptAnchorRestoreNote": "After reflow, highlights restore in three tiers: exact position, same position with changed text, then unique text within the chapter. Identical text in several places is never highlighted automatically.",
+  "keepsakeDayEmptyTitle": "No keepsakes on this day yet",
+  "keepsakeDayEmptyBody": "Pick another day in the reading calendar, or clear the day filter to see the whole month.",
+  "keepsakeDayFilterNote": "This day only - clear it to return to the whole month",
+  "calendarOpenMonthKeepsakes": "View this month keepsakes",
+  "calendarOpenDayKeepsakes": "View keepsakes on this day",
+  "calendarCrossMonthNote": "Overflow cells only align the week grid and do not link to another month",
+  "calendarInvalidDateNote": "Invalid date key: cannot locate the day in the reading calendar",
+  "keepsakeOpenCalendarDay": "Open in calendar",
+  "keepsakeOpenCalendarMonth": "View the whole month",
+  "comicSpineGutterTitle": "Two-page spine gutter",
+  "comicSpineGutterNote": "The spine is drawn only when two real pages share a spread. The centre gutter scales with slot width and is clamped to 8-28 px; both inner edges get a subtle shade to suggest binding. Cover, wide-page and blank-slot spreads never draw a spine.",
+  "comicSpineShadeTitle": "Spine shade strength",
+  "comicSpineShadeNote": "Strength is derived from slot width (subtle on narrow screens, stronger on wide ones) and the shade colour from background luminance: a black shadow on light backgrounds, a reduced light highlight on dark ones so the spine stays visible in night mode. This is a fixed visual rule, not a user preference. Static delivery models the values only; no on-device tuning has been done.",
+  "keepsakeDateRangeTitle": "Date range",
+  "keepsakeDateRangeHint": "YYYY-MM-DD",
+  "keepsakeDateRangeNote": "Inclusive range; either end may be left empty. A start later than the end is swapped automatically. Setting a range clears the single-day and whole-month filters so they cannot contradict each other.",
+  "keepsakeDateRangeInvalid": "Invalid date format. Use YYYY-MM-DD, for example 2026-11-08",
+  "keepsakeDateRangeFilterNote": "This range only - clear it to return to all keepsakes",
+  "keepsakeDateRangeAll": "All dates",
+  "keepsakeDateRangeThisMonth": "This month",
+  "keepsakeDateRangeLast7": "Last 7 days",
+  "keepsakeRangeEmptyTitle": "No keepsakes in this range yet",
+  "keepsakeRangeEmptyBody": "Try another range, clear it, or open the reading calendar to browse day by day.",
+  "calendarOpenDayExcerpts": "View excerpts on this day",
+  "excerptDayFilterNote": "This day only - clear it to return to all excerpts",
+  "excerptDayEmptyTitle": "No excerpts on this day yet",
+  "excerptDayEmptyBody": "Pick another day in the reading calendar, or clear the day filter to see all excerpts.",
+  "excerptDayScopedTitle": "Excerpts on this day",
+  "wenkuOnlySources": "Only Wenku8 listings and user-imported local books are supported. Other sources and custom book sources are not supported.",
+  "wenkuContentOwnership": "Novels, covers, and illustrations belong to their respective rights holders; the source-code license grants no rights to that content.",
+  "wenkuNoWithdrawn": "We do not operate an online library, publish novels, or bundle novel files, and we do not provide access to books withdrawn for copyright reasons.",
+  "wenkuNoCircumvention": "Access only content you are entitled to use and follow the source website rules. Do not bypass access restrictions, break DRM, or copy, distribute, or sell content without permission.",
+  "wenkuThirdParty": "Third-party services may change, rate-limit requests, or become unavailable. Listing and content availability are determined by Wenku8.",
+  "wenkuNoCredentials": "Never include passwords, cookies, or tokens in issue reports. Common credential fields are removed automatically when generating a preview.",
+  "wenkuSourceNote": "The only online source. Reads listings and table-of-contents metadata; chapter text is provided by Wenku8 at use time and is never cached or bundled here.",
+  "wenkuLocalSourceNote": "Book files are imported by you, with the full local-library format and directory-authorization support.",
+  "wenkuCustomSourceNote": "Custom book sources are not offered; the source list is fixed to Wenku8 and local imports.",
+  "wenkuShelfTabLocal": "Local library",
+  "wenkuShelfTabCloud": "Cloud sources",
+  "wenkuCloudTitle": "Cloud sources",
+  "wenkuCloudSubtitle": "Pick a source and see what is there to read",
+  "wenkuSourceNavTitle": "Sources",
+  "wenkuFeedTitle": "Listings",
+  "wenkuSearchHint": "Search title or author",
+  "wenkuStatusNote": "Only listing and table-of-contents metadata is read; withdrawn titles are hidden and chapter text is not cached in this app.",
+  "wenkuLockedTitle": "Online listings are off",
+  "wenkuLockedBody": "Pure-local mode makes zero network requests and does not even read the demo listing. Once enabled you can browse Wenku8 listings, details, and tables of contents, and add a book to the local library.",
+  "wenkuUnlockButton": "Enable online listings",
+  "wenkuBookAdd": "Add to local library",
+  "wenkuBookAdded": "Already in local library",
+  "wenkuDetailTitle": "Book details",
+  "wenkuDetailSynopsis": "Synopsis",
+  "wenkuDetailToc": "Volumes and chapters",
+  "wenkuDetailChapterNote": "Chapter text is provided by Wenku8 at use time.",
+  "wenkuDetailStaticNote": "Static delivery registers a metadata shell only: no download, no cache, no bundled novel text. Once added, it is managed like any other local book.",
+  "wenkuEmptyTitle": "Nothing in this listing yet",
+  "wenkuEmptyBody": "Try another listing or search term; third-party listings may also be temporarily unavailable.",
+  "wenkuRefresh": "Refresh listing",
+  "wenkuAddedNote": "Added to the local library; switch back to the Local library tab to see it.",
+  "feedbackTitle": "Report a problem",
+  "feedbackSubtitle": "Four details make an issue much easier to reproduce",
+  "feedbackPreviewTitle": "Issue report - plain text preview",
+  "feedbackMissing": "Still needed: ",
+  "feedbackStaticNote": "Generates plain text for copying only; no upload, no Issue page, no file writes. Please review it before submitting.",
+  "supportTitle": "Everything is free",
+  "supportBody": "All features are free. No memberships, activation codes, or feature unlocks are sold; support is entirely voluntary. Beware of anyone charging for access in the name of this project or its developer.",
+  "profileHeroTitle": "Profile",
+  "profileHeroSubtitle": "Tune reading to your own taste",
+  "profileSectionAppearance": "Appearance and reading",
+  "profileSectionSources": "Sources and online",
+  "profileSectionLibrary": "Library and import",
+  "profileSectionFavorites": "Favorites",
+  "profileSectionSupport": "Support and feedback",
+  "profileSectionAbout": "About",
+  "cloudChannelsTitle": "Cloud import channels",
+  "cloudChannelsNote": "OpenList, WebDAV, Quark Drive (experimental), and the system document picker for OneDrive, Google Drive, and similar services. Channels are entry points only; no accounts or credentials are built in, and real authorization and file access are frozen in static delivery.",
+  "mergeRecordsNote": "Strategies for manually merging and syncing original books with reading records are registered in the import wizard; static delivery records them as deferred decisions and does not modify the demo library.",
+  "wenkuFormatsNote": "Formats now match the reference project: TXT, EPUB, MOBI, AZW, AZW3, PRC, FB2, PDF, DOC, DOCX, RTF, HTML, Markdown, and ZIP. Legacy binary formats are registered as routes only in static delivery; their decoders stay frozen.",
+  "unlockModeTitle": "Static delivery unlocked",
+  "unlockModeBody": "The Wenku8 pipeline now uses a real HTTP source. Pure-local mode is still the default and makes zero requests while locked.",
+  "wenkuRealSourceNote": "The real source and the demo source share one contract; swapping them at the single injection point leaves pages and compliance untouched.",
+  "wenkuEndpointNote": "URLs are built only in the site adapter. No official page-structure docs are public, so path templates must be checked against the live site.",
+  "wenkuChallengeNote": "The source asks for an access check. Please finish it on the Wenku8 website; this app does not bypass verification.",
+  "wenkuWithdrawnNote": "Content withdrawn for copyright reasons is not listed, cached, or made accessible.",
+  "wenkuRateLimitNote": "The source is rate-limiting requests. Please try later and do not keep refreshing.",
+  "wenkuUnavailableNote": "Third-party services may change, rate-limit requests, or become temporarily unavailable.",
+  "wenkuUpstreamChangedNote": "The source page structure changed. Update the parser against the live public pages; garbled text is never rendered as content.",
+  "wenkuNoRelayNote": "No relay, proxy, cookie, login, forged appver, or browser-style UA spoofing is implemented. Access restrictions are not bypassed.",
+  "wenkuChapterNote": "Only the single chapter you open is read. No whole-book download, bundling, or redistribution.",
+  "wenkuLocalVerifyNote": "Verify locally: flutter pub get, then flutter analyze, flutter test, and flutter run. Check site reachability and page structure first.",
+  "wenkuSdkAbsentNote": "This delivery environment has no Flutter/Dart SDK. Compilable source and specs are provided; build and device verification run in your environment.",
+  "wenkuPlatformPermissionNote": "Android INTERNET, iOS ATS, and HarmonyOS INTERNET permission skeletons are in place; check them against each platform project template.",
+  "wenkuLoginTitle": "Sign in to Wenku8",
+  "wenkuLoginUsername": "Username",
+  "wenkuLoginPassword": "Password",
+  "wenkuLoginAction": "Sign in",
+  "wenkuLogoutAction": "Sign out",
+  "wenkuLoginCredentialNote": "Credentials stay in memory for this run only. They are never written to disk, logs, or issue reports, and are discarded on sign-out or app close.",
+  "wenkuLoginLoggedOut": "Not signed in. Public listings remain available; sign in to read your personal bookcase.",
+  "wenkuLoginFailed": "Sign-in did not complete. Check your account and the source site status; a broken page is never reported as a wrong password.",
+  "wenkuLoginSessionExpired": "The session expired. Please sign in again.",
+  "wenkuLoginHostNote": "Switch the source domain between wenku8.net and wenku8.com. Both belong to the source site; no other book sources are offered.",
+  "wenkuSourceClosedNote": "The source returned a closure notice instead of a login form. The app will not submit your account or password to that page.",
+  "wenkuEndpointsPendingNote": "Login, bookcase, search, ranking, detail and reader paths are configured from the supplied page list and are not yet verified against live pages. Check them on a device.",
+  "wenkuLoginNoSession": "The offline demo source has no login session. Switch to the real source to sign in.",
+  "uiLocalReader": "Local Reader",
+  "uiShelf": "Shelf",
+  "uiLightNovels": "Light Novels",
+  "uiStats": "Stats",
+  "uiProfile": "Profile",
+  "uiGotIt": "Got it",
+  "uiAppLanguage": "App language",
+  "uiFollowSystem": "Follow system",
+  "uiPhrase008": "简体中文",
+  "uiEnglish": "English",
+  "uiWhenFollowingTheSystemFlutterResolvesTheLocale": "When following the system, Flutter resolves the locale via supportedLocales; unsupported languages fall back to Simplified Chinese.",
+  "uiMapLocaleLegaltextbundleLanguages": "Map<Locale, LegalTextBundle> · {p0}  languages",
+  "uiKeysLists": " · {p0} keys + {p1} lists",
+  "uiCoverageCheck": "Coverage check · {p0}",
+  "uiItems": "缺 items {p0} · 多余键 {p1}",
+  "uiChapters": "{p0} chapters",
+  "uiRemoveFavorite": "Remove favorite",
+  "uiFavoriteThisBook": "Favorite this book",
+  "uiAddedToFavorites": "Added to favorites",
+  "uiRemovedFromFavorites": "Removed from favorites",
+  "uiEditBookInfo": "Edit book info",
+  "uiTableOfContents": "Table of contents",
+  "uiContinueReading": "Continue reading",
+  "uiStartReading": "Start reading",
+  "uiNoVolume": "No volume",
+  "uiVolume": "Volume {p0}",
+  "uiLocalLibrary": "local library · {p0}",
+  "uiReadingProgress": "Reading progress",
+  "uiChaptersSampleData": "上次读到约第 {p0}  chapters · Sample data",
+  "uiNotStartedYet": "Not started yet",
+  "uiContents": "Contents",
+  "uiTotalChapters": "total {p0}  chapters",
+  "uiViewAll": "View all",
+  "uiLastRead": "Last read",
+  "uiItems2": "{p0} items",
+  "uiBookInfo": "Book info",
+  "uiSource": "Source",
+  "uiImportedLocally": "Imported locally",
+  "uiFormat": "Format",
+  "uiChapters2": "Chapters",
+  "uiEpisodes": "Episodes",
+  "uiEpisodesPages": "{p0} episodes · {p1} pages",
+  "uiAuthorization": "Authorization",
+  "uiSystemFilePickerDirectoryAuthorization": "System file-picker directory authorization",
+  "uiScope": "文档类书籍不在媒体库覆盖scope内，需走系统文件选择器或「所有文件访问」。",
+  "uiAboutContent": "About content",
+  "uiTitle": "Title",
+  "uiAuthor": "Author",
+  "uiCoverColor": "Cover color",
+  "uiVolumeOrder": "Volume order",
+  "uiVolume2": "Volume {p0}",
+  "uiStaticDemoSaveSampleData": "Static demo：修改仅save在内存，重启后恢复Sample data。",
+  "uiCancel": "Cancel",
+  "uiSave": "Save",
+  "uiTitleCannotBeEmpty": "Title cannot be empty",
+  "uiContents2": "{p0} · contents",
+  "uiSearchChapterTitles": "Search chapter titles",
+  "uiTotalChapters2": "total {p0}  chapters",
+  "uiTapAChapterToJump": "Tap a chapter to jump",
+  "uiNoMatchingChapters": "No matching chapters",
+  "uiContentsBodyTextBookdocumentChapters": "contents与body text由同一份 BookDocument 生成，chapters序号与阅读器严格一致。",
+  "uiCurrentSampleDataTocentryChapters": "current为Sample data；接入真实解析器后由 TocEntry 提供chapters与锚点。",
+  "uiItemscontentBodyText": "{p0}  itemscontent块 · 演示body text",
+  "uiCurrentlyReading": "Currently reading",
+  "uiEditExcerpt": "Edit excerpt",
+  "uiHighlightColor": "Highlight color",
+  "uiNote": "Note",
+  "uiClearTheFieldToRemoveTheNote": "Clear the field to remove the note",
+  "uiSaveChanges": "Save changes",
+  "uiExportPreview": "Export preview",
+  "uiExcerptLibrary": "Excerpt library",
+  "uiExportCurrentResultsPlainTextPreview": "Export current results (plain-text preview)",
+  "uiTextTitleChapterNote": "Text / title / chapter / note",
+  "uiAllBooks": "All books",
+  "uiTotalYours": "Total {p0} · yours {p1}",
+  "uiNoteItemsItems": "有note {p0}  items · 命中 {p1}  items",
+  "uiScope2": "Scope",
+  "uiByBook": "By book",
+  "uiHighlight": "Highlight",
+  "uiAllColors": "All colors",
+  "uiSort": "Sort",
+  "uiGroup": "Group",
+  "uiSelectedBook": "Selected book",
+  "uiDays": "当 days {p0}",
+  "uiKeyword": "Keyword \"{p0}」",
+  "uiExcerptDeleted": "Excerpt deleted",
+  "uiItemsexcerpts": "这 itemsexcerpts不可删除",
+  "uiYours": "Yours",
+  "uiSampleReadOnly": "Sample · read-only",
+  "uiEditNoteHighlight": "Edit note / highlight",
+  "uiDeleteExcerpt": "Delete excerpt",
+  "uiClearDateFilter": "Clear date filter",
+  "uiAllBooks2": "All books",
+  "uiClearFilters": "Clear filters",
+  "uiReviewBeforeImporting": "Review before importing",
+  "uiSupportedFormats": "Supported formats",
+  "uiArchives": "Archives",
+  "uiPermissions": "Permissions",
+  "uiImportChannels": "Import channels",
+  "uiOnline": "Online",
+  "uiChooseAnAuthorizationMethod": "Choose an authorization method",
+  "uiAuthorizationConfirmed": "Authorization confirmed",
+  "uiSimulateAuthorization": "Simulate authorization",
+  "uiAuthorizationStaticDemo": "authorization会持久化，重启后可一键重扫（Static demo）",
+  "uiScanResults": "Scan results",
+  "uiScanned": "Scanned",
+  "uiImportable": "Importable",
+  "uiUnsupported": "Unsupported",
+  "uiUnregistered": "Unregistered",
+  "uiNameConflict": "Name conflict",
+  "uiNoNameConflicts": "No name conflicts",
+  "uiResolveDuplicateNames": "Resolve duplicate names",
+  "uiAll": " all{p0}",
+  "uiDuplicateOf": "Duplicate of 《{p0}》 · {p1}",
+  "uiImportSummary": "Import summary",
+  "uiScannedFiles": "Scanned files",
+  "uiItems3": "{p0}  items",
+  "uiToBeAdded": "To be added",
+  "uiBooks": "{p0} books",
+  "uiSkippedUnsupported": "Skipped / unsupported",
+  "uiItems4": "{p0}  items",
+  "uiItems5": "{p0}  items",
+  "uiDeferred": "Deferred",
+  "uiItems6": "{p0}  items",
+  "uiToBeAdded2": "To be added",
+  "uiBack": "Back",
+  "uiWriteToShelfAndClose": "Write to shelf and close",
+  "uiNext": "Next",
+  "uiReadingFonts": "Reading & fonts",
+  "uiMotionReadAloud": "Motion & read-aloud",
+  "uiStatsReports": "Stats & reports",
+  "uiShelfImport": "Shelf & import",
+  "uiBuildCompliance": "Build & compliance",
+  "uiFeatureOverview": "Feature overview",
+  "uiReferenceRepoFeatureAlignment": "Reference-repo feature alignment · 第二十四轮",
+  "uiAllGlobalDefaultStaticStageSaveChars": "以下偏好 all挂在全局状态，按书设置与global default分开；Static stage只save选择，不下载 chars体、不发请求、不写文件。",
+  "uiPerBookLayout": "Per-book layout",
+  "uiSaveCharsFontSizeCharsCharsLineHeightNullGloba": "每本书可独立save chars体 / font size /  chars重 /  chars距 / line height / 四边距；null 表示沿用global default。",
+  "uiLibraryIsEmpty": "Library is empty",
+  "uiCurrentPt": "Current: {p0} · {p1} pt · ",
+  "uiLineHeight": "line height {p0} · ",
+  "uiPhrase141": "{p0}",
+  "uiUseLargerTextForThisBook": "Use larger text for this book",
+  "uiClearPerBookOverrides": "Clear per-book overrides",
+  "uiFontCatalog": "Font catalog",
+  "uiCharsRemoveCharsChars": "阅读 chars体按需下载、离线可用、可remove、不预装；应用 chars体与阅读器 chars体分开选。",
+  "uiImportFontSourceHanSans": "Import font · Source Han Sans",
+  "uiRegisterImportedTtfOtf": "Register imported TTF/OTF",
+  "uiMarkOnDemandPackInstalled": "Mark on-demand pack installed",
+  "uiStaticStageFontloaderBooksRemove": "Static stage只登记元数据；FontLoader 注 books、下载与remove文件属平台层（❄️ 冻结）。",
+  "uiColorSource": "Color source",
+  "uiContrast1": "阅读器独立配色：contrast {p0}:1 · ",
+  "uiWcagAaBodyText45": "{p0} WCAG AA body text 4.5",
+  "uiAppFont": "App font",
+  "uiReadingFont": "Reading font",
+  "uiRemoveCurrentFont": "Remove current font",
+  "uiSystemDynamicColorMonet": "System dynamic color (Monet)",
+  "uiCustomAccentColor": "Custom accent color",
+  "uiPickFromCover": "Pick from cover",
+  "uiPageTurnAutoRead": "Page turn & auto-read",
+  "uiPages": "翻 pages速度 ×{p0}",
+  "uiInterfaceMotion": "Interface motion",
+  "uiOn": "On",
+  "uiOffLocksToNoAnimationAndStopsAutoRead": "Off: locks to no animation and stops auto-read",
+  "uiAutoRead": "Auto-read",
+  "uiIntervalMsAutoStopsWhenMotionIsOff": "Interval {p0} ms · Auto-stops when motion is off",
+  "uiContinuousChapterTransition": "Continuous chapter transition",
+  "uiVolumeKeyPaging": "Volume-key paging",
+  "uiBilingualReadAloudLanguages": "Bilingual & read-aloud languages",
+  "uiReadAloudLanguagesItemsVoice": "按书选显示语言；read aloud语言分别选、每 languages一 items voice，没有匹配语音模型的语言直接跳过。",
+  "uiReadAloud": "实际会read aloud：{p0}",
+  "uiPhrase171": "{p0}",
+  "uiStaticStageKeepsakes": "Static stage只维护偏好；真实语音模型 keepsakes举、音色下载与音量键事件属平台层（❄️ 冻结）。",
+  "uiFiveViews": "Five views",
+  "uiPeriodPresetsCustomRange": "Period (presets / custom range)",
+  "uiEightReportLayouts": "Eight report layouts",
+  "uiChars": "实际呈现 chars段：{p0}",
+  "uiPhrase177": "{p0}",
+  "uiTotalContent": "预览与导出total用同一份content：",
+  "uiStaticStageChars": "Static stage导出只生成 chars符串；写文件与系统分享属平台层（❄️ 冻结）。",
+  "uiToday": "Today",
+  "uiThisWeek": "This week",
+  "uiThisMonth": "This month",
+  "uiThisYear": "This year",
+  "uiAll2": "All",
+  "uiCustom": "Custom",
+  "uiShelfViewFilters": "Shelf view & filters",
+  "uiMergeLocalLibraryIntoShelf": "Merge local library into shelf",
+  "uiCurrentBooks": "current筛选命中 {p0} / {p1}  books；",
+  "uiCarouselParametersLockBackToDefaultInListMode": "Carousel parameters lock back to default in list mode.",
+  "uiPreImportReviewSeriesVolumeMerge": "Pre-import review & series volume merge",
+  "uiSource2": "三种source：{p0}；",
+  "uiPolicy": "Policy: {p0}。",
+  "uiCurrent": "Current: {p0} → ",
+  "uiPhrase194": "{p0} → ",
+  "uiItems7": "落到既有冲突策略 {p0} 等四 items之一。",
+  "uiWebdavBackupOffByDefault": "WebDAV backup (off by default)",
+  "uiContent": "备份content：{p0}。",
+  "uiWhenOffEvenTestConnectionMakesNoRequest": "When off, even \"Test connection\" makes no request.",
+  "uiEnableBackup": "Enable backup",
+  "uiStaticDemoNoNetworkRequestWasMade": "Static demo: no network request was made",
+  "uiStaticStageWebdavclient": "Static stage只演示状态机；WebDavClient、远端列表与导出落盘属平台层（❄️ 冻结）。",
+  "uiAndroidPermissionTiers": "Android permission tiers",
+  "uiRemove": "已remove：{p0}",
+  "uiCrashLoopProtection": "Crash-loop protection",
+  "uiMinutes": "阈值 {p0} 次 / {p1}  minutes内 → ",
+  "uiSkipped": "进{p0} · skipped: {p1}。",
+  "uiStaticDeliveryBoundary": "Static delivery boundary",
+  "uiAllDartCharsChars": "本轮新增能力 all为纯 Dart 模型 + 应用内配置：不下载 chars体、不读文件 chars节、",
+  "uiBooksBooksPages": "不发网络请求、不注 books平台回调、不写相 books。逐 pages接入多语言仍按用户指定预留到最后。",
+  "uiAppVersion": "App version",
+  "uiEG1001": "e.g. 1.0.0+1",
+  "uiDevice": "Device",
+  "uiEGPixel8": "e.g. Pixel 8",
+  "uiOsVersion": "OS version",
+  "uiEGAndroid15": "e.g. Android 15",
+  "uiStepsToReproduce": "Steps to reproduce",
+  "uiAdditionalNotesOptional": "Additional notes (optional)",
+  "uiOtherObservations": "Other observations",
+  "uiLocalBooks": "Local books",
+  "uiFavorites": "Favorites",
+  "uiMinutesToday": "Minutes today",
+  "uiStreak": "Streak",
+  "uiLibrary": "Library",
+  "uiPureLocalMode": "Pure-local mode",
+  "uiWhenOnTheAppMakesNoNetworkRequests": "When on, the app makes no network requests",
+  "uiInterfaceMotion2": "Interface motion",
+  "uiPageTurnAnimationShelfParallaxGlassTransitions": "Page-turn animation / shelf parallax / glass transitions",
+  "uiTtsReadAloud": "TTS read-aloud",
+  "uiSentenceQueueRatePitchAutoNextChapter": "Sentence queue · rate & pitch · auto next chapter",
+  "uiReadingLayout": "Reading layout",
+  "uiPtPages": "{p0} pt · {p1} · {p2}翻 pages",
+  "uiContrast12": " · contrast {p0}:1",
+  "uiPerBookLayoutFontsReportsBackupPermissions": "Per-book layout · fonts · reports · backup · permissions",
+  "uiFormLoginBookcaseSessionSourceDomain": "Form login · bookcase · session & source domain",
+  "uiOnlineDirectoryWenku8": "Online directory (Wenku8)",
+  "uiLockedByPureLocalMode": "Locked by pure-local mode",
+  "uiListingsAndTocMetadataOnlyNoBundledNovels": "Listings and TOC metadata only; no bundled novels",
+  "uiWebdavBackup": "WebDAV backup",
+  "uiLibraryMetadataProgressGroupsSessions": "Library metadata / progress / groups / sessions",
+  "uiPureLocalMode2": "关闭Pure-local mode后，在线开关才会解锁；关闭态全应用零网络请求。",
+  "uiFormatsAuthorizationScanConflicts": "Formats · authorization · scan · conflicts",
+  "uiImportFormats": "Import formats",
+  "uiItems8": "{p0} items",
+  "uiRemovedBook": "Removed book",
+  "uiTapToOpen": "{p0} · · tap to open",
+  "uiEpisodeList": "Episode list",
+  "uiEpisodesPages2": "{p0}  episodes · {p1}  pages",
+  "uiRecognitionRate": "recognition rate {p0}% · ",
+  "uiUnrecognizedPagesEpisodes": "unrecognized的 {p0}  pages已归入「未分 episodes」",
+  "uiAllPagesAreGroupedIntoEpisodes": "All pages are grouped into episodes",
+  "uiCurrent2": "Current",
+  "uiUnrecognized": "Unrecognized",
+  "uiPages2": "{p0} · {p1}  pages",
+  "uiCaptureThisPassage": "Capture this passage",
+  "uiLinesChars": "{p0}  lines · {p1}  chars",
+  "uiNoTextAvailableToCapture": "(No text available to capture)",
+  "uiSpreads": " ·  spreads段落",
+  "uiNoteOptional": "Note (optional)",
+  "uiWriteSomethingToAppendToTheExcerpt": "Write something to append to the excerpt",
+  "uiSpreadsLinesSentencesLines": "选区 spreads越了段落，换 lines处已直接拼接；如需分 sentences可少选几 lines。",
+  "uiStatsPages": "这段已经摘过了，stats pages里可以看到。",
+  "uiSaveExcerpt": "Save excerpt",
+  "uiPagesCurrent": "本 pages需要原生渲染能力，current平台尚未接入。\n{p0}",
+  "uiDemoPlatform": "Demo platform",
+  "uiCaptureSelectedLines": "Capture selected lines",
+  "uiReadAloudSentenceQueue": "Read aloud (sentence queue)",
+  "uiLayoutSettings": "Layout settings",
+  "uiPreviousChapter": "Previous chapter",
+  "uiChapter": "{p0} / {p1} · Chapter {p2} / {p3}",
+  "uiLinesSaveexcerpts": "已选 {p0}  lines · 点顶栏书签saveexcerpts",
+  "uiNextChapter": "Next chapter",
+  "uiIllustrationPlaceholder": "Illustration placeholder",
+  "uiPagesLinesexcerptsEpisodeListContents": "漫画 pages暂不支持按 linesexcerpts，Episode list请用旁边「contents」按钮",
+  "uiSelectOneOrMoreLinesThenTapTheBookmarkToSaveAn": "Select one or more lines, then tap the bookmark to save an excerpt",
+  "uiStatsPages2": "这段已经摘过了，stats pages里可以看到",
+  "uiSavedToExcerptCardsSeeStats": "Saved to excerpt cards · see Stats",
+  "uiFixedLayoutPage": "Fixed-layout page",
+  "uiPdfEpubViaBookrenderbridge": "PDF / 漫画 / 图片型 EPUB via BookRenderBridge：\n",
+  "uiRenderHandleIndexTargetsizePages4k": "· render(handle, index, targetSize) 按目标像素出 pages，不做 4K 再缩\n",
+  "uiPagesTextureidTextureTextureid": "· 连续翻 pages用 textureId + Texture(textureId:)\n",
+  "uiPagesImageMemory": "· 单 pages快照用编码位图 Image.memory\n",
+  "uiComicprefetchwindowPrefetchEvictSpreadsChannel": "· ComicPrefetchWindow 批量 prefetch / evict，不在滚动回调里逐帧 spreads channel",
+  "uiSize": "目标size：{p0} × {p1} 逻辑像素",
+  "uiTocNavigationIsNotWiredIntoThisPage": "TOC navigation is not wired into this page",
+  "uiComicsFixedLayoutsHaveNoReflowableTextReadAlou": "Comics / fixed layouts have no reflowable text; read-aloud is for novels only",
+  "uiSentencesSentences": "已暂停在第 {p0} / {p1}  sentences；再次点击从该 sentences续播",
+  "uiSentences": "{p0} · 从第 {p1} / {p2}  sentences开始 · {p3}×",
+  "uiFinishedTheWholeBook": "Finished the whole book",
+  "uiResetToDefault": "Reset to default",
+  "uiBodyText": "Body text",
+  "uiFontSize": "Font size",
+  "uiLineHeight2": "Line height",
+  "uiFirstLineIndent": "First-line indent",
+  "uiParagraphSpacing": "Paragraph spacing",
+  "uiReadingBackground": "Reading background",
+  "uiBodyTextCharsCurrentcontrast": "body text与面板文 chars色由背景亮度自动反推 · currentcontrast ",
+  "uiWcagAaBodyText452": "{p0} : 1（WCAG AA body text ≥ 4.5）",
+  "uiPageTurnMotion": "Page turn & motion",
+  "uiChooseSlideSimulatedPageTurnWhenEnabled": "Choose slide / simulated page turn when enabled",
+  "uiMotionIsOffSoPageTurnIsLockedToNone": "Motion is off, so page turn is locked to none",
+  "uiNormalizationIsCentralizedInAppsettingsNormali": "Normalization is centralized in AppSettings.normalized()：",
+  "uiTurningMotionOffLocksPageTurnToNonePagesNeverR": "Turning motion off locks page turn to none; pages never reinterpret this rule.",
+  "uiComicReading": "Comic reading",
+  "uiReadAloud2": "Read aloud",
+  "uiRate": "Rate",
+  "uiPitch": "Pitch",
+  "uiSentenceQueueAutoNextChapter": "Sentence queue · auto next chapter",
+  "uiReadingAidsPlatformCapability": "Reading aids (platform capability)",
+  "uiKeepScreenOn": "Keep screen on",
+  "uiItems9": "静态交付模式下，以上两 items只记录偏好，需三端原生能力才能生效（❄️ 冻结）。",
+  "uiSaveSettingsstore": "修改仅save在内存，重启后恢复默认。接入持久化后由 SettingsStore 统一落库。",
+  "uiWeak": "Weak",
+  "uiMedium": "Medium",
+  "uiStrong": "Strong",
+  "uiComics": "Comics",
+  "uiSpread": "Spread {p0} / {p1}",
+  "uiPhrase317": "{p0}",
+  "uiSwitchToHorizontalPaging": "Switch to horizontal paging",
+  "uiSwitchToVerticalScroll": "Switch to vertical scroll",
+  "uiSpreadsPages": " spreads pages模式：{p0}",
+  "uiPages3": "翻 pages方向：{p0}",
+  "uiPAspectRatioPlaceholder": "P{p0} · aspect ratio {p1} placeholder",
+  "uiVolumes": "{p0} · {p1}  volumes",
+  "uiSearchLocalLibrary": "Search local library",
+  "uiTitleAuthorFormatGroup": "Title / author / format / group",
+  "uiAllBooks3": "All {p0} books",
+  "uiFoundBooks": "Found {p0} books · \"{p1}\"",
+  "uiBooks2": "{p0} books",
+  "uiVolumes2": " · 第 {p0}  volumes",
+  "uiHowImportingWorks": "How importing works",
+  "uiClearKeyword": "Clear keyword",
+  "uiShelf2": "Shelf",
+  "uiKeepWhatYouWantToReadWithinReach": "Keep what you want to read within reach",
+  "uiTotalBooksBooks": "—  total {p0}  books · 收藏 {p1}  books · ",
+  "uiItemsgroupVolumeOrder": "{p0}  itemsgroup · 按volume order",
+  "uiSearchTitleAuthor": "Search title / author",
+  "uiViewAllResults": "View all results",
+  "uiBooks3": "只看已收藏的 {p0}  books",
+  "uiTapTheStarOnTheDetailOrReaderPageToFavorite": "Tap the star on the detail or reader page to favorite",
+  "uiSearchNavigationIsNotWiredIntoThisPage": "Search navigation is not wired into this page",
+  "uiDetailNavigationIsNotWiredIntoThisPage": "Detail navigation is not wired into this page",
+  "uiImportEntryIsNotWiredIntoThisPage": "Import entry is not wired into this page",
+  "uiVisualStyle": "Visual style",
+  "uiTotalBooksVolumeOrder": "total {p0}  books · 按volume order",
+  "uiVolume3": "Volume {p0}",
+  "uiViewAllBooks": "View all books",
+  "uiPreviousMonth": "Previous month",
+  "uiNextMonth": "Next month",
+  "uiThisMonth2": "This month",
+  "uiReadingDays": "Reading days",
+  "uiDays2": "{p0} days",
+  "uiKeepsakes": "Keepsakes",
+  "uiKeepsakes2": "{p0} keepsakes",
+  "uiExcerpts": "Excerpts",
+  "uiItems10": "{p0} items",
+  "uiLow": "Low",
+  "uiHigh": "High",
+  "uiAdjacentMonthCells": "Adjacent-month cells",
+  "uiKeepsakesThatDay": "Keepsakes that day",
+  "uiExcerptsThatDay": "Excerpts that day",
+  "uiPreviousKeepsake": "Previous keepsake",
+  "uiNextKeepsake": "Next keepsake",
+  "uiYours2": "Yours",
+  "uiTitleNoteTypeBook": "Title / note / type / book",
+  "uiType": "Type",
+  "uiMonth": "Month",
+  "uiTotalKeepsakesItems": "total {p0}  keepsakes · {p1}  items月 · ",
+  "uiKeepsakesKeepsakes": "来自你摘的 {p0}  keepsakes · 命中 {p1}  keepsakes",
+  "uiKeepsakes3": "{p0} · {p1}  keepsakes",
+  "uiReadingStats": "Reading stats",
+  "uiWidgets": "Widgets",
+  "uiTurnReadingTimeIntoPagesYouCanFlipBackThrough": "Turn reading time into pages you can flip back through",
+  "uiGoalminutesMinutes": "今日阅读 · 目标 {p0}.goalMinutes  minutes",
+  "uiMinutes2": "minutes",
+  "uiDaysThisWeek": "连续 {p0}  days ·  this week {p1} · ",
+  "uiBooksExcerptsItems": "书库 {p0}  books · excerpts {p1}  items",
+  "uiContinueReading2": "Continue reading《{p0}》",
+  "uiReadingHeatmap": "Reading heatmap",
+  "uiDays3": "近 5 周 · {p0}  days",
+  "uiReadingCalendar": "Reading calendar",
+  "uiExcerpts2": "Excerpts",
+  "uiTotalItemsItems": "total {p0}  items · 你摘的 {p1}  items",
+  "uiManage": "Manage",
+  "uiNoExcerptsYetSelectAFewLinesInTheReaderToStart": "No excerpts yet. Select a few lines in the reader to start.",
+  "uiSampleData": "Sample data",
+  "uiPrevious": "Previous",
+  "uiNextExcerpt": "Next excerpt",
+  "uiDeleteThisExcerpt": "Delete this excerpt",
+  "uiItemswidgets": "已配置 {p0}  itemswidgets",
+  "uiMinutes3": "{p0} · {p1}  minutes",
+  "uiWidgets2": "widgets配置",
+  "uiTotalItemsItemsItems": "total {p0}  items · 可同时放置多 items · 每 items独立配置",
+  "uiDarkPreview": "Dark preview",
+  "uiLightPreview": "Light preview",
+  "uiAddAWidget": "Add a widget",
+  "uiAboutDesktopWidgets": "About desktop widgets",
+  "uiSaveWidgetsFlutter": "本面板只save应用内配置与预览。桌面widgets本体不是 Flutter 能绘制的：",
+  "uiAndroidUsesInAppConfigIosUsesWidgetkitEditCont": "Android uses in-app config, iOS uses WidgetKit edit controls, HarmonyOS uses card config,",
+  "uiAllThreePlatformsNeedNativeImplementationsRead": "All three platforms need native implementations reading the serialized data here.",
+  "uiShowProgress": " · show progress",
+  "uiContent2": "Content",
+  "uiKeepsakeTypePerWidget": "Keepsake type (per widget)",
+  "uiSize2": "Size",
+  "uiSeasonStyleIndependentOfAppTheme": "Season style (independent of app theme)",
+  "uiShowProgress2": "Show progress",
+  "uiRemove2": "Remove",
+  "uiThisMonthKeepsakePreview": "This month keepsake preview",
+  "uiOnlineDirectoryIsOffNoRequestWasMade": "Online directory is off; no request was made.",
+  "uiItemsShelfBooks": " items人shelf：{p0}  books · {p1}",
+  "uiSourceDomain": "Source domain",
+  "uiPleaseWait": "Please wait…",
+  "uiReadPersonalBookcase": "Read personal bookcase",
+  "uiWorking": "Working…",
+  "uiSignedInLaterRequestsCarryTheSessionCookieIssu": "Signed in; later requests carry the session cookie issued by the source.",
+  "uiOnlineDirectoryAndLocalLibraryStayIndependent": "Online directory and local library stay independent",
+  "uiEnableOnlineDirectoryWenku8": "Enable online directory (Wenku8)",
+  "uiPureLocalModeIsOnTheAppMakesNoNetworkRequests": "Pure-local mode is on; the app makes no network requests.",
+  "uiTurnOffPureLocalModeOnTheProfilePageFirst": "Turn off pure-local mode on the Profile page first.",
+  "uiWhenOffTheAppStaysFullyLocalAndMakesNoNetworkR": "When off the app stays fully local and makes no network requests.",
+  "uiWhenOnOnlyWenku8ListingsAndTocMetadataAreRead": "When on, only Wenku8 listings and TOC metadata are read.",
+  "uiItemsShelfSource": "表单登录 ·  items人shelf · source域名切换",
+  "uiImportIntoLocalLibrary": "Import into local library",
+  "uiTxtEpubCbzPdfImageFolders": "TXT / EPUB / CBZ / PDF / image folders",
+  "uiSampleWorkTocPreview": "Sample work · TOC preview",
+  "uiSampleData2": "Sample data",
+  "uiSampleWorkVolumeList": "Sample work · volume list",
+  "uiSampleWorkDetail": "Sample work · detail",
+  "uiMetadata": "Metadata",
+  "uiAboutContentAndSources": "About content and sources",
+  "uiBookOverride": "book override",
+  "uiGlobalDefault": "global default",
+  "uiMeetsMinimum": "meets",
+  "uiBelowMinimum": "below",
+  "uiNoVoiceSkipped": " (no voice, skipped)",
+  "uiNoDataOmitted": " (no data, all omitted)",
+  "uiAligned": " (aligned)",
+  "uiMisaligned": " (misaligned)",
+  "@appTitle": {
+    "description": "MaterialApp.onGenerateTitle 使用的应用标题"
+  },
+  "@helloWorld": {
+    "description": "gen-l10n 最小示例键，用于验证生成链路"
+  },
+  "@aboutParagraph1": {
+    "description": "关于与问题反馈段落 1"
+  },
+  "@aboutParagraph2": {
+    "description": "关于与问题反馈段落 2"
+  },
+  "@aboutParagraph3": {
+    "description": "关于与问题反馈段落 3"
+  },
+  "@aboutParagraph4": {
+    "description": "关于与问题反馈段落 4"
+  },
+  "@aboutParagraph5": {
+    "description": "关于与问题反馈段落 5"
+  },
+  "@aboutParagraph6": {
+    "description": "关于与问题反馈段落 6"
+  },
+  "@appDisclaimer": {
+    "description": "业务 / 合规 / 空状态文案：appDisclaimer"
+  },
+  "@nonOfficial": {
+    "description": "业务 / 合规 / 空状态文案：nonOfficial"
+  },
+  "@freeStatement": {
+    "description": "业务 / 合规 / 空状态文案：freeStatement"
+  },
+  "@sources": {
+    "description": "业务 / 合规 / 空状态文案：sources"
+  },
+  "@contentRights": {
+    "description": "业务 / 合规 / 空状态文案：contentRights"
+  },
+  "@thirdPartyService": {
+    "description": "业务 / 合规 / 空状态文案：thirdPartyService"
+  },
+  "@onlineAvailability": {
+    "description": "业务 / 合规 / 空状态文案：onlineAvailability"
+  },
+  "@issueGuidance": {
+    "description": "业务 / 合规 / 空状态文案：issueGuidance"
+  },
+  "@onlineEntryNote": {
+    "description": "业务 / 合规 / 空状态文案：onlineEntryNote"
+  },
+  "@localOnlyNote": {
+    "description": "业务 / 合规 / 空状态文案：localOnlyNote"
+  },
+  "@importFormats": {
+    "description": "业务 / 合规 / 空状态文案：importFormats"
+  },
+  "@archiveNotice": {
+    "description": "业务 / 合规 / 空状态文案：archiveNotice"
+  },
+  "@permissionNotice": {
+    "description": "业务 / 合规 / 空状态文案：permissionNotice"
+  },
+  "@importChannels": {
+    "description": "业务 / 合规 / 空状态文案：importChannels"
+  },
+  "@importBody": {
+    "description": "业务 / 合规 / 空状态文案：importBody"
+  },
+  "@importTitle": {
+    "description": "业务 / 合规 / 空状态文案：importTitle"
+  },
+  "@importWizardTitle": {
+    "description": "业务 / 合规 / 空状态文案：importWizardTitle"
+  },
+  "@importWizardStaticNote": {
+    "description": "业务 / 合规 / 空状态文案：importWizardStaticNote"
+  },
+  "@importRar5Reason": {
+    "description": "业务 / 合规 / 空状态文案：importRar5Reason"
+  },
+  "@importEncryptedReason": {
+    "description": "业务 / 合规 / 空状态文案：importEncryptedReason"
+  },
+  "@importUnsupportedReason": {
+    "description": "业务 / 合规 / 空状态文案：importUnsupportedReason"
+  },
+  "@importNoModeHint": {
+    "description": "业务 / 合规 / 空状态文案：importNoModeHint"
+  },
+  "@importNoGrantHint": {
+    "description": "业务 / 合规 / 空状态文案：importNoGrantHint"
+  },
+  "@importScanEmpty": {
+    "description": "业务 / 合规 / 空状态文案：importScanEmpty"
+  },
+  "@importNoAcceptedHint": {
+    "description": "业务 / 合规 / 空状态文案：importNoAcceptedHint"
+  },
+  "@importConflictNote": {
+    "description": "业务 / 合规 / 空状态文案：importConflictNote"
+  },
+  "@importDoneNote": {
+    "description": "业务 / 合规 / 空状态文案：importDoneNote"
+  },
+  "@importWizardEntry": {
+    "description": "业务 / 合规 / 空状态文案：importWizardEntry"
+  },
+  "@emptyLibraryTitle": {
+    "description": "业务 / 合规 / 空状态文案：emptyLibraryTitle"
+  },
+  "@emptyLibraryBody": {
+    "description": "业务 / 合规 / 空状态文案：emptyLibraryBody"
+  },
+  "@noResultTitle": {
+    "description": "业务 / 合规 / 空状态文案：noResultTitle"
+  },
+  "@noResultBody": {
+    "description": "业务 / 合规 / 空状态文案：noResultBody"
+  },
+  "@demoDataNote": {
+    "description": "业务 / 合规 / 空状态文案：demoDataNote"
+  },
+  "@excerptLocalNote": {
+    "description": "业务 / 合规 / 空状态文案：excerptLocalNote"
+  },
+  "@excerptExportNote": {
+    "description": "业务 / 合规 / 空状态文案：excerptExportNote"
+  },
+  "@excerptReadOnlyNote": {
+    "description": "业务 / 合规 / 空状态文案：excerptReadOnlyNote"
+  },
+  "@excerptEmptyTitle": {
+    "description": "业务 / 合规 / 空状态文案：excerptEmptyTitle"
+  },
+  "@excerptEmptyBody": {
+    "description": "业务 / 合规 / 空状态文案：excerptEmptyBody"
+  },
+  "@excerptNoResultTitle": {
+    "description": "业务 / 合规 / 空状态文案：excerptNoResultTitle"
+  },
+  "@excerptNoResultBody": {
+    "description": "业务 / 合规 / 空状态文案：excerptNoResultBody"
+  },
+  "@comicPlaceholderNote": {
+    "description": "业务 / 合规 / 空状态文案：comicPlaceholderNote"
+  },
+  "@comicTocNote": {
+    "description": "业务 / 合规 / 空状态文案：comicTocNote"
+  },
+  "@comicLocalNote": {
+    "description": "业务 / 合规 / 空状态文案：comicLocalNote"
+  },
+  "@favoriteLocalNote": {
+    "description": "业务 / 合规 / 空状态文案：favoriteLocalNote"
+  },
+  "@favoriteEmptyTitle": {
+    "description": "业务 / 合规 / 空状态文案：favoriteEmptyTitle"
+  },
+  "@favoriteEmptyBody": {
+    "description": "业务 / 合规 / 空状态文案：favoriteEmptyBody"
+  },
+  "@favoritesOnlyHint": {
+    "description": "业务 / 合规 / 空状态文案：favoritesOnlyHint"
+  },
+  "@screenshotNote": {
+    "description": "业务 / 合规 / 空状态文案：screenshotNote"
+  },
+  "@keepsakeTitle": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeTitle"
+  },
+  "@calendarMonthTitle": {
+    "description": "业务 / 合规 / 空状态文案：calendarMonthTitle"
+  },
+  "@keepsakeStaticNote": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeStaticNote"
+  },
+  "@calendarStaticNote": {
+    "description": "业务 / 合规 / 空状态文案：calendarStaticNote"
+  },
+  "@keepsakeEmptyTitle": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeEmptyTitle"
+  },
+  "@keepsakeEmptyBody": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeEmptyBody"
+  },
+  "@calendarNoRecordNote": {
+    "description": "业务 / 合规 / 空状态文案：calendarNoRecordNote"
+  },
+  "@calendarOutOfRangeNote": {
+    "description": "业务 / 合规 / 空状态文案：calendarOutOfRangeNote"
+  },
+  "@calendarOpenMonth": {
+    "description": "业务 / 合规 / 空状态文案：calendarOpenMonth"
+  },
+  "@calendarBackToThisMonth": {
+    "description": "业务 / 合规 / 空状态文案：calendarBackToThisMonth"
+  },
+  "@calendarAllMonths": {
+    "description": "业务 / 合规 / 空状态文案：calendarAllMonths"
+  },
+  "@localizationTitle": {
+    "description": "业务 / 合规 / 空状态文案：localizationTitle"
+  },
+  "@localizationPreviewTitle": {
+    "description": "业务 / 合规 / 空状态文案：localizationPreviewTitle"
+  },
+  "@localizationDefaultNote": {
+    "description": "业务 / 合规 / 空状态文案：localizationDefaultNote"
+  },
+  "@localizationStaticNote": {
+    "description": "业务 / 合规 / 空状态文案：localizationStaticNote"
+  },
+  "@comicSpreadTitle": {
+    "description": "业务 / 合规 / 空状态文案：comicSpreadTitle"
+  },
+  "@comicBlankSlotNote": {
+    "description": "业务 / 合规 / 空状态文案：comicBlankSlotNote"
+  },
+  "@comicVerticalLockNote": {
+    "description": "业务 / 合规 / 空状态文案：comicVerticalLockNote"
+  },
+  "@comicSpreadStaticNote": {
+    "description": "业务 / 合规 / 空状态文案：comicSpreadStaticNote"
+  },
+  "@bookExcerptTitle": {
+    "description": "业务 / 合规 / 空状态文案：bookExcerptTitle"
+  },
+  "@bookExcerptEmptyTitle": {
+    "description": "业务 / 合规 / 空状态文案：bookExcerptEmptyTitle"
+  },
+  "@bookExcerptEmptyBody": {
+    "description": "业务 / 合规 / 空状态文案：bookExcerptEmptyBody"
+  },
+  "@bookExcerptScopedNote": {
+    "description": "业务 / 合规 / 空状态文案：bookExcerptScopedNote"
+  },
+  "@bookExcerptPinnedNote": {
+    "description": "业务 / 合规 / 空状态文案：bookExcerptPinnedNote"
+  },
+  "@bookExcerptStaticNote": {
+    "description": "业务 / 合规 / 空状态文案：bookExcerptStaticNote"
+  },
+  "@bookExcerptMissingNote": {
+    "description": "业务 / 合规 / 空状态文案：bookExcerptMissingNote"
+  },
+  "@excerptSearchTitleNote": {
+    "description": "业务 / 合规 / 空状态文案：excerptSearchTitleNote"
+  },
+  "@excerptExportSnapshotNote": {
+    "description": "业务 / 合规 / 空状态文案：excerptExportSnapshotNote"
+  },
+  "@keepsakeAllKinds": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeAllKinds"
+  },
+  "@keepsakeOpenLibrary": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeOpenLibrary"
+  },
+  "@keepsakeLibraryTitle": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeLibraryTitle"
+  },
+  "@keepsakeFilterHint": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeFilterHint"
+  },
+  "@keepsakeKindEmptyTitle": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeKindEmptyTitle"
+  },
+  "@keepsakeKindEmptyBody": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeKindEmptyBody"
+  },
+  "@keepsakeNoResultTitle": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeNoResultTitle"
+  },
+  "@keepsakeNoResultBody": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeNoResultBody"
+  },
+  "@keepsakeFilterStaticNote": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeFilterStaticNote"
+  },
+  "@keepsakeWidgetKindNote": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeWidgetKindNote"
+  },
+  "@keepsakeMonthPreviewNote": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeMonthPreviewNote"
+  },
+  "@keepsakeMonthPreviewOpen": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeMonthPreviewOpen"
+  },
+  "@keepsakeMonthEmptyBody": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeMonthEmptyBody"
+  },
+  "@keepsakeMonthKindEmptyBody": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeMonthKindEmptyBody"
+  },
+  "@keepsakeMonthNoResultBody": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeMonthNoResultBody"
+  },
+  "@comicWideSoloTitle": {
+    "description": "业务 / 合规 / 空状态文案：comicWideSoloTitle"
+  },
+  "@comicWideSoloNote": {
+    "description": "业务 / 合规 / 空状态文案：comicWideSoloNote"
+  },
+  "@comicWideSoloSingleNote": {
+    "description": "业务 / 合规 / 空状态文案：comicWideSoloSingleNote"
+  },
+  "@excerptAnchorRestoreNote": {
+    "description": "业务 / 合规 / 空状态文案：excerptAnchorRestoreNote"
+  },
+  "@keepsakeDayEmptyTitle": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeDayEmptyTitle"
+  },
+  "@keepsakeDayEmptyBody": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeDayEmptyBody"
+  },
+  "@keepsakeDayFilterNote": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeDayFilterNote"
+  },
+  "@calendarOpenMonthKeepsakes": {
+    "description": "业务 / 合规 / 空状态文案：calendarOpenMonthKeepsakes"
+  },
+  "@calendarOpenDayKeepsakes": {
+    "description": "业务 / 合规 / 空状态文案：calendarOpenDayKeepsakes"
+  },
+  "@calendarCrossMonthNote": {
+    "description": "业务 / 合规 / 空状态文案：calendarCrossMonthNote"
+  },
+  "@calendarInvalidDateNote": {
+    "description": "业务 / 合规 / 空状态文案：calendarInvalidDateNote"
+  },
+  "@keepsakeOpenCalendarDay": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeOpenCalendarDay"
+  },
+  "@keepsakeOpenCalendarMonth": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeOpenCalendarMonth"
+  },
+  "@comicSpineGutterTitle": {
+    "description": "业务 / 合规 / 空状态文案：comicSpineGutterTitle"
+  },
+  "@comicSpineGutterNote": {
+    "description": "业务 / 合规 / 空状态文案：comicSpineGutterNote"
+  },
+  "@comicSpineShadeTitle": {
+    "description": "业务 / 合规 / 空状态文案：comicSpineShadeTitle"
+  },
+  "@comicSpineShadeNote": {
+    "description": "业务 / 合规 / 空状态文案：comicSpineShadeNote"
+  },
+  "@keepsakeDateRangeTitle": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeDateRangeTitle"
+  },
+  "@keepsakeDateRangeHint": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeDateRangeHint"
+  },
+  "@keepsakeDateRangeNote": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeDateRangeNote"
+  },
+  "@keepsakeDateRangeInvalid": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeDateRangeInvalid"
+  },
+  "@keepsakeDateRangeFilterNote": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeDateRangeFilterNote"
+  },
+  "@keepsakeDateRangeAll": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeDateRangeAll"
+  },
+  "@keepsakeDateRangeThisMonth": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeDateRangeThisMonth"
+  },
+  "@keepsakeDateRangeLast7": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeDateRangeLast7"
+  },
+  "@keepsakeRangeEmptyTitle": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeRangeEmptyTitle"
+  },
+  "@keepsakeRangeEmptyBody": {
+    "description": "业务 / 合规 / 空状态文案：keepsakeRangeEmptyBody"
+  },
+  "@calendarOpenDayExcerpts": {
+    "description": "业务 / 合规 / 空状态文案：calendarOpenDayExcerpts"
+  },
+  "@excerptDayFilterNote": {
+    "description": "业务 / 合规 / 空状态文案：excerptDayFilterNote"
+  },
+  "@excerptDayEmptyTitle": {
+    "description": "业务 / 合规 / 空状态文案：excerptDayEmptyTitle"
+  },
+  "@excerptDayEmptyBody": {
+    "description": "业务 / 合规 / 空状态文案：excerptDayEmptyBody"
+  },
+  "@excerptDayScopedTitle": {
+    "description": "业务 / 合规 / 空状态文案：excerptDayScopedTitle"
+  },
+  "@wenkuOnlySources": {
+    "description": "业务 / 合规 / 空状态文案：wenkuOnlySources"
+  },
+  "@wenkuContentOwnership": {
+    "description": "业务 / 合规 / 空状态文案：wenkuContentOwnership"
+  },
+  "@wenkuNoWithdrawn": {
+    "description": "业务 / 合规 / 空状态文案：wenkuNoWithdrawn"
+  },
+  "@wenkuNoCircumvention": {
+    "description": "业务 / 合规 / 空状态文案：wenkuNoCircumvention"
+  },
+  "@wenkuThirdParty": {
+    "description": "业务 / 合规 / 空状态文案：wenkuThirdParty"
+  },
+  "@wenkuNoCredentials": {
+    "description": "业务 / 合规 / 空状态文案：wenkuNoCredentials"
+  },
+  "@wenkuSourceNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuSourceNote"
+  },
+  "@wenkuLocalSourceNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLocalSourceNote"
+  },
+  "@wenkuCustomSourceNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuCustomSourceNote"
+  },
+  "@wenkuShelfTabLocal": {
+    "description": "业务 / 合规 / 空状态文案：wenkuShelfTabLocal"
+  },
+  "@wenkuShelfTabCloud": {
+    "description": "业务 / 合规 / 空状态文案：wenkuShelfTabCloud"
+  },
+  "@wenkuCloudTitle": {
+    "description": "业务 / 合规 / 空状态文案：wenkuCloudTitle"
+  },
+  "@wenkuCloudSubtitle": {
+    "description": "业务 / 合规 / 空状态文案：wenkuCloudSubtitle"
+  },
+  "@wenkuSourceNavTitle": {
+    "description": "业务 / 合规 / 空状态文案：wenkuSourceNavTitle"
+  },
+  "@wenkuFeedTitle": {
+    "description": "业务 / 合规 / 空状态文案：wenkuFeedTitle"
+  },
+  "@wenkuSearchHint": {
+    "description": "业务 / 合规 / 空状态文案：wenkuSearchHint"
+  },
+  "@wenkuStatusNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuStatusNote"
+  },
+  "@wenkuLockedTitle": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLockedTitle"
+  },
+  "@wenkuLockedBody": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLockedBody"
+  },
+  "@wenkuUnlockButton": {
+    "description": "业务 / 合规 / 空状态文案：wenkuUnlockButton"
+  },
+  "@wenkuBookAdd": {
+    "description": "业务 / 合规 / 空状态文案：wenkuBookAdd"
+  },
+  "@wenkuBookAdded": {
+    "description": "业务 / 合规 / 空状态文案：wenkuBookAdded"
+  },
+  "@wenkuDetailTitle": {
+    "description": "业务 / 合规 / 空状态文案：wenkuDetailTitle"
+  },
+  "@wenkuDetailSynopsis": {
+    "description": "业务 / 合规 / 空状态文案：wenkuDetailSynopsis"
+  },
+  "@wenkuDetailToc": {
+    "description": "业务 / 合规 / 空状态文案：wenkuDetailToc"
+  },
+  "@wenkuDetailChapterNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuDetailChapterNote"
+  },
+  "@wenkuDetailStaticNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuDetailStaticNote"
+  },
+  "@wenkuEmptyTitle": {
+    "description": "业务 / 合规 / 空状态文案：wenkuEmptyTitle"
+  },
+  "@wenkuEmptyBody": {
+    "description": "业务 / 合规 / 空状态文案：wenkuEmptyBody"
+  },
+  "@wenkuRefresh": {
+    "description": "业务 / 合规 / 空状态文案：wenkuRefresh"
+  },
+  "@wenkuAddedNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuAddedNote"
+  },
+  "@feedbackTitle": {
+    "description": "业务 / 合规 / 空状态文案：feedbackTitle"
+  },
+  "@feedbackSubtitle": {
+    "description": "业务 / 合规 / 空状态文案：feedbackSubtitle"
+  },
+  "@feedbackPreviewTitle": {
+    "description": "业务 / 合规 / 空状态文案：feedbackPreviewTitle"
+  },
+  "@feedbackMissing": {
+    "description": "业务 / 合规 / 空状态文案：feedbackMissing"
+  },
+  "@feedbackStaticNote": {
+    "description": "业务 / 合规 / 空状态文案：feedbackStaticNote"
+  },
+  "@supportTitle": {
+    "description": "业务 / 合规 / 空状态文案：supportTitle"
+  },
+  "@supportBody": {
+    "description": "业务 / 合规 / 空状态文案：supportBody"
+  },
+  "@profileHeroTitle": {
+    "description": "业务 / 合规 / 空状态文案：profileHeroTitle"
+  },
+  "@profileHeroSubtitle": {
+    "description": "业务 / 合规 / 空状态文案：profileHeroSubtitle"
+  },
+  "@profileSectionAppearance": {
+    "description": "业务 / 合规 / 空状态文案：profileSectionAppearance"
+  },
+  "@profileSectionSources": {
+    "description": "业务 / 合规 / 空状态文案：profileSectionSources"
+  },
+  "@profileSectionLibrary": {
+    "description": "业务 / 合规 / 空状态文案：profileSectionLibrary"
+  },
+  "@profileSectionFavorites": {
+    "description": "业务 / 合规 / 空状态文案：profileSectionFavorites"
+  },
+  "@profileSectionSupport": {
+    "description": "业务 / 合规 / 空状态文案：profileSectionSupport"
+  },
+  "@profileSectionAbout": {
+    "description": "业务 / 合规 / 空状态文案：profileSectionAbout"
+  },
+  "@cloudChannelsTitle": {
+    "description": "业务 / 合规 / 空状态文案：cloudChannelsTitle"
+  },
+  "@cloudChannelsNote": {
+    "description": "业务 / 合规 / 空状态文案：cloudChannelsNote"
+  },
+  "@mergeRecordsNote": {
+    "description": "业务 / 合规 / 空状态文案：mergeRecordsNote"
+  },
+  "@wenkuFormatsNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuFormatsNote"
+  },
+  "@unlockModeTitle": {
+    "description": "业务 / 合规 / 空状态文案：unlockModeTitle"
+  },
+  "@unlockModeBody": {
+    "description": "业务 / 合规 / 空状态文案：unlockModeBody"
+  },
+  "@wenkuRealSourceNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuRealSourceNote"
+  },
+  "@wenkuEndpointNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuEndpointNote"
+  },
+  "@wenkuChallengeNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuChallengeNote"
+  },
+  "@wenkuWithdrawnNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuWithdrawnNote"
+  },
+  "@wenkuRateLimitNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuRateLimitNote"
+  },
+  "@wenkuUnavailableNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuUnavailableNote"
+  },
+  "@wenkuUpstreamChangedNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuUpstreamChangedNote"
+  },
+  "@wenkuNoRelayNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuNoRelayNote"
+  },
+  "@wenkuChapterNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuChapterNote"
+  },
+  "@wenkuLocalVerifyNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLocalVerifyNote"
+  },
+  "@wenkuSdkAbsentNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuSdkAbsentNote"
+  },
+  "@wenkuPlatformPermissionNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuPlatformPermissionNote"
+  },
+  "@wenkuLoginTitle": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLoginTitle"
+  },
+  "@wenkuLoginUsername": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLoginUsername"
+  },
+  "@wenkuLoginPassword": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLoginPassword"
+  },
+  "@wenkuLoginAction": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLoginAction"
+  },
+  "@wenkuLogoutAction": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLogoutAction"
+  },
+  "@wenkuLoginCredentialNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLoginCredentialNote"
+  },
+  "@wenkuLoginLoggedOut": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLoginLoggedOut"
+  },
+  "@wenkuLoginFailed": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLoginFailed"
+  },
+  "@wenkuLoginSessionExpired": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLoginSessionExpired"
+  },
+  "@wenkuLoginHostNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLoginHostNote"
+  },
+  "@wenkuSourceClosedNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuSourceClosedNote"
+  },
+  "@wenkuEndpointsPendingNote": {
+    "description": "业务 / 合规 / 空状态文案：wenkuEndpointsPendingNote"
+  },
+  "@wenkuLoginNoSession": {
+    "description": "业务 / 合规 / 空状态文案：wenkuLoginNoSession"
+  },
+  "@uiLocalReader": {
+    "description": "UI 短标签 | 原文：本地阅读 | 来源：精确"
+  },
+  "@uiShelf": {
+    "description": "UI 短标签 | 原文：书架 | 来源：精确"
+  },
+  "@uiLightNovels": {
+    "description": "UI 短标签 | 原文：轻小说文库 | 来源：精确"
+  },
+  "@uiStats": {
+    "description": "UI 短标签 | 原文：统计 | 来源：精确"
+  },
+  "@uiProfile": {
+    "description": "UI 短标签 | 原文：我的 | 来源：精确"
+  },
+  "@uiGotIt": {
+    "description": "UI 短标签 | 原文：知道了 | 来源：精确"
+  },
+  "@uiAppLanguage": {
+    "description": "UI 短标签 | 原文：应用语言 | 来源：精确"
+  },
+  "@uiFollowSystem": {
+    "description": "UI 短标签 | 原文：跟随系统 | 来源：精确"
+  },
+  "@uiPhrase008": {
+    "description": "UI 短标签 | 原文：简体中文 | 来源：精确 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiEnglish": {
+    "description": "第二十八轮：从插值表达式 / 语言名收进 ARB"
+  },
+  "@uiWhenFollowingTheSystemFlutterResolvesTheLocale": {
+    "description": "UI 短标签 | 原文：跟随系统时按官方 supportedLocales 解析；未支持的语言回退简体中文。 | 来源：精确"
+  },
+  "@uiMapLocaleLegaltextbundleLanguages": {
+    "description": "UI 短标签 | 原文：Map<Locale, LegalTextBundle> · ${LocalizedLegalTexts.supportedLocales.length} 种语 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiKeysLists": {
+    "description": "UI 短标签 | 原文： · ${LocalizedLegalTexts.keyCount} 键 + ${LocalizedLegalTexts.listCount} 列表 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiCoverageCheck": {
+    "description": "UI 短标签 | 原文：覆盖度校验 · ${_preview.label} | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiItems": {
+    "description": "UI 短标签 | 原文：缺项 ${missing.length} · 多余键 ${extra.length} | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiChapters": {
+    "description": "UI 短标签 | 原文：${v.chapterCount} 章 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiRemoveFavorite": {
+    "description": "UI 短标签 | 原文：取消收藏 | 来源：精确"
+  },
+  "@uiFavoriteThisBook": {
+    "description": "UI 短标签 | 原文：收藏这本书 | 来源：精确"
+  },
+  "@uiAddedToFavorites": {
+    "description": "UI 短标签 | 原文：已加入收藏 | 来源：精确"
+  },
+  "@uiRemovedFromFavorites": {
+    "description": "UI 短标签 | 原文：已取消收藏 | 来源：精确"
+  },
+  "@uiEditBookInfo": {
+    "description": "UI 短标签 | 原文：编辑书籍信息 | 来源：精确"
+  },
+  "@uiTableOfContents": {
+    "description": "UI 短标签 | 原文：章节目录 | 来源：精确"
+  },
+  "@uiContinueReading": {
+    "description": "UI 短标签 | 原文：继续阅读 | 来源：精确"
+  },
+  "@uiStartReading": {
+    "description": "UI 短标签 | 原文：开始阅读 | 来源：精确"
+  },
+  "@uiNoVolume": {
+    "description": "UI 短标签 | 原文：未分卷 | 来源：精确"
+  },
+  "@uiVolume": {
+    "description": "UI 短标签 | 原文：第 ${book.volumeOrder} 卷 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiLocalLibrary": {
+    "description": "UI 短标签 | 原文：本地书库 · ${book.shelf} | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiReadingProgress": {
+    "description": "UI 短标签 | 原文：阅读进度 | 来源：精确"
+  },
+  "@uiChaptersSampleData": {
+    "description": "UI 短标签 | 原文：上次读到约第 ${DemoDocumentFactory.resumeChapter(book) + 1} 章 · 演示数据 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiNotStartedYet": {
+    "description": "UI 短标签 | 原文：尚未开始阅读 | 来源：精确"
+  },
+  "@uiContents": {
+    "description": "UI 短标签 | 原文：目录 | 来源：精确"
+  },
+  "@uiTotalChapters": {
+    "description": "UI 短标签 | 原文：共 ${chapters.length} 章 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiViewAll": {
+    "description": "UI 短标签 | 原文：查看全部 | 来源：精确"
+  },
+  "@uiLastRead": {
+    "description": "UI 短标签 | 原文：上次读到 | 来源：精确"
+  },
+  "@uiItems2": {
+    "description": "UI 短标签 | 原文：${excerpts.length} 条 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiBookInfo": {
+    "description": "UI 短标签 | 原文：书籍信息 | 来源：精确"
+  },
+  "@uiSource": {
+    "description": "UI 短标签 | 原文：来源 | 来源：精确"
+  },
+  "@uiImportedLocally": {
+    "description": "UI 短标签 | 原文：用户本地导入 | 来源：精确"
+  },
+  "@uiFormat": {
+    "description": "UI 短标签 | 原文：格式 | 来源：精确"
+  },
+  "@uiChapters2": {
+    "description": "UI 短标签 | 原文：章节 | 来源：精确"
+  },
+  "@uiEpisodes": {
+    "description": "UI 短标签 | 原文：话集 | 来源：精确"
+  },
+  "@uiEpisodesPages": {
+    "description": "UI 短标签 | 原文：$episodeCount 话 · 共 $comicPageCount 页 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiAuthorization": {
+    "description": "UI 短标签 | 原文：授权 | 来源：精确"
+  },
+  "@uiSystemFilePickerDirectoryAuthorization": {
+    "description": "UI 短标签 | 原文：系统文件选择器目录授权 | 来源：精确"
+  },
+  "@uiScope": {
+    "description": "UI 短标签 | 原文：文档类书籍不在媒体库覆盖范围内，需走系统文件选择器或「所有文件访问」。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiAboutContent": {
+    "description": "UI 短标签 | 原文：关于内容 | 来源：精确"
+  },
+  "@uiTitle": {
+    "description": "UI 短标签 | 原文：书名 | 来源：精确"
+  },
+  "@uiAuthor": {
+    "description": "UI 短标签 | 原文：作者 | 来源：精确"
+  },
+  "@uiCoverColor": {
+    "description": "UI 短标签 | 原文：封面色 | 来源：精确"
+  },
+  "@uiVolumeOrder": {
+    "description": "UI 短标签 | 原文：卷序 | 来源：精确"
+  },
+  "@uiVolume2": {
+    "description": "UI 短标签 | 原文：第 $i 卷 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiStaticDemoSaveSampleData": {
+    "description": "UI 短标签 | 原文：静态演示：修改仅保存在内存，重启后恢复演示数据。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiCancel": {
+    "description": "UI 短标签 | 原文：取消 | 来源：精确"
+  },
+  "@uiSave": {
+    "description": "UI 短标签 | 原文：保存 | 来源：精确"
+  },
+  "@uiTitleCannotBeEmpty": {
+    "description": "UI 短标签 | 原文：书名不能为空 | 来源：精确"
+  },
+  "@uiContents2": {
+    "description": "UI 短标签 | 原文：${book.title} · 目录 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiSearchChapterTitles": {
+    "description": "UI 短标签 | 原文：搜索章节名 | 来源：精确"
+  },
+  "@uiTotalChapters2": {
+    "description": "UI 短标签 | 原文：共 ${document.chapters.length} 章 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiTapAChapterToJump": {
+    "description": "UI 短标签 | 原文：点选章节跳转 | 来源：精确"
+  },
+  "@uiNoMatchingChapters": {
+    "description": "UI 短标签 | 原文：没有匹配的章节 | 来源：精确"
+  },
+  "@uiContentsBodyTextBookdocumentChapters": {
+    "description": "UI 短标签 | 原文：目录与正文由同一份 BookDocument 生成，章节序号与阅读器严格一致。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiCurrentSampleDataTocentryChapters": {
+    "description": "UI 短标签 | 原文：当前为演示数据；接入真实解析器后由 TocEntry 提供章节与锚点。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiItemscontentBodyText": {
+    "description": "UI 短标签 | 原文：${chapter.blocks.length} 个内容块 · 演示正文 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiCurrentlyReading": {
+    "description": "UI 短标签 | 原文：当前阅读 | 来源：精确"
+  },
+  "@uiEditExcerpt": {
+    "description": "UI 短标签 | 原文：编辑摘录 | 来源：精确"
+  },
+  "@uiHighlightColor": {
+    "description": "UI 短标签 | 原文：划线颜色 | 来源：精确"
+  },
+  "@uiNote": {
+    "description": "UI 短标签 | 原文：批注 | 来源：精确"
+  },
+  "@uiClearTheFieldToRemoveTheNote": {
+    "description": "UI 短标签 | 原文：清空输入框即可移除批注 | 来源：精确"
+  },
+  "@uiSaveChanges": {
+    "description": "UI 短标签 | 原文：保存修改 | 来源：精确"
+  },
+  "@uiExportPreview": {
+    "description": "UI 短标签 | 原文：导出预览 | 来源：精确"
+  },
+  "@uiExcerptLibrary": {
+    "description": "UI 短标签 | 原文：摘录管理 | 来源：精确"
+  },
+  "@uiExportCurrentResultsPlainTextPreview": {
+    "description": "UI 短标签 | 原文：导出当前结果（纯文本预览） | 来源：精确"
+  },
+  "@uiTextTitleChapterNote": {
+    "description": "UI 短标签 | 原文：正文 / 书名 / 章节 / 批注 | 来源：精确"
+  },
+  "@uiAllBooks": {
+    "description": "UI 短标签 | 原文：全部书 | 来源：精确"
+  },
+  "@uiTotalYours": {
+    "description": "UI 短标签 | 原文：共 ${summary.total} 条 · 我摘的 ${summary.userCount} 条 ·  | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiNoteItemsItems": {
+    "description": "UI 短标签 | 原文：有批注 ${summary.withNoteCount} 条 · 命中 ${results.length} 条 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiScope2": {
+    "description": "UI 短标签 | 原文：范围 | 来源：精确"
+  },
+  "@uiByBook": {
+    "description": "UI 短标签 | 原文：按书 | 来源：精确"
+  },
+  "@uiHighlight": {
+    "description": "UI 短标签 | 原文：划线色 | 来源：精确"
+  },
+  "@uiAllColors": {
+    "description": "UI 短标签 | 原文：全部色 | 来源：精确"
+  },
+  "@uiSort": {
+    "description": "UI 短标签 | 原文：排序 | 来源：精确"
+  },
+  "@uiGroup": {
+    "description": "UI 短标签 | 原文：分组 | 来源：精确"
+  },
+  "@uiSelectedBook": {
+    "description": "UI 短标签 | 原文：指定书籍 | 来源：精确"
+  },
+  "@uiDays": {
+    "description": "UI 短标签 | 原文：当天 ${_filter.dateKey} | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiKeyword": {
+    "description": "UI 短标签 | 原文：关键词「${_filter.query}」 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiExcerptDeleted": {
+    "description": "UI 短标签 | 原文：已删除这条摘录 | 来源：片段"
+  },
+  "@uiItemsexcerpts": {
+    "description": "UI 短标签 | 原文：这条摘录不可删除 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiYours": {
+    "description": "UI 短标签 | 原文：我摘的 | 来源：精确"
+  },
+  "@uiSampleReadOnly": {
+    "description": "UI 短标签 | 原文：演示 · 只读 | 来源：精确"
+  },
+  "@uiEditNoteHighlight": {
+    "description": "UI 短标签 | 原文：编辑批注 / 划线色 | 来源：精确"
+  },
+  "@uiDeleteExcerpt": {
+    "description": "UI 短标签 | 原文：删除摘录 | 来源：精确"
+  },
+  "@uiClearDateFilter": {
+    "description": "UI 短标签 | 原文：清除日期筛选 | 来源：精确"
+  },
+  "@uiAllBooks2": {
+    "description": "UI 短标签 | 原文：查看全部书 | 来源：精确"
+  },
+  "@uiClearFilters": {
+    "description": "UI 短标签 | 原文：清空筛选条件 | 来源：精确"
+  },
+  "@uiReviewBeforeImporting": {
+    "description": "UI 短标签 | 原文：导入前先看一眼 | 来源：精确"
+  },
+  "@uiSupportedFormats": {
+    "description": "UI 短标签 | 原文：支持格式 | 来源：精确"
+  },
+  "@uiArchives": {
+    "description": "UI 短标签 | 原文：压缩包 | 来源：精确"
+  },
+  "@uiPermissions": {
+    "description": "UI 短标签 | 原文：权限 | 来源：精确"
+  },
+  "@uiImportChannels": {
+    "description": "UI 短标签 | 原文：导入渠道 | 来源：精确"
+  },
+  "@uiOnline": {
+    "description": "UI 短标签 | 原文：联网 | 来源：精确"
+  },
+  "@uiChooseAnAuthorizationMethod": {
+    "description": "UI 短标签 | 原文：选择授权方式 | 来源：精确"
+  },
+  "@uiAuthorizationConfirmed": {
+    "description": "UI 短标签 | 原文：已确认授权 | 来源：精确"
+  },
+  "@uiSimulateAuthorization": {
+    "description": "UI 短标签 | 原文：模拟确认授权 | 来源：精确"
+  },
+  "@uiAuthorizationStaticDemo": {
+    "description": "UI 短标签 | 原文：授权会持久化，重启后可一键重扫（静态演示） | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiScanResults": {
+    "description": "UI 短标签 | 原文：扫描结果 | 来源：精确"
+  },
+  "@uiScanned": {
+    "description": "UI 短标签 | 原文：共扫描 | 来源：精确"
+  },
+  "@uiImportable": {
+    "description": "UI 短标签 | 原文：可导入 | 来源：精确"
+  },
+  "@uiUnsupported": {
+    "description": "UI 短标签 | 原文：不支持 | 来源：精确"
+  },
+  "@uiUnregistered": {
+    "description": "UI 短标签 | 原文：未登记 | 来源：精确"
+  },
+  "@uiNameConflict": {
+    "description": "UI 短标签 | 原文：同名冲突 | 来源：精确"
+  },
+  "@uiNoNameConflicts": {
+    "description": "UI 短标签 | 原文：没有同名冲突 | 来源：精确"
+  },
+  "@uiResolveDuplicateNames": {
+    "description": "UI 短标签 | 原文：处理同名书籍 | 来源：精确"
+  },
+  "@uiAll": {
+    "description": "UI 短标签 | 原文：全部${ImportLabels.resolutions[r]} | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiDuplicateOf": {
+    "description": "UI 短标签 | 原文：与书库《${conflict.existing.title}》同名 · ${conflict.candidate.format} | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiImportSummary": {
+    "description": "UI 短标签 | 原文：导入摘要 | 来源：精确"
+  },
+  "@uiScannedFiles": {
+    "description": "UI 短标签 | 原文：扫描文件 | 来源：精确"
+  },
+  "@uiItems3": {
+    "description": "UI 短标签 | 原文：${commit.totalCandidates} 个 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiToBeAdded": {
+    "description": "UI 短标签 | 原文：将写入书架 | 来源：精确"
+  },
+  "@uiBooks": {
+    "description": "UI 短标签 | 原文：${commit.addedCount} 册 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiSkippedUnsupported": {
+    "description": "UI 短标签 | 原文：跳过 / 不支持 | 来源：精确"
+  },
+  "@uiItems4": {
+    "description": "UI 短标签 | 原文：${commit.skipped + commit.unsupported} 个 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiItems5": {
+    "description": "UI 短标签 | 原文：${commit.conflictCount} 项 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiDeferred": {
+    "description": "UI 短标签 | 原文：延后处理 | 来源：精确"
+  },
+  "@uiItems6": {
+    "description": "UI 短标签 | 原文：${commit.deferredCount} 项 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiToBeAdded2": {
+    "description": "UI 短标签 | 原文：将新增 | 来源：精确"
+  },
+  "@uiBack": {
+    "description": "UI 短标签 | 原文：上一步 | 来源：精确"
+  },
+  "@uiWriteToShelfAndClose": {
+    "description": "UI 短标签 | 原文：写回书架并关闭 | 来源：精确"
+  },
+  "@uiNext": {
+    "description": "UI 短标签 | 原文：下一步 | 来源：精确"
+  },
+  "@uiReadingFonts": {
+    "description": "UI 短标签 | 原文：阅读与字体 | 来源：精确"
+  },
+  "@uiMotionReadAloud": {
+    "description": "UI 短标签 | 原文：动效与朗读 | 来源：精确"
+  },
+  "@uiStatsReports": {
+    "description": "UI 短标签 | 原文：统计与报告 | 来源：精确"
+  },
+  "@uiShelfImport": {
+    "description": "UI 短标签 | 原文：书架与导入 | 来源：精确"
+  },
+  "@uiBuildCompliance": {
+    "description": "UI 短标签 | 原文：工程与合规 | 来源：精确"
+  },
+  "@uiFeatureOverview": {
+    "description": "UI 短标签 | 原文：功能总览 | 来源：精确"
+  },
+  "@uiReferenceRepoFeatureAlignment": {
+    "description": "UI 短标签 | 原文：参考仓库功能对齐 · 第二十四轮 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiAllGlobalDefaultStaticStageSaveChars": {
+    "description": "UI 短标签 | 原文：以下偏好全部挂在全局状态，按书设置与全局默认分开；静态阶段只保存选择，不下载字体、不发请求、不写文件。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiPerBookLayout": {
+    "description": "UI 短标签 | 原文：按书保存排版 | 来源：精确"
+  },
+  "@uiSaveCharsFontSizeCharsCharsLineHeightNullGloba": {
+    "description": "UI 短标签 | 原文：每本书可独立保存字体 / 字号 / 字重 / 字距 / 行高 / 四边距；null 表示沿用全局默认。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiLibraryIsEmpty": {
+    "description": "UI 短标签 | 原文：书库为空 | 来源：精确"
+  },
+  "@uiCurrentPt": {
+    "description": "UI 短标签 | 原文：当前：${effective.fontFamily} · ${effective.fontSize.toStringAsFixed(1)} pt ·  | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiLineHeight": {
+    "description": "UI 短标签 | 原文：行高 ${effective.lineHeight.toStringAsFixed(2)} ·  | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiPhrase141": {
+    "description": "UI 短标签 | 原文：${effective.isBookSpecific ? \"书级覆盖\" : \"全局默认\"} | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiUseLargerTextForThisBook": {
+    "description": "UI 短标签 | 原文：为这本书设大字 | 来源：精确"
+  },
+  "@uiClearPerBookOverrides": {
+    "description": "UI 短标签 | 原文：清除书级覆盖 | 来源：精确"
+  },
+  "@uiFontCatalog": {
+    "description": "UI 短标签 | 原文：字体目录 | 来源：精确"
+  },
+  "@uiCharsRemoveCharsChars": {
+    "description": "UI 短标签 | 原文：阅读字体按需下载、离线可用、可移除、不预装；应用字体与阅读器字体分开选。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiImportFontSourceHanSans": {
+    "description": "UI 短标签 | 原文：导入字体 · 思源黑体 | 来源：精确"
+  },
+  "@uiRegisterImportedTtfOtf": {
+    "description": "UI 短标签 | 原文：登记导入 TTF/OTF | 来源：精确"
+  },
+  "@uiMarkOnDemandPackInstalled": {
+    "description": "UI 短标签 | 原文：标记按需包已装 | 来源：精确"
+  },
+  "@uiStaticStageFontloaderBooksRemove": {
+    "description": "UI 短标签 | 原文：静态阶段只登记元数据；FontLoader 注册、下载与移除文件属平台层（❄️ 冻结）。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiColorSource": {
+    "description": "UI 短标签 | 原文：配色来源 | 来源：精确"
+  },
+  "@uiContrast1": {
+    "description": "UI 短标签 | 原文：阅读器独立配色：对比度 ${scheme.contrast.toStringAsFixed(2)}:1 ·  | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiWcagAaBodyText45": {
+    "description": "UI 短标签 | 原文：${scheme.meetsMinimum ? \"达到\" : \"未达到\"} WCAG AA 正文 4.5 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiAppFont": {
+    "description": "UI 短标签 | 原文：应用字体 | 来源：精确"
+  },
+  "@uiReadingFont": {
+    "description": "UI 短标签 | 原文：阅读字体 | 来源：精确"
+  },
+  "@uiRemoveCurrentFont": {
+    "description": "UI 短标签 | 原文：移除当前字体 | 来源：精确"
+  },
+  "@uiSystemDynamicColorMonet": {
+    "description": "UI 短标签 | 原文：系统动态色（Monet） | 来源：精确"
+  },
+  "@uiCustomAccentColor": {
+    "description": "UI 短标签 | 原文：自定义强调色 | 来源：精确"
+  },
+  "@uiPickFromCover": {
+    "description": "UI 短标签 | 原文：从封面取色 | 来源：精确"
+  },
+  "@uiPageTurnAutoRead": {
+    "description": "UI 短标签 | 原文：翻页与自动阅读 | 来源：精确"
+  },
+  "@uiPages": {
+    "description": "UI 短标签 | 原文：翻页速度 ×${m.turnSpeed.toStringAsFixed(1)} | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiInterfaceMotion": {
+    "description": "UI 短标签 | 原文：整体界面动效 | 来源：精确"
+  },
+  "@uiOn": {
+    "description": "UI 短标签 | 原文：开 | 来源：精确"
+  },
+  "@uiOffLocksToNoAnimationAndStopsAutoRead": {
+    "description": "UI 短标签 | 原文：关：自动锁为无动画并停下自动阅读 | 来源：精确"
+  },
+  "@uiAutoRead": {
+    "description": "UI 短标签 | 原文：自动阅读 | 来源：精确"
+  },
+  "@uiIntervalMsAutoStopsWhenMotionIsOff": {
+    "description": "UI 短标签 | 原文：间隔 ${m.autoReadIntervalMs} ms · 关动效时自动停 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiContinuousChapterTransition": {
+    "description": "UI 短标签 | 原文：连续章过渡 | 来源：精确"
+  },
+  "@uiVolumeKeyPaging": {
+    "description": "UI 短标签 | 原文：音量键翻页 | 来源：精确"
+  },
+  "@uiBilingualReadAloudLanguages": {
+    "description": "UI 短标签 | 原文：双语与朗读语言 | 来源：精确"
+  },
+  "@uiReadAloudLanguagesItemsVoice": {
+    "description": "UI 短标签 | 原文：按书选显示语言；朗读语言分别选、每种语言一个 voice，没有匹配语音模型的语言直接跳过。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiReadAloud": {
+    "description": "UI 短标签 | 原文：实际会朗读：${b.speakable().map((ReadingLanguage l) => BilingualPrefs.labels[l]).join( | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiPhrase171": {
+    "description": "UI 短标签 | 原文：${b.speakable().isEmpty ? \"（无可用语音，已跳过）\" : \"\"} | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiStaticStageKeepsakes": {
+    "description": "UI 短标签 | 原文：静态阶段只维护偏好；真实语音模型枚举、音色下载与音量键事件属平台层（❄️ 冻结）。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiFiveViews": {
+    "description": "UI 短标签 | 原文：五种视图 | 来源：精确"
+  },
+  "@uiPeriodPresetsCustomRange": {
+    "description": "UI 短标签 | 原文：周期（预设 / 自定义范围） | 来源：精确"
+  },
+  "@uiEightReportLayouts": {
+    "description": "UI 短标签 | 原文：八种报告布局 | 来源：精确"
+  },
+  "@uiChars": {
+    "description": "UI 短标签 | 原文：实际呈现字段：${payload.sections.map((ReportSection s) => ReportPayload.sectionLabels[s | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiPhrase177": {
+    "description": "UI 短标签 | 原文：${payload.sections.isEmpty ? \"（无数据，全部省略）\" : \"\"} | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiTotalContent": {
+    "description": "UI 短标签 | 原文：预览与导出共用同一份内容： | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiStaticStageChars": {
+    "description": "UI 短标签 | 原文：静态阶段导出只生成字符串；写文件与系统分享属平台层（❄️ 冻结）。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiToday": {
+    "description": "UI 短标签 | 原文：今天 | 来源：精确"
+  },
+  "@uiThisWeek": {
+    "description": "UI 短标签 | 原文：本周 | 来源：精确"
+  },
+  "@uiThisMonth": {
+    "description": "UI 短标签 | 原文：本月 | 来源：精确"
+  },
+  "@uiThisYear": {
+    "description": "UI 短标签 | 原文：今年 | 来源：精确"
+  },
+  "@uiAll2": {
+    "description": "UI 短标签 | 原文：全部 | 来源：精确"
+  },
+  "@uiCustom": {
+    "description": "UI 短标签 | 原文：自定义 | 来源：精确"
+  },
+  "@uiShelfViewFilters": {
+    "description": "UI 短标签 | 原文：书架视图与筛选 | 来源：精确"
+  },
+  "@uiMergeLocalLibraryIntoShelf": {
+    "description": "UI 短标签 | 原文：本地书库并入书架 | 来源：精确"
+  },
+  "@uiCurrentBooks": {
+    "description": "UI 短标签 | 原文：当前筛选命中 ${prefs.apply(state.allBooks).length} / ${state.allBooks.length} 册； | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiCarouselParametersLockBackToDefaultInListMode": {
+    "description": "UI 短标签 | 原文：列表模式下轮播参数自动锁回默认。 | 来源：片段"
+  },
+  "@uiPreImportReviewSeriesVolumeMerge": {
+    "description": "UI 短标签 | 原文：导入前审阅与同系列卷合并 | 来源：精确"
+  },
+  "@uiSource2": {
+    "description": "UI 短标签 | 原文：三种来源：${ImportReview.sourceLabels.values.join(\" / \")}； | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiPolicy": {
+    "description": "UI 短标签 | 原文：策略：${ImportReview.policyLabels.values.join(\" / \")}。 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiCurrent": {
+    "description": "UI 短标签 | 原文：当前：${ImportReview.sourceLabels[_importSource]} →  | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiPhrase194": {
+    "description": "UI 短标签 | 原文：${ImportReview.policyLabels[_policy]} →  | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiItems7": {
+    "description": "UI 短标签 | 原文：落到既有冲突策略 ${const ImportReview().withPolicy(VolumeMergePolicy.mergeBySeries).reso | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiWebdavBackupOffByDefault": {
+    "description": "UI 短标签 | 原文：WebDAV 备份（默认关闭） | 来源：精确"
+  },
+  "@uiContent": {
+    "description": "UI 短标签 | 原文：备份内容：${BackupSnapshot.payloadLabels.join(\" / \")}。 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiWhenOffEvenTestConnectionMakesNoRequest": {
+    "description": "UI 短标签 | 原文：关闭态连「测试连接」都不发请求。 | 来源：片段"
+  },
+  "@uiEnableBackup": {
+    "description": "UI 短标签 | 原文：启用备份 | 来源：精确"
+  },
+  "@uiStaticDemoNoNetworkRequestWasMade": {
+    "description": "UI 短标签 | 原文：静态演示：未发出任何网络请求 | 来源：精确"
+  },
+  "@uiStaticStageWebdavclient": {
+    "description": "UI 短标签 | 原文：静态阶段只演示状态机；WebDavClient、远端列表与导出落盘属平台层（❄️ 冻结）。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiAndroidPermissionTiers": {
+    "description": "UI 短标签 | 原文：Android 权限分级 | 来源：精确"
+  },
+  "@uiRemove": {
+    "description": "UI 短标签 | 原文：已移除：${AndroidPermissionProfile.removed.join(\", \")} | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiCrashLoopProtection": {
+    "description": "UI 短标签 | 原文：连续崩溃保护 | 来源：精确"
+  },
+  "@uiMinutes": {
+    "description": "UI 短标签 | 原文：阈值 ${guard.policy.threshold} 次 / ${guard.policy.window.inMinutes} 分钟内 →  | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiSkipped": {
+    "description": "UI 短标签 | 原文：进${guard.policy.safeModeLabel}；跳过：${CrashGuard.skippedInSafeMode.join(\"、\")}。 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiStaticDeliveryBoundary": {
+    "description": "UI 短标签 | 原文：静态交付边界 | 来源：精确"
+  },
+  "@uiAllDartCharsChars": {
+    "description": "UI 短标签 | 原文：本轮新增能力全部为纯 Dart 模型 + 应用内配置：不下载字体、不读文件字节、 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiBooksBooksPages": {
+    "description": "UI 短标签 | 原文：不发网络请求、不注册平台回调、不写相册。逐页接入多语言仍按用户指定预留到最后。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiAppVersion": {
+    "description": "UI 短标签 | 原文：应用版本 | 来源：精确"
+  },
+  "@uiEG1001": {
+    "description": "UI 短标签 | 原文：例如 1.0.0+1 | 来源：精确"
+  },
+  "@uiDevice": {
+    "description": "UI 短标签 | 原文：设备 | 来源：精确"
+  },
+  "@uiEGPixel8": {
+    "description": "UI 短标签 | 原文：例如 Pixel 8 | 来源：精确"
+  },
+  "@uiOsVersion": {
+    "description": "UI 短标签 | 原文：操作系统版本 | 来源：精确"
+  },
+  "@uiEGAndroid15": {
+    "description": "UI 短标签 | 原文：例如 Android 15 | 来源：精确"
+  },
+  "@uiStepsToReproduce": {
+    "description": "UI 短标签 | 原文：复现步骤 | 来源：精确"
+  },
+  "@uiAdditionalNotesOptional": {
+    "description": "UI 短标签 | 原文：补充说明（可选） | 来源：精确"
+  },
+  "@uiOtherObservations": {
+    "description": "UI 短标签 | 原文：其它观察 | 来源：精确"
+  },
+  "@uiLocalBooks": {
+    "description": "UI 短标签 | 原文：本地书 | 来源：精确"
+  },
+  "@uiFavorites": {
+    "description": "UI 短标签 | 原文：收藏 | 来源：精确"
+  },
+  "@uiMinutesToday": {
+    "description": "UI 短标签 | 原文：今日分钟 | 来源：精确"
+  },
+  "@uiStreak": {
+    "description": "UI 短标签 | 原文：连续 | 来源：精确"
+  },
+  "@uiLibrary": {
+    "description": "UI 短标签 | 原文：书库 | 来源：精确"
+  },
+  "@uiPureLocalMode": {
+    "description": "UI 短标签 | 原文：纯本地模式 | 来源：精确"
+  },
+  "@uiWhenOnTheAppMakesNoNetworkRequests": {
+    "description": "UI 短标签 | 原文：开启时全应用不产生任何网络请求 | 来源：精确"
+  },
+  "@uiInterfaceMotion2": {
+    "description": "UI 短标签 | 原文：界面动效 | 来源：精确"
+  },
+  "@uiPageTurnAnimationShelfParallaxGlassTransitions": {
+    "description": "UI 短标签 | 原文：翻页动画 / 书架视差 / 玻璃过渡 | 来源：精确"
+  },
+  "@uiTtsReadAloud": {
+    "description": "UI 短标签 | 原文：TTS 朗读 | 来源：精确"
+  },
+  "@uiSentenceQueueRatePitchAutoNextChapter": {
+    "description": "UI 短标签 | 原文：分句队列 · 语速音调 · 读完自动下一章 | 来源：精确"
+  },
+  "@uiReadingLayout": {
+    "description": "UI 短标签 | 原文：阅读排版 | 来源：精确"
+  },
+  "@uiPtPages": {
+    "description": "UI 短标签 | 原文：${reader.fontSize.round()} pt · ${reader.backgroundLabel} · ${reader.pageTurnLab | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      },
+      "p2": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiContrast12": {
+    "description": "UI 短标签 | 原文： · 对比度 ${reader.bodyContrast.toStringAsFixed(1)}:1 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiPerBookLayoutFontsReportsBackupPermissions": {
+    "description": "UI 短标签 | 原文：按书排版 · 字体目录 · 报告布局 · 备份 · 权限与崩溃保护 | 来源：精确"
+  },
+  "@uiFormLoginBookcaseSessionSourceDomain": {
+    "description": "UI 短标签 | 原文：表单登录 · 个人书架 · 会话与来源域名 | 来源：精确"
+  },
+  "@uiOnlineDirectoryWenku8": {
+    "description": "UI 短标签 | 原文：在线目录（Wenku8） | 来源：精确"
+  },
+  "@uiLockedByPureLocalMode": {
+    "description": "UI 短标签 | 原文：纯本地模式下已锁定 | 来源：精确"
+  },
+  "@uiListingsAndTocMetadataOnlyNoBundledNovels": {
+    "description": "UI 短标签 | 原文：仅列表与目录元数据，不内置小说文件 | 来源：精确"
+  },
+  "@uiWebdavBackup": {
+    "description": "UI 短标签 | 原文：WebDAV 备份 | 来源：精确"
+  },
+  "@uiLibraryMetadataProgressGroupsSessions": {
+    "description": "UI 短标签 | 原文：书库元数据 / 进度 / 分组 / 阅读会话 | 来源：精确"
+  },
+  "@uiPureLocalMode2": {
+    "description": "UI 短标签 | 原文：关闭纯本地模式后，在线开关才会解锁；关闭态全应用零网络请求。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiFormatsAuthorizationScanConflicts": {
+    "description": "UI 短标签 | 原文：格式说明 · 目录授权 · 扫描 · 冲突处理 | 来源：精确"
+  },
+  "@uiImportFormats": {
+    "description": "UI 短标签 | 原文：导入格式 | 来源：精确"
+  },
+  "@uiItems8": {
+    "description": "UI 短标签 | 原文：${favorites.length} 条 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiRemovedBook": {
+    "description": "UI 短标签 | 原文：已移除的书 | 来源：精确"
+  },
+  "@uiTapToOpen": {
+    "description": "UI 短标签 | 原文：${FavoriteTargetLabels.labels[entry.target]} · 点击跳转 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiEpisodeList": {
+    "description": "UI 短标签 | 原文：话集目录 | 来源：精确"
+  },
+  "@uiEpisodesPages2": {
+    "description": "UI 短标签 | 原文：${toc.episodeCount} 话 · ${toc.pageCount} 页 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiRecognitionRate": {
+    "description": "UI 短标签 | 原文：识别率 ${(toc.recognitionRate * 100).round()}% ·  | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiUnrecognizedPagesEpisodes": {
+    "description": "UI 短标签 | 原文：未识别的 ${toc.pageCount - toc.recognizedPages} 页已归入「未分话」 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiAllPagesAreGroupedIntoEpisodes": {
+    "description": "UI 短标签 | 原文：全部页都已归入话集 | 来源：精确"
+  },
+  "@uiCurrent2": {
+    "description": "UI 短标签 | 原文：当前 | 来源：精确"
+  },
+  "@uiUnrecognized": {
+    "description": "UI 短标签 | 原文：未识别 | 来源：精确"
+  },
+  "@uiPages2": {
+    "description": "UI 短标签 | 原文：${episode.pageRangeLabel} · ${episode.pageCount} 页 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiCaptureThisPassage": {
+    "description": "UI 短标签 | 原文：摘录这一段 | 来源：精确"
+  },
+  "@uiLinesChars": {
+    "description": "UI 短标签 | 原文：${selection.count} 行 · ${preview.length} 字 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiNoTextAvailableToCapture": {
+    "description": "UI 短标签 | 原文：（没有可摘录的文字） | 来源：精确"
+  },
+  "@uiSpreads": {
+    "description": "UI 短标签 | 原文： · 跨段落 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiNoteOptional": {
+    "description": "UI 短标签 | 原文：批注（可选） | 来源：精确"
+  },
+  "@uiWriteSomethingToAppendToTheExcerpt": {
+    "description": "UI 短标签 | 原文：写点什么，会附在摘录后面 | 来源：精确"
+  },
+  "@uiSpreadsLinesSentencesLines": {
+    "description": "UI 短标签 | 原文：选区跨越了段落，换行处已直接拼接；如需分句可少选几行。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiStatsPages": {
+    "description": "UI 短标签 | 原文：这段已经摘过了，统计页里可以看到。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiSaveExcerpt": {
+    "description": "UI 短标签 | 原文：保存摘录 | 来源：精确"
+  },
+  "@uiPagesCurrent": {
+    "description": "UI 短标签 | 原文：本页需要原生渲染能力，当前平台尚未接入。 ${snap.error} | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiDemoPlatform": {
+    "description": "UI 短标签 | 原文：演示平台 | 来源：精确"
+  },
+  "@uiCaptureSelectedLines": {
+    "description": "UI 短标签 | 原文：摘录选中的正文行 | 来源：精确"
+  },
+  "@uiReadAloudSentenceQueue": {
+    "description": "UI 短标签 | 原文：朗读（分句队列） | 来源：精确"
+  },
+  "@uiLayoutSettings": {
+    "description": "UI 短标签 | 原文：排版设置 | 来源：精确"
+  },
+  "@uiPreviousChapter": {
+    "description": "UI 短标签 | 原文：上一章 | 来源：精确"
+  },
+  "@uiChapter": {
+    "description": "UI 短标签 | 原文：${_pageIndex + 1} / ${result.pages.length} · 第 ${_chapterIndex + 1} / ${_documen | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      },
+      "p2": {
+        "type": "String",
+        "example": "7"
+      },
+      "p3": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiLinesSaveexcerpts": {
+    "description": "UI 短标签 | 原文：已选 ${_selection.count} 行 · 点顶栏书签保存摘录 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiNextChapter": {
+    "description": "UI 短标签 | 原文：下一章 | 来源：精确"
+  },
+  "@uiIllustrationPlaceholder": {
+    "description": "UI 短标签 | 原文：插图占位 | 来源：精确"
+  },
+  "@uiPagesLinesexcerptsEpisodeListContents": {
+    "description": "UI 短标签 | 原文：漫画页暂不支持按行摘录，话集目录请用旁边「目录」按钮 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiSelectOneOrMoreLinesThenTapTheBookmarkToSaveAn": {
+    "description": "UI 短标签 | 原文：先点选正文中的一行或多行，再点书签保存摘录 | 来源：精确"
+  },
+  "@uiStatsPages2": {
+    "description": "UI 短标签 | 原文：这段已经摘过了，统计页里可以看到 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiSavedToExcerptCardsSeeStats": {
+    "description": "UI 短标签 | 原文：已保存到摘录卡 · 统计页可查看 | 来源：精确"
+  },
+  "@uiFixedLayoutPage": {
+    "description": "UI 短标签 | 原文：固定版式页 | 来源：精确"
+  },
+  "@uiPdfEpubViaBookrenderbridge": {
+    "description": "UI 短标签 | 原文：PDF / 漫画 / 图片型 EPUB 走 BookRenderBridge：  | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiRenderHandleIndexTargetsizePages4k": {
+    "description": "UI 短标签 | 原文：· render(handle, index, targetSize) 按目标像素出页，不做 4K 再缩  | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiPagesTextureidTextureTextureid": {
+    "description": "UI 短标签 | 原文：· 连续翻页用 textureId + Texture(textureId:)  | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiPagesImageMemory": {
+    "description": "UI 短标签 | 原文：· 单页快照用编码位图 Image.memory  | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiComicprefetchwindowPrefetchEvictSpreadsChannel": {
+    "description": "UI 短标签 | 原文：· ComicPrefetchWindow 批量 prefetch / evict，不在滚动回调里逐帧跨 channel | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiSize": {
+    "description": "UI 短标签 | 原文：目标尺寸：${pageSize.width.round()} × ${pageSize.height.round()} 逻辑像素 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiTocNavigationIsNotWiredIntoThisPage": {
+    "description": "UI 短标签 | 原文：当前页面未注入目录导航 | 来源：精确"
+  },
+  "@uiComicsFixedLayoutsHaveNoReflowableTextReadAlou": {
+    "description": "UI 短标签 | 原文：漫画 / 固定版式没有可重排正文，朗读仅适用于小说 | 来源：精确"
+  },
+  "@uiSentencesSentences": {
+    "description": "UI 短标签 | 原文：已暂停在第 ${queue.cursor + 1} / ${queue.length} 句；再次点击从该句续播 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiSentences": {
+    "description": "UI 短标签 | 原文：${_chapter.title} · 从第 ${queue.cursor + 1} / $_sentenceCount 句开始 · ${rate.toStri | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      },
+      "p2": {
+        "type": "String",
+        "example": "7"
+      },
+      "p3": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiFinishedTheWholeBook": {
+    "description": "UI 短标签 | 原文：已读完全书 | 来源：精确"
+  },
+  "@uiResetToDefault": {
+    "description": "UI 短标签 | 原文：恢复默认 | 来源：精确"
+  },
+  "@uiBodyText": {
+    "description": "UI 短标签 | 原文：正文 | 来源：精确"
+  },
+  "@uiFontSize": {
+    "description": "UI 短标签 | 原文：字号 | 来源：精确"
+  },
+  "@uiLineHeight2": {
+    "description": "UI 短标签 | 原文：行高 | 来源：精确"
+  },
+  "@uiFirstLineIndent": {
+    "description": "UI 短标签 | 原文：首行缩进 | 来源：精确"
+  },
+  "@uiParagraphSpacing": {
+    "description": "UI 短标签 | 原文：段间距 | 来源：精确"
+  },
+  "@uiReadingBackground": {
+    "description": "UI 短标签 | 原文：阅读背景 | 来源：精确"
+  },
+  "@uiBodyTextCharsCurrentcontrast": {
+    "description": "UI 短标签 | 原文：正文与面板文字色由背景亮度自动反推 · 当前对比度  | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiWcagAaBodyText452": {
+    "description": "UI 短标签 | 原文：${s.bodyContrast.toStringAsFixed(2)} : 1（WCAG AA 正文 ≥ 4.5） | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiPageTurnMotion": {
+    "description": "UI 短标签 | 原文：翻页与动效 | 来源：精确"
+  },
+  "@uiChooseSlideSimulatedPageTurnWhenEnabled": {
+    "description": "UI 短标签 | 原文：开启时可选择平移 / 仿真翻页 | 来源：精确"
+  },
+  "@uiMotionIsOffSoPageTurnIsLockedToNone": {
+    "description": "UI 短标签 | 原文：已整体关闭动效，翻页动效被锁定为「无动画」 | 来源：精确"
+  },
+  "@uiNormalizationIsCentralizedInAppsettingsNormali": {
+    "description": "UI 短标签 | 原文：归一化规则集中在 AppSettings.normalized()： | 来源：片段"
+  },
+  "@uiTurningMotionOffLocksPageTurnToNonePagesNeverR": {
+    "description": "UI 短标签 | 原文：关闭界面动效会自动把翻页动效置为 none，页面不各自解释。 | 来源：精确"
+  },
+  "@uiComicReading": {
+    "description": "UI 短标签 | 原文：漫画阅读 | 来源：精确"
+  },
+  "@uiReadAloud2": {
+    "description": "UI 短标签 | 原文：朗读 | 来源：精确"
+  },
+  "@uiRate": {
+    "description": "UI 短标签 | 原文：语速 | 来源：精确"
+  },
+  "@uiPitch": {
+    "description": "UI 短标签 | 原文：音调 | 来源：精确"
+  },
+  "@uiSentenceQueueAutoNextChapter": {
+    "description": "UI 短标签 | 原文：分句队列 · 读完自动进入下一章 | 来源：精确"
+  },
+  "@uiReadingAidsPlatformCapability": {
+    "description": "UI 短标签 | 原文：阅读辅助（需平台能力） | 来源：精确"
+  },
+  "@uiKeepScreenOn": {
+    "description": "UI 短标签 | 原文：屏幕常亮 | 来源：精确"
+  },
+  "@uiItems9": {
+    "description": "UI 短标签 | 原文：静态交付模式下，以上两项只记录偏好，需三端原生能力才能生效（❄️ 冻结）。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiSaveSettingsstore": {
+    "description": "UI 短标签 | 原文：修改仅保存在内存，重启后恢复默认。接入持久化后由 SettingsStore 统一落库。 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiWeak": {
+    "description": "UI 短标签 | 原文：弱 | 来源：精确"
+  },
+  "@uiMedium": {
+    "description": "UI 短标签 | 原文：中 | 来源：精确"
+  },
+  "@uiStrong": {
+    "description": "UI 短标签 | 原文：强 | 来源：精确"
+  },
+  "@uiComics": {
+    "description": "UI 短标签 | 原文：漫画 | 来源：精确"
+  },
+  "@uiSpread": {
+    "description": "UI 短标签 | 原文：第 ${spreadIndex + 1} / ${_layout.spreadCount} 跨 ·  | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiPhrase317": {
+    "description": "UI 短标签 | 原文：${ComicModeLabels.labels[widget.style.comicReadMode]} | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiSwitchToHorizontalPaging": {
+    "description": "UI 短标签 | 原文：切换到横向翻页 | 来源：精确"
+  },
+  "@uiSwitchToVerticalScroll": {
+    "description": "UI 短标签 | 原文：切换到竖向连续 | 来源：精确"
+  },
+  "@uiSpreadsPages": {
+    "description": "UI 短标签 | 原文：跨页模式：${ComicSpreadLabels.mode[widget.style.comicSpreadMode]} | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiPages3": {
+    "description": "UI 短标签 | 原文：翻页方向：$directionLabel | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiPAspectRatioPlaceholder": {
+    "description": "UI 短标签 | 原文：P${item.pageIndex + 1} · 宽高比 ${item.aspectRatio.toStringAsFixed(2)} 占位 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiVolumes": {
+    "description": "UI 短标签 | 原文：${book.author} · ${book.volumeCount} 卷 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiSearchLocalLibrary": {
+    "description": "UI 短标签 | 原文：搜索本地书库 | 来源：精确"
+  },
+  "@uiTitleAuthorFormatGroup": {
+    "description": "UI 短标签 | 原文：书名 / 作者 / 格式 / 分组 | 来源：精确"
+  },
+  "@uiAllBooks3": {
+    "description": "UI 短标签 | 原文：全部 ${results.length} 册 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiFoundBooks": {
+    "description": "UI 短标签 | 原文：找到 ${results.length} 册 · 「$_query」 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiBooks2": {
+    "description": "UI 短标签 | 原文：${books.length} 册 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiVolumes2": {
+    "description": "UI 短标签 | 原文： · 第 ${book.volumeOrder} 卷 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiHowImportingWorks": {
+    "description": "UI 短标签 | 原文：了解如何导入 | 来源：精确"
+  },
+  "@uiClearKeyword": {
+    "description": "UI 短标签 | 原文：清空关键词 | 来源：精确"
+  },
+  "@uiShelf2": {
+    "description": "UI 短标签 | 原文：书  架 | 来源：精确"
+  },
+  "@uiKeepWhatYouWantToReadWithinReach": {
+    "description": "UI 短标签 | 原文：把想读的，放在伸手可及的地方 | 来源：精确"
+  },
+  "@uiTotalBooksBooks": {
+    "description": "UI 短标签 | 原文：—  共 ${repo.cached.length} 册 · 收藏 ${state.favoriteCount} 册 ·  | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiItemsgroupVolumeOrder": {
+    "description": "UI 短标签 | 原文：${state.shelfCounts().length} 个分组 · 按卷序 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiSearchTitleAuthor": {
+    "description": "UI 短标签 | 原文：搜索书名 / 作者 | 来源：精确"
+  },
+  "@uiViewAllResults": {
+    "description": "UI 短标签 | 原文：查看全部结果 | 来源：精确"
+  },
+  "@uiBooks3": {
+    "description": "UI 短标签 | 原文：只看已收藏的 ${state.favoriteCount} 册 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiTapTheStarOnTheDetailOrReaderPageToFavorite": {
+    "description": "UI 短标签 | 原文：点星标可在详情页 / 阅读器收藏 | 来源：精确"
+  },
+  "@uiSearchNavigationIsNotWiredIntoThisPage": {
+    "description": "UI 短标签 | 原文：当前页面未注入搜索页导航 | 来源：精确"
+  },
+  "@uiDetailNavigationIsNotWiredIntoThisPage": {
+    "description": "UI 短标签 | 原文：当前页面未注入详情导航 | 来源：精确"
+  },
+  "@uiImportEntryIsNotWiredIntoThisPage": {
+    "description": "UI 短标签 | 原文：当前页面未注入导入入口 | 来源：精确"
+  },
+  "@uiVisualStyle": {
+    "description": "UI 短标签 | 原文：视觉样式 | 来源：精确"
+  },
+  "@uiTotalBooksVolumeOrder": {
+    "description": "UI 短标签 | 原文：共 $total 册 · 按卷序 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiVolume3": {
+    "description": "UI 短标签 | 原文：第 ${b.volumeOrder} 卷 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiViewAllBooks": {
+    "description": "UI 短标签 | 原文：查看全部书籍 | 来源：精确"
+  },
+  "@uiPreviousMonth": {
+    "description": "UI 短标签 | 原文：上一月 | 来源：精确"
+  },
+  "@uiNextMonth": {
+    "description": "UI 短标签 | 原文：下一月 | 来源：精确"
+  },
+  "@uiThisMonth2": {
+    "description": "UI 短标签 | 原文：本月阅读 | 来源：精确"
+  },
+  "@uiReadingDays": {
+    "description": "UI 短标签 | 原文：阅读天数 | 来源：精确"
+  },
+  "@uiDays2": {
+    "description": "UI 短标签 | 原文：${month.readDays} 天 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiKeepsakes": {
+    "description": "UI 短标签 | 原文：纪念物 | 来源：精确"
+  },
+  "@uiKeepsakes2": {
+    "description": "UI 短标签 | 原文：${month.keepsakeCount} 枚 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiExcerpts": {
+    "description": "UI 短标签 | 原文：摘录 | 来源：精确"
+  },
+  "@uiItems10": {
+    "description": "UI 短标签 | 原文：${month.excerptCount} 条 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiLow": {
+    "description": "UI 短标签 | 原文：少 | 来源：精确"
+  },
+  "@uiHigh": {
+    "description": "UI 短标签 | 原文：多 | 来源：精确"
+  },
+  "@uiAdjacentMonthCells": {
+    "description": "UI 短标签 | 原文：跨月补格 | 来源：精确"
+  },
+  "@uiKeepsakesThatDay": {
+    "description": "UI 短标签 | 原文：当天的纪念物 | 来源：精确"
+  },
+  "@uiExcerptsThatDay": {
+    "description": "UI 短标签 | 原文：当天摘下的话 | 来源：精确"
+  },
+  "@uiPreviousKeepsake": {
+    "description": "UI 短标签 | 原文：上一枚纪念物 | 来源：精确"
+  },
+  "@uiNextKeepsake": {
+    "description": "UI 短标签 | 原文：换一枚纪念物 | 来源：精确"
+  },
+  "@uiYours2": {
+    "description": "UI 短标签 | 原文：你摘的 | 来源：精确"
+  },
+  "@uiTitleNoteTypeBook": {
+    "description": "UI 短标签 | 原文：标题 / 说明 / 类型 / 书名 | 来源：精确"
+  },
+  "@uiType": {
+    "description": "UI 短标签 | 原文：类型 | 来源：精确"
+  },
+  "@uiMonth": {
+    "description": "UI 短标签 | 原文：月份 | 来源：精确"
+  },
+  "@uiTotalKeepsakesItems": {
+    "description": "UI 短标签 | 原文：共 ${summary.total} 枚 · ${summary.monthCount} 个月 ·  | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiKeepsakesKeepsakes": {
+    "description": "UI 短标签 | 原文：来自你摘的 ${summary.userExcerptCount} 枚 · 命中 ${results.length} 枚 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiKeepsakes3": {
+    "description": "UI 短标签 | 原文：$title · ${items.length} 枚 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiReadingStats": {
+    "description": "UI 短标签 | 原文：阅读统计 | 来源：精确"
+  },
+  "@uiWidgets": {
+    "description": "UI 短标签 | 原文：小组件 | 来源：精确"
+  },
+  "@uiTurnReadingTimeIntoPagesYouCanFlipBackThrough": {
+    "description": "UI 短标签 | 原文：把时间读成可以翻回去的页 | 来源：精确"
+  },
+  "@uiGoalminutesMinutes": {
+    "description": "UI 短标签 | 原文：今日阅读 · 目标 $snapshot.goalMinutes 分钟 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiMinutes2": {
+    "description": "UI 短标签 | 原文：分钟 | 来源：精确"
+  },
+  "@uiDaysThisWeek": {
+    "description": "UI 短标签 | 原文：连续 ${snapshot.streakDays} 天 · 本周 ${snapshot.weekLabel} ·  | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiBooksExcerptsItems": {
+    "description": "UI 短标签 | 原文：书库 ${snapshot.totalBooks} 册 · 摘录 $userExcerptCount 条 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiContinueReading2": {
+    "description": "UI 短标签 | 原文：继续阅读《${recent.title}》 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiReadingHeatmap": {
+    "description": "UI 短标签 | 原文：阅读热力 | 来源：精确"
+  },
+  "@uiDays3": {
+    "description": "UI 短标签 | 原文：近 5 周 · ${snapshot.days.length} 天 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiReadingCalendar": {
+    "description": "UI 短标签 | 原文：阅读日历 | 来源：精确"
+  },
+  "@uiExcerpts2": {
+    "description": "UI 短标签 | 原文：摘  录 | 来源：精确"
+  },
+  "@uiTotalItemsItems": {
+    "description": "UI 短标签 | 原文：共 ${excerpts.length} 条 · 你摘的 $userExcerptCount 条 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiManage": {
+    "description": "UI 短标签 | 原文：管理 | 来源：精确"
+  },
+  "@uiNoExcerptsYetSelectAFewLinesInTheReaderToStart": {
+    "description": "UI 短标签 | 原文：还没有摘录，去阅读器点选几行正文吧。 | 来源：精确"
+  },
+  "@uiSampleData": {
+    "description": "UI 短标签 | 原文：演示数据 | 来源：精确"
+  },
+  "@uiPrevious": {
+    "description": "UI 短标签 | 原文：上一条 | 来源：精确"
+  },
+  "@uiNextExcerpt": {
+    "description": "UI 短标签 | 原文：换一条摘录 | 来源：精确"
+  },
+  "@uiDeleteThisExcerpt": {
+    "description": "UI 短标签 | 原文：删除这条摘录 | 来源：精确"
+  },
+  "@uiItemswidgets": {
+    "description": "UI 短标签 | 原文：已配置 ${state.widgetSpecs.length} 个小组件 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiMinutes3": {
+    "description": "UI 短标签 | 原文：${days[i].key} · ${days[i].minutes} 分钟 | 来源：模板",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiWidgets2": {
+    "description": "UI 短标签 | 原文：小组件配置 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiTotalItemsItemsItems": {
+    "description": "UI 短标签 | 原文：共 ${specs.length} 个 · 可同时放置多个 · 每个独立配置 | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiDarkPreview": {
+    "description": "UI 短标签 | 原文：深色预览 | 来源：精确"
+  },
+  "@uiLightPreview": {
+    "description": "UI 短标签 | 原文：浅色预览 | 来源：精确"
+  },
+  "@uiAddAWidget": {
+    "description": "UI 短标签 | 原文：添加一个小组件 | 来源：精确"
+  },
+  "@uiAboutDesktopWidgets": {
+    "description": "UI 短标签 | 原文：关于桌面小组件 | 来源：精确"
+  },
+  "@uiSaveWidgetsFlutter": {
+    "description": "UI 短标签 | 原文：本面板只保存应用内配置与预览。桌面小组件本体不是 Flutter 能绘制的： | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiAndroidUsesInAppConfigIosUsesWidgetkitEditCont": {
+    "description": "UI 短标签 | 原文：Android 用应用内配置，iOS 用 WidgetKit 系统编辑控件，HarmonyOS 用卡片配置， | 来源：片段"
+  },
+  "@uiAllThreePlatformsNeedNativeImplementationsRead": {
+    "description": "UI 短标签 | 原文：三端均需原生实现并读取这里序列化后的数据。 | 来源：片段"
+  },
+  "@uiShowProgress": {
+    "description": "UI 短标签 | 原文： · 显示进度 | 来源：片段"
+  },
+  "@uiContent2": {
+    "description": "UI 短标签 | 原文：内容 | 来源：精确"
+  },
+  "@uiKeepsakeTypePerWidget": {
+    "description": "UI 短标签 | 原文：纪念物类型（每个小组件独立） | 来源：精确"
+  },
+  "@uiSize2": {
+    "description": "UI 短标签 | 原文：尺寸 | 来源：精确"
+  },
+  "@uiSeasonStyleIndependentOfAppTheme": {
+    "description": "UI 短标签 | 原文：季节样式（独立于应用换肤） | 来源：精确"
+  },
+  "@uiShowProgress2": {
+    "description": "UI 短标签 | 原文：显示进度 | 来源：精确"
+  },
+  "@uiRemove2": {
+    "description": "UI 短标签 | 原文：移除 | 来源：精确"
+  },
+  "@uiThisMonthKeepsakePreview": {
+    "description": "UI 短标签 | 原文：本月纪念物预览 | 来源：精确"
+  },
+  "@uiOnlineDirectoryIsOffNoRequestWasMade": {
+    "description": "UI 短标签 | 原文：在线目录未开启，未发出任何请求。 | 来源：精确"
+  },
+  "@uiItemsShelfBooks": {
+    "description": "UI 短标签 | 原文：个人书架：${listing.books.length} 册 · ${listing.note} | 来源：模板 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "@uiSourceDomain": {
+    "description": "UI 短标签 | 原文：来源域名 | 来源：精确"
+  },
+  "@uiPleaseWait": {
+    "description": "UI 短标签 | 原文：请稍候… | 来源：精确"
+  },
+  "@uiReadPersonalBookcase": {
+    "description": "UI 短标签 | 原文：读取个人书架 | 来源：精确"
+  },
+  "@uiWorking": {
+    "description": "UI 短标签 | 原文：正在处理… | 来源：精确"
+  },
+  "@uiSignedInLaterRequestsCarryTheSessionCookieIssu": {
+    "description": "UI 短标签 | 原文：已登录；后续请求会携带来源下发的会话 Cookie。 | 来源：精确"
+  },
+  "@uiOnlineDirectoryAndLocalLibraryStayIndependent": {
+    "description": "UI 短标签 | 原文：在线目录与本地书库，各自独立 | 来源：精确"
+  },
+  "@uiEnableOnlineDirectoryWenku8": {
+    "description": "UI 短标签 | 原文：启用在线目录（Wenku8） | 来源：精确"
+  },
+  "@uiPureLocalModeIsOnTheAppMakesNoNetworkRequests": {
+    "description": "UI 短标签 | 原文：当前为纯本地模式，全应用不产生任何网络请求。 | 来源：精确"
+  },
+  "@uiTurnOffPureLocalModeOnTheProfilePageFirst": {
+    "description": "UI 短标签 | 原文：如需开启，请先在「我的」页关闭纯本地模式。 | 来源：精确"
+  },
+  "@uiWhenOffTheAppStaysFullyLocalAndMakesNoNetworkR": {
+    "description": "UI 短标签 | 原文：关闭时本应用保持纯本地运行，不产生任何网络请求。 | 来源：精确"
+  },
+  "@uiWhenOnOnlyWenku8ListingsAndTocMetadataAreRead": {
+    "description": "UI 短标签 | 原文：开启后仅访问 Wenku8 的在线列表与目录元数据。 | 来源：精确"
+  },
+  "@uiItemsShelfSource": {
+    "description": "UI 短标签 | 原文：表单登录 · 个人书架 · 来源域名切换 | 来源：片段 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色"
+  },
+  "@uiImportIntoLocalLibrary": {
+    "description": "UI 短标签 | 原文：导入到本地方库 | 来源：精确"
+  },
+  "@uiTxtEpubCbzPdfImageFolders": {
+    "description": "UI 短标签 | 原文：TXT / EPUB / CBZ / PDF / 图片文件夹 | 来源：精确"
+  },
+  "@uiSampleWorkTocPreview": {
+    "description": "UI 短标签 | 原文：示例作品 · 目录预览 | 来源：精确"
+  },
+  "@uiSampleData2": {
+    "description": "UI 短标签 | 原文：示意数据 | 来源：精确"
+  },
+  "@uiSampleWorkVolumeList": {
+    "description": "UI 短标签 | 原文：示例作品 · 卷列表 | 来源：精确"
+  },
+  "@uiSampleWorkDetail": {
+    "description": "UI 短标签 | 原文：示例作品 · 详情 | 来源：精确"
+  },
+  "@uiMetadata": {
+    "description": "UI 短标签 | 原文：元数据 | 来源：精确"
+  },
+  "@uiAboutContentAndSources": {
+    "description": "UI 短标签 | 原文：关于内容与来源 | 来源：精确"
+  },
+  "@uiBookOverride": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "@uiGlobalDefault": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "@uiMeetsMinimum": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "@uiBelowMinimum": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "@uiNoVoiceSkipped": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "@uiNoDataOmitted": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "@uiAligned": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "@uiMisaligned": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "uiEnabled": "On",
+  "@uiEnabled": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "uiDisabled": "Off",
+  "@uiDisabled": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "uiLightInnerHighlight": "light inner highlight",
+  "@uiLightInnerHighlight": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "uiBlackShadow": "black shadow",
+  "@uiBlackShadow": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "uiSpecialEpisode": "special",
+  "@uiSpecialEpisode": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "uiSpine": "spine",
+  "@uiSpine": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "uiWideSolo": "wide solo",
+  "@uiWideSolo": {
+    "description": "插值表达式内部的中文子字面量"
+  },
+  "uiPhrase000": "多：{p0}",
+  "@uiPhrase000": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：多：${extra.join('、')} | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiPhrase001": "缺：{p0}",
+  "@uiPhrase001": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：缺：${missing.join('、')} | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiSampleDataN1": "{p0} · Sample data",
+  "@uiSampleDataN1": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${entry['author']} · 示意数据",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiPhrase003": "{p0}",
+  "@uiPhrase003": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${state.onlineEnabled ? '已开启' : '未开启'}",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiCurrentContents": "{p0} · current在线contents：",
+  "@uiCurrentContents": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${context.t('freeStatement')} · 当前在线目录： | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiPhrase005": "{p0}\n关键词：「{p1}」",
+  "@uiPhrase005": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${context.t('noResultBody')} 关键词：「$query」 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiCurrentN1": "{p0}\ncurrent关键词：「{p1}」",
+  "@uiCurrentN1": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${context.t('noResultBody')} 当前关键词：「$query」 | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiPhrase007": "{p0}",
+  "@uiPhrase007": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${_verticalMode ? '' : ' · $directionLabel'}",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiAboutParagraphsItems": " · about paragraphs {p0}  items",
+  "@uiAboutParagraphsItems": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文： · 关于段落 ${bundle.list('aboutParagraphs').length} 条",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiShade": "shade {p0} · {p1}",
+  "@uiShade": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：渐暗 $level · ${spec.onDarkBackground ? '浅色内高光' : '黑色阴影'}",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiPhrase010": "{p0}",
+  "@uiPhrase010": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${_spineShadeLabel.isEmpty ? '' : ' · $_spineShadeLabel'}",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiPhrase011": "{p0}",
+  "@uiPhrase011": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${episode.kind == ComicEpisodeKind.special ? ' · 番外' : ''}",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiPhrase012": "{p0}",
+  "@uiPhrase012": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${book.volumeOrder == 0 ? '' : ' · 第 ${book.volumeOrder} 卷'}",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiPhrase013": "{p0}",
+  "@uiPhrase013": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${LocalizedLegalTexts.paragraphsAligned() ? '（中英对齐）' : '（未对齐）'}",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiKeepsakesN1": "{p0}  keepsakes{p1}",
+  "@uiKeepsakesN1": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${visible.length} 枚${scopeLabel.isEmpty ? '' : ' · $scopeLabel'}",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiDaysTotalPages": "近 7  days · total {p0}  pages · {p1}",
+  "@uiDaysTotalPages": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：近 7 天 · 共 ${snapshot.totalPages} 页 · ${context.t('demoDataNote')} | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiItemsN1": "{p0} · 《{p1}》 · {p2}  items",
+  "@uiItemsN1": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${context.t('bookExcerptTitle')} · 《$scopedTitle》 · $scopedCount 条",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      },
+      "p2": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiPhrase017": "{p0}",
+  "@uiPhrase017": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${_layout.wideSpreadCount > 0 ? ' · 宽幅独占 ${_layout.wideSpreadCount} 跨' : ''}",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiChaptersN1": "{p0}  chapters · {p1}",
+  "@uiChaptersN1": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：$chapterCount 章 · ${book.volumeOrder == 0 ? '未分卷' : '第 ${book.volumeOrder} 卷'}",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiBooksN1": "已写入 {p0}  books{p1}",
+  "@uiBooksN1": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：已写入 $added 册${commit.deferredCount > 0 ? ' · ${commit.deferredCount} 项延后处理' : '' | x-review: 英文由片段兜底固化，仍含中文片段，建议人工润色",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiVolumesChapters": "{p0} · {p1}  volumes / {p2}  chapters",
+  "@uiVolumesChapters": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${context.t('wenkuDetailToc')} · ${detail.volumes.length} 卷 / ${detail.chapterCo",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      },
+      "p1": {
+        "type": "String",
+        "example": "7"
+      },
+      "p2": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiPhrase021": "{p0}",
+  "@uiPhrase021": {
+    "description": "UI 短标签（嵌套插值补齐） | 原文：${ComicSpreadGutter.spineCount(_layout) > 0 ? ' · 书脊 ${ComicSpreadGutter.spineCo",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiExcerptCaptureSource": "《{p0}》· {p1}{p2}",
+  "@uiExcerptCaptureSource": {
+    "description": "相邻字符串拼接合并后的 UI 行模板（第二十八轮）",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "x"
+      },
+      "p1": {
+        "type": "String",
+        "example": "x"
+      },
+      "p2": {
+        "type": "String",
+        "example": "x"
+      }
+    }
+  },
+  "uiBookMetaLine": "{p0} · {p1}{p2}",
+  "@uiBookMetaLine": {
+    "description": "相邻字符串拼接合并后的 UI 行模板（第二十八轮）",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "x"
+      },
+      "p1": {
+        "type": "String",
+        "example": "x"
+      },
+      "p2": {
+        "type": "String",
+        "example": "x"
+      }
+    }
+  },
+  "uiWidgetSpecLine": "{p0} · {p1}{p2}{p3}",
+  "@uiWidgetSpecLine": {
+    "description": "相邻字符串拼接合并后的 UI 行模板（第二十八轮）",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "x"
+      },
+      "p1": {
+        "type": "String",
+        "example": "x"
+      },
+      "p2": {
+        "type": "String",
+        "example": "x"
+      },
+      "p3": {
+        "type": "String",
+        "example": "x"
+      }
+    }
+  },
+  "uiVolumeN": "Volume {p0}",
+  "@uiVolumeN": {
+    "description": "第二十八轮：从插值表达式 / 语言名收进 ARB",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiVolumePrefixN": " · Volume {p0}",
+  "@uiVolumePrefixN": {
+    "description": "第二十八轮：从插值表达式 / 语言名收进 ARB",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiDeferredN": " · {p0} deferred",
+  "@uiDeferredN": {
+    "description": "第二十八轮：从插值表达式 / 语言名收进 ARB",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiSpecialEpisodePrefix": " · Special",
+  "@uiSpecialEpisodePrefix": {
+    "description": "第二十八轮：从插值表达式 / 语言名收进 ARB"
+  },
+  "uiWideSoloN": " · {p0} wide spreads",
+  "@uiWideSoloN": {
+    "description": "第二十八轮：从插值表达式 / 语言名收进 ARB",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiSpineN": " · {p0} spines",
+  "@uiSpineN": {
+    "description": "第二十八轮：从插值表达式 / 语言名收进 ARB",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "7"
+      }
+    }
+  },
+  "uiSimplifiedChinese": "Simplified Chinese",
+  "@uiSimplifiedChinese": {
+    "description": "第二十八轮：从插值表达式 / 语言名收进 ARB"
+  },
+  "uiArbSourceNote": "Source: lib/l10n/app_zh.arb and app_en.arb. Edit only these two files, then run tool/sync_arb.py.",
+  "@uiArbSourceNote": {
+    "description": "本地化资源面板：文案唯一源说明"
+  },
+  "uiArbStats": "{p0} keys · {p1} templates · {p2} to review",
+  "@uiArbStats": {
+    "description": "本地化资源面板：ARB 统计",
+    "placeholders": {
+      "p0": {
+        "type": "String",
+        "example": "685"
+      },
+      "p1": {
+        "type": "String",
+        "example": "124"
+      },
+      "p2": {
+        "type": "String",
+        "example": "83"
+      }
+    }
+  }
+}

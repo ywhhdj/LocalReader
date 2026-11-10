@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- 第二十三轮：默认只允许 HTTPS，不开放 NSAllowsArbitraryLoads。
+         Wenku8Endpoints.forceHttps 默认 true，与此处一致。 -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+    </dict>
+    <key>CFBundleDisplayName</key>
+    <string>Local Reader</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>zh</string>
+		<string>en</string>
+	</array>
+</dict>
+</plist>

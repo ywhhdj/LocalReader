@@ -1,0 +1,56 @@
+name: local_reader
+description: 纯本地优先的轻小说 / 漫画阅读器 Flutter
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  http: ^1.6.0
+  charset: ^2.0.1
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+
+# 以下为分阶段引入的候选依赖，全部以注释保留。
+# 接入前请逐项核验：pub.dev 最新版本、许可证、以及 HarmonyOS ohos 分支是否已有对应插件实现。
+#   unseal: ^1.3.0          # 纯 Dart 书籍解析：EPUB/MOBI/AZW3/CBZ/CBR/PDF/FB2/RTF/MD/DOCX 等
+#   archive: ^4.0.0         # ZIP / CBZ 解包
+#   pdfrx: ^1.0.0           # PDF 逐页渲染（鸿蒙端需实测）
+#   drift: ^2.0.0           # Room 迁移目标，首日即登记迁移版本
+#   path_provider: ^2.1.0
+#   file_picker: ^8.0.0
+#   flutter_tts: ^4.0.0     # 需配合 Dart 侧分句队列
+#   shared_preferences: ^2.2.0
+#   ffi: ^2.1.0             # P1.5：dart:ffi 绑定辅助
+#   image: ^4.0.0           # P1.5：FFI 位图 → PNG/JPEG 编码（单页快照）
+#   drift: ^2.0.0           # P2：已列于上方，接入时首日登记迁移版本
+#
+# 说明：P1 的分页引擎 / 分句队列 / 进度采样 / 格式路由均为零外部依赖的纯 Dart，
+# 便于先跑通地基再逐块下沉原生。HarmonyOS 侧所有含平台代码的插件需另行核验
+# 是否有 ohos 实现；PDFium 等 C/C++ 库需交叉编译为可在 HarmonyOS 运行的 SO。
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  # @ConfigurePigeon 字段随版本变化，首次生成按报错修 pigeon/messages.dart。
+  pigeon: ^22.0.0
+
+flutter:
+  uses-material-design: true
+  # 官方文档：启用 gen-l10n，把 lib/l10n/*.arb 生成 AppLocalizations。
+  # 业务文案仍走 LocalizedLegalTexts（不硬依赖生成类），见 lr_localizations.dart。
+  generate: true
+  # 接入思源宋体 / 思源黑体后启用，中文编辑式排版需要衬线字体资源：
+  # fonts:
+  #   - family: NotoSerifSC
+  #     fonts:
+  #       - asset: assets/fonts/NotoSerifSC-Regular.otf
+  #   - family: NotoSansSC
+  #     fonts:
+  #       - asset: assets/fonts/NotoSansSC-Regular.otf
