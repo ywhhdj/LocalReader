@@ -226,8 +226,6 @@ class KeepsakeLibraryArgs {
   }
 }
 
-/// 第二十九轮：「我的」页里点选才打开的五个子页共用一个强类型参数。
-/// 底栏不再放统计 / 书签 / 设置 / 关于 / 赞助，这五个入口全部走这里。
 enum MineSection { stats, bookmarks, settings, about, support }
 
 class MineSectionArgs {
@@ -260,7 +258,7 @@ class MergeBooksArgs {
   final String query;
 }
 
-/// E23 · 底栏两个新 tab 的强类型参数（路由 /favorites 与 /wenkuLibrary）。
+/// 底栏两个新 tab 的强类型参数（路由 /favorites 与 /wenkuLibrary）。
 class WenkuLibraryArgs {
   const WenkuLibraryArgs({this.initialRank = 0});
   final int initialRank;

@@ -6,11 +6,7 @@ import '../../l10n/lr_localizations.dart';
 import '../../core/ui/components/account_card.dart';
 import '../../core/ui/components/menu_entry_card.dart';
 
-/// 「我的」页（第三十轮按参考图重排，纯组件组合）。
-///
-/// 从上往下：Hero 头 → 账户卡 → 统计 / 书签 / 设置 / 关于 / 赞助与反馈。
-/// 统计等能力**要点选才打开**；关于与各类提示统一收进「关于」子页。
-/// 页面自身不持有任何跨页设置，五个入口都由 app 层注入。
+/// 「我的」页
 class MinePage extends StatelessWidget {
   const MinePage({
     super.key,

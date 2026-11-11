@@ -91,21 +91,16 @@ class _GlassSurface extends StatelessWidget {
       return child;
     }
 
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final ColorScheme scheme = Theme.of(context).colorScheme;
     final PerformanceBudget budget = PerformanceScope.of(context);
 
-    final double maxAlpha = backgroundOpacity ?? (isDark ? 0.62 : 0.72);
-    // 随着滚动，背景透明度渐显
-    final double alpha = maxAlpha * factor;
-
+    // 1. 纯模糊容器：彻底去掉背景填充色，只保留底部分割线
     final Widget surface = DecoratedBox(
       decoration: BoxDecoration(
-        color: scheme.surface.withValues(alpha: alpha),
         border: showBottomBorder
             ? Border(
                 bottom: BorderSide(
-                  // 底部细线也渐显
+                  // 底部细线随滚动渐显
                   color: scheme.outlineVariant.withValues(alpha: 0.30 * factor),
                   width: 0.5,
                 ),
@@ -115,12 +110,30 @@ class _GlassSurface extends StatelessWidget {
       child: child,
     );
 
-    if (!blur || !budget.useBackdropFilter) return surface;
+    // 2. 如果设备性能差，不支持 BackdropFilter，给出一个半透明底色兜底
+    // （否则文字叠加在繁杂的背景上会看不清）
+    if (!blur || !budget.useBackdropFilter) {
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: scheme.surface.withValues(alpha: 0.85 * factor),
+          border: showBottomBorder
+              ? Border(
+                  bottom: BorderSide(
+                    color:
+                        scheme.outlineVariant.withValues(alpha: 0.30 * factor),
+                    width: 0.5,
+                  ),
+                )
+              : null,
+        ),
+        child: child,
+      );
+    }
 
+    // 3. 纯磨砂背透：只有模糊，没有底色遮挡
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(
-          // 模糊程度随滚动渐显
           sigmaX: budget.blurSigma * factor,
           sigmaY: budget.blurSigma * factor,
         ),
@@ -208,7 +221,9 @@ class LrPage extends StatelessWidget {
     super.key,
     required this.header,
     required this.slivers,
-    this.horizontalPadding = LrSpacing.l,
+    this.pagePadding = const EdgeInsets.only(
+        left: LrSpacing.m, right: LrSpacing.m, top: LrSpacing.s),
+    this.horizontalPadding = 0, // 外层已留白，内部默认不再额外留白
     this.bottomInset = 120,
   })  : itemCount = slivers?.length ?? 0,
         itemBuilder = null,
@@ -219,7 +234,9 @@ class LrPage extends StatelessWidget {
     required this.header,
     required this.itemCount,
     required this.itemBuilder,
-    this.horizontalPadding = LrSpacing.xs,
+    this.pagePadding = const EdgeInsets.only(
+        left: LrSpacing.m, right: LrSpacing.m, top: LrSpacing.s),
+    this.horizontalPadding = 0,
     this.bottomInset = LrSpacing.xs,
   })  : slivers = null,
         rawSlivers = null;
@@ -228,29 +245,42 @@ class LrPage extends StatelessWidget {
     super.key,
     required this.header,
     required this.rawSlivers,
-    this.horizontalPadding = LrSpacing.xs,
+    this.pagePadding = const EdgeInsets.only(
+        left: LrSpacing.m, right: LrSpacing.m, top: LrSpacing.s),
+    this.horizontalPadding = 0,
     this.bottomInset = 10,
   })  : slivers = null,
         itemCount = 0,
         itemBuilder = null;
 
-  /// 顶部内容（必填，且一定吸顶）。可自行组合 PageScrollHeader、ShelfToolbar、Tab 等。
   final Widget header;
   final List<Widget>? slivers;
   final List<Widget>? rawSlivers;
   final int itemCount;
   final NullableIndexedWidgetBuilder? itemBuilder;
+
+  /// 页面四周的外边距，顶部默认较小（LrSpacing.s），左右较大（LrSpacing.m）
+  final EdgeInsetsGeometry pagePadding;
+
+  /// body 内部列表的水平边距（因为外层 pagePadding 已经留了左右边距，所以这里默认设为 0）
   final double horizontalPadding;
   final double bottomInset;
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> body = <Widget>[
-      // ── 顶部：固定吸顶 + 毛玻璃 ──
-      StickyGlassHeader(child: header),
+      // 顶部吸顶
+      StickyGlassHeader(
+        padding: const EdgeInsets.fromLTRB(
+          LrSpacing.xs, // 因为外层已经有边距了，内部稍微缩一点
+          LrSpacing.xs,
+          LrSpacing.xs,
+          LrSpacing.m,
+        ),
+        child: header,
+      ),
     ];
 
-    // ── body：其余内容，正常滚动 ──
     if (rawSlivers != null) {
       body.addAll(rawSlivers!);
     } else {
@@ -270,6 +300,21 @@ class LrPage extends StatelessWidget {
     }
 
     body.add(SliverToBoxAdapter(child: SizedBox(height: bottomInset)));
-    return SafeArea(bottom: false, child: CustomScrollView(slivers: body));
+
+    // 使用 Padding 将整个滚动区域向内收缩
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: pagePadding,
+        child: ClipRRect(
+          // 配合留白，给整个页面加上圆角，像一张悬浮的纸张
+          borderRadius: BorderRadius.circular(16.0),
+          child: CustomScrollView(
+            slivers: body,
+            // 如果吸顶时需要阴影，可以在这里加上
+          ),
+        ),
+      ),
+    );
   }
 }
