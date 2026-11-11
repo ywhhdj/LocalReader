@@ -66,21 +66,24 @@ class ReaderStyle {
   /// 与另三个漫画字段一样刻意不进 layoutKey——换一次设置不该重排整章小说。
   final bool widePageSolo;
 
-  static const Map<ReaderBackground, Color> backgroundColors = <ReaderBackground, Color>{
+  static const Map<ReaderBackground, Color> backgroundColors =
+      <ReaderBackground, Color>{
     ReaderBackground.paper: Color(0xFFF7F5EF),
     ReaderBackground.cream: Color(0xFFF2E5C6),
     ReaderBackground.night: Color(0xFF191B21),
     ReaderBackground.eyeCare: Color(0xFFDCE7D4),
   };
 
-  static const Map<ReaderBackground, String> backgroundLabels = <ReaderBackground, String>{
+  static const Map<ReaderBackground, String> backgroundLabels =
+      <ReaderBackground, String>{
     ReaderBackground.paper: '纸白',
     ReaderBackground.cream: '米黄',
     ReaderBackground.night: '夜间',
     ReaderBackground.eyeCare: '护眼',
   };
 
-  static const Map<ReaderPageTurn, String> pageTurnLabels = <ReaderPageTurn, String>{
+  static const Map<ReaderPageTurn, String> pageTurnLabels =
+      <ReaderPageTurn, String>{
     ReaderPageTurn.slide: '平移',
     ReaderPageTurn.simulation: '仿真',
     ReaderPageTurn.none: '无动画',
@@ -97,7 +100,7 @@ class ReaderStyle {
       : const Color(0xFFECE9E1);
 
   Color get textColor => onColor(backgroundColor);
-  Color get subtleTextColor => textColor.withOpacity(0.62);
+  Color get subtleTextColor => textColor.withValues(alpha: 0.62);
 
   /// WCAG 相对亮度（sRGB gamma 展开），纯 Dart 可单测，不依赖 SDK 运行。
   static double relativeLuminance(Color c) {
@@ -107,6 +110,7 @@ class ReaderStyle {
           ? v / 12.92
           : math.pow((v + 0.055) / 1.055, 2.4).toDouble();
     }
+
     return 0.2126 * channel(16) + 0.7152 * channel(8) + 0.0722 * channel(0);
   }
 
@@ -132,7 +136,8 @@ class ReaderStyle {
 
   /// 唯一出口：把阅读偏好翻译成分页引擎的配置。
   /// 文字色在这里注入，页面层不再自己拼 TextStyle，避免主题与排版各说各话。
-  PaginationConfig toPaginationConfig(Size pageSize, TextStyle base) => PaginationConfig(
+  PaginationConfig toPaginationConfig(Size pageSize, TextStyle base) =>
+      PaginationConfig(
         pageSize: pageSize,
         textStyle: base.copyWith(
           fontSize: fontSize,
@@ -234,18 +239,20 @@ class ReaderStyle {
       paragraphSpacing: numAsDouble('paragraphSpacing', 0.45),
       orphanLines: numAsInt('orphanLines', 2),
       widowLines: numAsInt('widowLines', 2),
-      background: enumValue<ReaderBackground>('background', ReaderBackground.values, ReaderBackground.paper),
-      pageTurn: enumValue<ReaderPageTurn>('pageTurn', ReaderPageTurn.values, ReaderPageTurn.slide),
+      background: enumValue<ReaderBackground>(
+          'background', ReaderBackground.values, ReaderBackground.paper),
+      pageTurn: enumValue<ReaderPageTurn>(
+          'pageTurn', ReaderPageTurn.values, ReaderPageTurn.slide),
       ttsRate: numAsDouble('ttsRate', 1.0),
       ttsPitch: numAsDouble('ttsPitch', 1.0),
       keepScreenOn: boolValue('keepScreenOn', false),
       volumeKeyTurnPage: boolValue('volumeKeyTurnPage', false),
       comicReadMode: enumValue<ComicReadMode>(
-        'comicReadMode', ComicReadMode.values, ComicReadMode.vertical),
+          'comicReadMode', ComicReadMode.values, ComicReadMode.vertical),
       comicSpreadMode: enumValue<ComicSpreadMode>(
-        'comicSpreadMode', ComicSpreadMode.values, ComicSpreadMode.single),
-      comicDirection: enumValue<ComicReadingDirection>(
-        'comicDirection', ComicReadingDirection.values, ComicReadingDirection.ltr),
+          'comicSpreadMode', ComicSpreadMode.values, ComicSpreadMode.single),
+      comicDirection: enumValue<ComicReadingDirection>('comicDirection',
+          ComicReadingDirection.values, ComicReadingDirection.ltr),
       widePageSolo: boolValue('widePageSolo', true),
     );
   }

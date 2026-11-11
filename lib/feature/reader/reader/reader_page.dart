@@ -2,43 +2,39 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../domain/repositories/book_repository.dart';
-import '../../core/model/fixtures/demo_document.dart';
-import '../../core/model/pagination/page_layout.dart';
-import '../../core/model/book_document.dart';
-import '../../domain/repositories/render_bridge.dart';
-import '../../domain/usecases/tts_queue.dart';
-import '../../assembly/route_args.dart';
-import '../../assembly/app_scope.dart';
-import '../../core/model/reader_style.dart';
-import '../../core/model/stats/excerpt_capture.dart';
-import '../../core/model/stats/line_anchor_resolver.dart';
-import '../../core/model/stats/reading_stats.dart';
-import '../../domain/usecases/progress_sampler.dart';
-import '../../core/common/design_tokens.dart';
-import '../../core/ui/components/glass.dart';
-import 'comic_prefetch.dart';
-import 'comic_toc_sheet.dart';
-import 'vertical_comic_view.dart';
-import 'excerpt_capture_sheet.dart';
-import 'native_page_view.dart';
+import '../../../domain/repositories/book_repository.dart';
+import '../../../core/model/fixtures/demo_document.dart';
+import '../../../core/model/pagination/page_layout.dart';
+import '../../../core/model/book_document.dart';
+import '../../../domain/repositories/render_bridge.dart';
+import '../../../domain/usecases/tts_queue.dart';
+import '../../../assembly/route_args.dart';
+import '../../../assembly/app_scope.dart';
+import '../../../core/model/reader_style.dart';
+import '../../../core/model/stats/excerpt_capture.dart';
+import '../../../core/model/stats/line_anchor_resolver.dart';
+import '../../../core/model/stats/reading_stats.dart';
+import '../../../domain/usecases/progress_sampler.dart';
+import '../../../core/common/design_tokens.dart';
+import '../../../core/ui/components/glass/Nav.dart';
+import '../comic/comic_prefetch.dart';
+import '../comic/comic_toc_sheet.dart';
+import '../vertical_comic_view.dart';
+import '../excerpt_capture_sheet.dart';
+import '../native_page_view.dart';
 import 'page_turn_view.dart';
 import 'reader_style_sheet.dart';
-import '../../l10n/lr_localizations.dart';
-import '../../assembly/app_services.dart';
-import '../../core/ui/motion/immersive_mode.dart';
-import '../../core/model/performance_prefs.dart';
-import '../../core/model/tts_prefs.dart';
-import '../../core/ui/components/reader_tap_zones.dart';
-import '../../core/ui/components/tts_orb.dart';
-import '../../core/ui/components/tts_settings_sheet.dart';
-import '../../core/ui/theme/performance_scope.dart';
+import '../../../l10n/lr_localizations.dart';
+import '../../../assembly/app_services.dart';
+import '../../../core/ui/motion/immersive_mode.dart';
+import '../../../core/model/performance_prefs.dart';
+import '../../../core/model/tts_prefs.dart';
+import '../../../core/ui/components/book/reader_tap_zones.dart';
+import 'tts_orb.dart';
+import 'tts_settings_sheet.dart';
+import '../../../core/ui/theme/performance_scope.dart';
 
 /// 阅读器：可重排文本走纯 Dart 分页自绘；固定版式走 BookRenderBridge 原生页。
-/// 分界线判据是「内容能不能重排」，不是文件格式。
-///
-/// 章节切换不新增页面栈：目录页 pop 出章节序号后在这里换章并重排，
-/// 与详情页「从目录新建阅读器」走的是同一份 BookDocument。
 class ReaderPage extends StatefulWidget {
   const ReaderPage({
     super.key,
@@ -65,8 +61,10 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
   late final BookDocument _document;
   late final ProgressSampler _sampler;
   late final ComicPrefetchWindow _prefetch;
-  final BookRenderBridge _renderBridge = UnimplementedRenderBridge(lrText('uiDemoPlatform'));
+  final BookRenderBridge _renderBridge =
+      UnimplementedRenderBridge(lrText('uiDemoPlatform'));
   final PageController _pageController = PageController();
+
   /// 漫画话集跳转指令：由目录面板选中后发，页面栈不新增阅读器。
   final ComicReaderController _comicController = ComicReaderController();
 
@@ -83,13 +81,11 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
   SentenceQueue? _ttsQueue;
   bool _ttsPlaying = false;
 
-  /// 第三十轮：顶栏显隐、沉浸模式、听读面板状态。
   bool _chromeVisible = true;
   bool _immersiveApplied = false;
   TtsPreferences _ttsPrefs = const TtsPreferences();
   final ImmersiveModeController _immersive = const ImmersiveModeController();
 
-  /// 当前页的按行选区。翻页 / 换章时重建，避免锚点串页。
   late SelectionDraft _selection;
 
   @override
@@ -137,7 +133,8 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
       unawaited(_sampler.flush());
     }
   }
@@ -162,45 +159,55 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
     return Scaffold(
       // 阅读背景独立于 Material 明暗主题：夜间档在系统浅色模式下依然是深色底。
       backgroundColor: style.backgroundColor,
-      appBar: _chromeVisible ? AppBar(
-        backgroundColor: style.backgroundColor,
-        foregroundColor: style.textColor,
-        elevation: 0,
-        leading: const BackButton(),
-        title: Text(book.title),
-        actions: <Widget>[
-          IconButton(
-            tooltip: state.isFavorite(book.id) ? context.t('uiRemoveFavorite') : context.t('uiFavoriteThisBook'),
-            onPressed: () {
-              final bool added = state.toggleFavorite(book.id);
-              _showHint(added ? context.t('uiAddedToFavorites') : context.t('uiRemovedFromFavorites'));
-            },
-            icon: Icon(state.isFavorite(book.id) ? Icons.star : Icons.star_border),
-          ),
-          IconButton(
-            tooltip: context.t('uiCaptureSelectedLines'),
-            onPressed: _openExcerptCapture,
-            icon: Icon(
-              _selection.isNotEmpty ? Icons.bookmark_add : Icons.bookmark_add_outlined,
-            ),
-          ),
-          IconButton(
-            tooltip: context.t('uiTableOfContents'),
-            onPressed: _openToc,
-            icon: const Icon(Icons.list_alt_outlined),
-          ),
-          IconButton(
-            tooltip: context.t('uiReadAloudSentenceQueue'),
-            onPressed: _onTts,
-            icon: const Icon(Icons.graphic_eq_outlined),
-          ),
-          IconButton(
-            tooltip: context.t('uiLayoutSettings'),
-            onPressed: _openStyleSheet,
-            icon: const Icon(Icons.text_format_outlined),
-          ),
-        ],
-      ) : null,
+      appBar: _chromeVisible
+          ? AppBar(
+              backgroundColor: style.backgroundColor,
+              foregroundColor: style.textColor,
+              elevation: 0,
+              leading: const BackButton(),
+              title: Text(book.title),
+              actions: <Widget>[
+                IconButton(
+                  tooltip: state.isFavorite(book.id)
+                      ? context.t('uiRemoveFavorite')
+                      : context.t('uiFavoriteThisBook'),
+                  onPressed: () {
+                    final bool added = state.toggleFavorite(book.id);
+                    _showHint(added
+                        ? context.t('uiAddedToFavorites')
+                        : context.t('uiRemovedFromFavorites'));
+                  },
+                  icon: Icon(state.isFavorite(book.id)
+                      ? Icons.star
+                      : Icons.star_border),
+                ),
+                IconButton(
+                  tooltip: context.t('uiCaptureSelectedLines'),
+                  onPressed: _openExcerptCapture,
+                  icon: Icon(
+                    _selection.isNotEmpty
+                        ? Icons.bookmark_add
+                        : Icons.bookmark_add_outlined,
+                  ),
+                ),
+                IconButton(
+                  tooltip: context.t('uiTableOfContents'),
+                  onPressed: _openToc,
+                  icon: const Icon(Icons.list_alt_outlined),
+                ),
+                IconButton(
+                  tooltip: context.t('uiReadAloudSentenceQueue'),
+                  onPressed: _onTts,
+                  icon: const Icon(Icons.graphic_eq_outlined),
+                ),
+                IconButton(
+                  tooltip: context.t('uiLayoutSettings'),
+                  onPressed: _openStyleSheet,
+                  icon: const Icon(Icons.text_format_outlined),
+                ),
+              ],
+            )
+          : null,
       body: _readerStack(
         context,
         LayoutBuilder(
@@ -305,7 +312,8 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
 
   Future<void> _openTtsSettings() async {
     final AppState state = AppScope.of(context);
-    final List<String> voices = await AppServices.of(context).device.voiceModels();
+    final List<String> voices =
+        await AppServices.of(context).device.voiceModels();
     if (!mounted) return;
     await TtsSettingsSheet.open(
       context,
@@ -342,7 +350,8 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
   /// 缓存键必须包含章节序号与排版字段：换章复用上一章页码会错位，
   /// 改字号/行高却复用旧分页结果会让「设置不生效」。
   /// 背景、翻页动效、语速不在 layoutKey 里，改它们只换外观、不重排。
-  PaginationResult _ensureLayout(BuildContext context, Size pageSize, ReaderStyle style) {
+  PaginationResult _ensureLayout(
+      BuildContext context, Size pageSize, ReaderStyle style) {
     final String key = '${pageSize.width.toStringAsFixed(1)}x'
         '${pageSize.height.toStringAsFixed(1)}|$_chapterIndex|${style.layoutKey}';
     if (_layoutResult != null &&
@@ -362,7 +371,8 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
     return _layoutResult!;
   }
 
-  Widget _buildTextBody(BuildContext context, PaginationResult result, ReaderStyle style) {
+  Widget _buildTextBody(
+      BuildContext context, PaginationResult result, ReaderStyle style) {
     final TextTheme text = Theme.of(context).textTheme;
     final List<Excerpt> highlights = AppScope.of(context).highlightsFor(
       bookId: _document.id,
@@ -377,14 +387,16 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
           child: PageTurnView(
             // 选区变化必须让 itemBuilder 重新执行，否则点选后看不到行高亮。
             // 用选区签名做 key，controller 保持不动（页码不会跳回 0）。
-            key: ValueKey<String>('$_chapterIndex|$_pageIndex|${_selection.signature()}'),
+            key: ValueKey<String>(
+                '$_chapterIndex|$_pageIndex|${_selection.signature()}'),
             controller: _pageController,
             itemCount: result.pages.length,
             onPageChanged: (int i) {
               setState(() {
                 _pageIndex = i;
                 // 一行锚点只在当前页有效，翻页必须丢弃选区。
-                _selection = _selection.switchTo(chapterIndex: _chapterIndex, pageIndex: i);
+                _selection = _selection.switchTo(
+                    chapterIndex: _chapterIndex, pageIndex: i);
               });
               _recordProgress(i);
             },
@@ -396,54 +408,67 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
         if (_chromeVisible)
           SafeArea(
             top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: LrSpacing.m, vertical: LrSpacing.s),
-            child: Row(
-              children: <Widget>[
-                IconButton(
-                  color: style.textColor,
-                  tooltip: context.t('uiPreviousChapter'),
-                  onPressed: _chapterIndex > 0 ? () => _switchChapter(_chapterIndex - 1) : null,
-                  icon: const Icon(Icons.chevron_left, size: 20),
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text(
-                        _chapter.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: text.labelLarge?.copyWith(color: style.textColor),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        context.tArgs('uiChapter', <Object?>[_pageIndex + 1, result.pages.length, _chapterIndex + 1, _document.chapters.length]),
-                        style: text.labelSmall?.copyWith(color: style.subtleTextColor),
-                      ),
-                      if (_selection.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Text(
-                            context.tArgs('uiLinesSaveexcerpts', <Object?>[_selection.count]),
-                            style: text.labelSmall?.copyWith(color: HighlightPalette.spine(HighlightColor.amber)),
-                          ),
-                        ),
-                    ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: LrSpacing.m, vertical: LrSpacing.xs),
+              child: Row(
+                children: <Widget>[
+                  IconButton(
+                    color: style.textColor,
+                    tooltip: context.t('uiPreviousChapter'),
+                    onPressed: _chapterIndex > 0
+                        ? () => _switchChapter(_chapterIndex - 1)
+                        : null,
+                    icon: const Icon(Icons.chevron_left, size: 20),
                   ),
-                ),
-                IconButton(
-                  color: style.textColor,
-                  tooltip: context.t('uiNextChapter'),
-                  onPressed: _chapterIndex < _document.chapters.length - 1
-                      ? () => _switchChapter(_chapterIndex + 1)
-                      : null,
-                  icon: const Icon(Icons.chevron_right, size: 20),
-                ),
-              ],
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          _chapter.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              text.labelLarge?.copyWith(color: style.textColor),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          context.tArgs('uiChapter', <Object?>[
+                            _pageIndex + 1,
+                            result.pages.length,
+                            _chapterIndex + 1,
+                            _document.chapters.length
+                          ]),
+                          style: text.labelSmall
+                              ?.copyWith(color: style.subtleTextColor),
+                        ),
+                        if (_selection.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              context.tArgs('uiLinesSaveexcerpts',
+                                  <Object?>[_selection.count]),
+                              style: text.labelSmall?.copyWith(
+                                  color: HighlightPalette.spine(
+                                      HighlightColor.amber)),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    color: style.textColor,
+                    tooltip: context.t('uiNextChapter'),
+                    onPressed: _chapterIndex < _document.chapters.length - 1
+                        ? () => _switchChapter(_chapterIndex + 1)
+                        : null,
+                    icon: const Icon(Icons.chevron_right, size: 20),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -479,7 +504,8 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
     final PaginationConfig config = result.config;
     final LaidOutPage page = result.pages[index];
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: LrSpacing.l, vertical: LrSpacing.m),
+      padding: const EdgeInsets.symmetric(
+          horizontal: LrSpacing.l, vertical: LrSpacing.m),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -488,7 +514,9 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
               // TODO(静态冻结): 插图走原生解码或已导入资源，占位高度由 PageInfo 决定
               return SizedBox(
                 height: line.height,
-                child: GlassPanel(child: Center(child: Text(lrText('uiIllustrationPlaceholder')))),
+                child: GlassPanel(
+                    child: Center(
+                        child: Text(lrText('uiIllustrationPlaceholder')))),
               );
             }
 
@@ -500,13 +528,16 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
               lineInBlock: line.lineInBlock,
               text: line.text,
             );
-            final bool selected = _selection.lines.any((SelectedLine l) => l.ref == ref);
+            final bool selected =
+                _selection.lines.any((SelectedLine l) => l.ref == ref);
 
             // 已保存的摘录：位置精确 / 位置一致文字已变 / 重排后按文本唯一还原
             // 三级置信度由模型裁决；多处相同文本返回 ambiguous，不自动高亮。
             final LineAnchorMatch? match = anchors.resolve(ref);
             final HighlightColor? savedColor =
-                (match != null && match.shouldHighlight) ? match.highlight : null;
+                (match != null && match.shouldHighlight)
+                    ? match.highlight
+                    : null;
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => setState(() => _selection = _selection.toggle(ref)),
@@ -515,7 +546,9 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
                 decoration: BoxDecoration(
                   color: selected
                       ? HighlightPalette.lineTint(HighlightColor.amber)
-                      : (savedColor == null ? null : HighlightPalette.lineTint(savedColor)),
+                      : (savedColor == null
+                          ? null
+                          : HighlightPalette.lineTint(savedColor)),
                   border: Border(
                     left: BorderSide(
                       color: selected
@@ -580,7 +613,8 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
   }
 
   /// 固定版式分支：只负责页描述与目标尺寸，像素交给原生。
-  Widget _buildNativeBody(BuildContext context, Size pageSize, ReaderStyle style) {
+  Widget _buildNativeBody(
+      BuildContext context, Size pageSize, ReaderStyle style) {
     if (_document.isComic) {
       return ComicReaderView(
         document: _document,
@@ -599,20 +633,31 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
         children: <Widget>[
           Text(
             context.t('uiFixedLayoutPage'),
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: style.textColor),
+            style: Theme.of(context)
+                .textTheme
+                .headlineMedium
+                ?.copyWith(color: style.textColor),
           ),
           const SizedBox(height: LrSpacing.m),
           Text(
             context.t('uiPdfEpubViaBookrenderbridge') +
-            context.t('uiRenderHandleIndexTargetsizePages4k') +
-            context.t('uiPagesTextureidTextureTextureid') +
-            context.t('uiPagesImageMemory') +
-            context.t('uiComicprefetchwindowPrefetchEvictSpreadsChannel'),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: style.textColor),
+                context.t('uiRenderHandleIndexTargetsizePages4k') +
+                context.t('uiPagesTextureidTextureTextureid') +
+                context.t('uiPagesImageMemory') +
+                context.t('uiComicprefetchwindowPrefetchEvictSpreadsChannel'),
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: style.textColor),
           ),
           const SizedBox(height: LrSpacing.m),
-          Text(context.tArgs('uiSize', <Object?>[pageSize.width.round(), pageSize.height.round()]),
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(color: style.subtleTextColor)),
+          Text(
+              context.tArgs('uiSize',
+                  <Object?>[pageSize.width.round(), pageSize.height.round()]),
+              style: Theme.of(context)
+                  .textTheme
+                  .labelSmall
+                  ?.copyWith(color: style.subtleTextColor)),
           const SizedBox(height: LrSpacing.m),
           // 未接三端原生实现时显式提示，不返回空白页。
           SizedBox(
@@ -707,7 +752,8 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
     if (_ttsPlaying) {
       queue.pause();
       setState(() => _ttsPlaying = false);
-      _showHint(lrTextArgs('uiSentencesSentences', <Object?>[queue.cursor + 1, queue.length]));
+      _showHint(lrTextArgs(
+          'uiSentencesSentences', <Object?>[queue.cursor + 1, queue.length]));
       return;
     }
 
@@ -716,7 +762,12 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
       _ttsPlaying = true;
     });
     unawaited(queue.resume());
-    _showHint(lrTextArgs('uiSentences', <Object?>[_chapter.title, queue.cursor + 1, _sentenceCount, rate.toStringAsFixed(2)]));
+    _showHint(lrTextArgs('uiSentences', <Object?>[
+      _chapter.title,
+      queue.cursor + 1,
+      _sentenceCount,
+      rate.toStringAsFixed(2)
+    ]));
   }
 
   /// 读完自动进入下一章。用 microtask 等旧队列的 play() 走完 finally，
@@ -741,6 +792,7 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
 
   void _showHint(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }

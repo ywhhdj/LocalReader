@@ -4,17 +4,10 @@ import '../../../core/model/stats/keepsake_query.dart';
 import '../../../core/model/stats/keepsakes.dart';
 import '../../../core/model/stats/stats_date.dart';
 import '../../../core/common/design_tokens.dart';
-import '../../../core/ui/components/glass.dart';
+import '../../../core/ui/components/glass/Nav.dart';
 import '../../../l10n/lr_localizations.dart';
 
 /// 纪念物卡：**类型 ∧ 月份**双筛选 + 环形切换 + 五种季节手账配色。
-///
-/// 数据由 `AppState.keepsakes` 每次 build 重算后传入，组件**不缓存列表**；
-/// 索引 / 类型 / 月份筛选由统计页持有（纯 UI 局部量），与摘录卡同一套纪律。
-///
-/// 第十八轮：类型筛选不再各页各写一份 `where`，统一走 `KeepsakeQuery.apply()`；
-/// chip 上的条数是**分面计数**（去掉类型条件、保留月份），否则选中「连续」后
-/// 其它五类全显示 0，看起来像纪念物凭空消失。
 class KeepsakeCard extends StatelessWidget {
   const KeepsakeCard({
     super.key,
@@ -46,7 +39,9 @@ class KeepsakeCard extends StatelessWidget {
     final TextTheme text = Theme.of(context).textTheme;
     final List<String> months = KeepsakeQuery.monthKeys(keepsakes);
     final String? effectiveMonth =
-        (monthFilter != null && months.contains(monthFilter)) ? monthFilter : null;
+        (monthFilter != null && months.contains(monthFilter))
+            ? monthFilter
+            : null;
 
     // 类型 chip 的计数只受月份影响：切换类型不应让其它类型的数字归零。
     final List<KeepsakeKindOption> kinds = KeepsakeQuery.kindOptions(
@@ -73,8 +68,8 @@ class KeepsakeCard extends StatelessWidget {
 
     return GlassPanel(
       tint: <Color>[
-        palette.seed.withOpacity(0.85),
-        palette.accent.withOpacity(0.14),
+        palette.seed.withValues(alpha: 0.85),
+        palette.accent.withValues(alpha: 0.14),
       ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,20 +79,24 @@ class KeepsakeCard extends StatelessWidget {
               Text(context.t('keepsakeTitle'), style: text.titleLarge),
               const Spacer(),
               Text(
-                context.tArgs('uiKeepsakesN1', <Object?>[visible.length, scopeLabel.isEmpty ? '' : ' · $scopeLabel']),
+                context.tArgs('uiKeepsakesN1', <Object?>[
+                  visible.length,
+                  scopeLabel.isEmpty ? '' : ' · $scopeLabel'
+                ]),
                 style: text.labelSmall,
               ),
             ],
           ),
 
           // 类型筛选：六个类型恒可见，0 枚的禁用但仍标出数字，不静默隐藏。
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: <Widget>[
                 ChoiceChip(
-                  label: Text(context.t('keepsakeAllKinds'), style: text.labelLarge),
+                  label: Text(context.t('keepsakeAllKinds'),
+                      style: text.labelLarge),
                   selected: kindFilter == null,
                   onSelected: (bool _) {
                     onKindChanged(null);
@@ -105,9 +104,10 @@ class KeepsakeCard extends StatelessWidget {
                   },
                 ),
                 for (final KeepsakeKindOption o in kinds) ...<Widget>[
-                  const SizedBox(width: LrSpacing.s),
+                  const SizedBox(width: LrSpacing.xs),
                   ChoiceChip(
-                    label: Text('${o.label} · ${o.count}', style: text.labelLarge),
+                    label:
+                        Text('${o.label} · ${o.count}', style: text.labelLarge),
                     selected: kindFilter == o.kind,
                     // 0 枚的类型不可点，但已选中的仍显示选中态（用户可能先选类型再切月份）。
                     onSelected: o.count == 0
@@ -123,13 +123,14 @@ class KeepsakeCard extends StatelessWidget {
           ),
 
           if (months.isNotEmpty) ...<Widget>[
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: <Widget>[
                   ChoiceChip(
-                    label: Text(context.t('calendarAllMonths'), style: text.labelLarge),
+                    label: Text(context.t('calendarAllMonths'),
+                        style: text.labelLarge),
                     selected: effectiveMonth == null,
                     onSelected: (bool _) {
                       onMonthChanged(null);
@@ -137,7 +138,7 @@ class KeepsakeCard extends StatelessWidget {
                     },
                   ),
                   for (final String m in months) ...<Widget>[
-                    const SizedBox(width: LrSpacing.s),
+                    const SizedBox(width: LrSpacing.xs),
                     ChoiceChip(
                       label: Text(m, style: text.labelLarge),
                       selected: effectiveMonth == m,
@@ -167,11 +168,12 @@ class KeepsakeCard extends StatelessWidget {
 
           const SizedBox(height: LrSpacing.m),
           Divider(color: Theme.of(context).dividerTheme.color, height: 1),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           Row(
             children: <Widget>[
               if (cycler.hasMultiple)
-                Text('${cycler.index + 1} / ${cycler.items.length}', style: text.labelSmall),
+                Text('${cycler.index + 1} / ${cycler.items.length}',
+                    style: text.labelSmall),
               const Spacer(),
               IconButton(
                 tooltip: context.t('uiPreviousKeepsake'),
@@ -191,7 +193,8 @@ class KeepsakeCard extends StatelessWidget {
                 TextButton.icon(
                   onPressed: onOpenCalendarMonth,
                   icon: const Icon(Icons.calendar_month_outlined, size: 16),
-                  label: Text(context.t('calendarOpenMonth'), style: text.labelLarge),
+                  label: Text(context.t('calendarOpenMonth'),
+                      style: text.labelLarge),
                 ),
             ],
           ),
@@ -201,7 +204,8 @@ class KeepsakeCard extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: onOpenLibrary,
                 icon: const Icon(Icons.auto_awesome_mosaic_outlined, size: 16),
-                label: Text(context.t('keepsakeOpenLibrary'), style: text.labelLarge),
+                label: Text(context.t('keepsakeOpenLibrary'),
+                    style: text.labelLarge),
               ),
             ),
           const SizedBox(height: LrSpacing.xs),
@@ -228,7 +232,7 @@ class _KeepsakeBody extends StatelessWidget {
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: palette.accent.withOpacity(0.16),
+            color: palette.accent.withValues(alpha: 0.16),
             borderRadius: BorderRadius.circular(LrRadius.card),
           ),
           child: Icon(
@@ -245,27 +249,29 @@ class _KeepsakeBody extends StatelessWidget {
               Row(
                 children: <Widget>[
                   Text(keepsake.kindLabel, style: text.labelLarge),
-                  const SizedBox(width: LrSpacing.s),
+                  const SizedBox(width: LrSpacing.xs),
                   Text(
                     '${dateLabelOf(keepsake.date)} · ${keepsake.monthKey}',
                     style: text.labelSmall,
                   ),
                   if (keepsake.fromUserExcerpt) ...<Widget>[
-                    const SizedBox(width: LrSpacing.s),
+                    const SizedBox(width: LrSpacing.xs),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: LrSpacing.xs, vertical: 2),
                       decoration: BoxDecoration(
-                        color: palette.accent.withOpacity(0.14),
+                        color: palette.accent.withValues(alpha: 0.14),
                         borderRadius: BorderRadius.circular(LrRadius.pill),
                       ),
-                      child: Text(context.t('uiYours2'), style: text.labelSmall),
+                      child:
+                          Text(context.t('uiYours2'), style: text.labelSmall),
                     ),
                   ],
                 ],
               ),
               const SizedBox(height: LrSpacing.xs),
               Text(keepsake.title, style: text.titleMedium),
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               Text(
                 keepsake.detail,
                 style: text.bodyMedium?.copyWith(height: 1.55),
@@ -273,7 +279,7 @@ class _KeepsakeBody extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               if (keepsake.bookTitle != null) ...<Widget>[
-                const SizedBox(height: LrSpacing.s),
+                const SizedBox(height: LrSpacing.xs),
                 Text('《${keepsake.bookTitle}》', style: text.labelSmall),
               ],
             ],

@@ -11,7 +11,7 @@ import '../../../core/model/stats/stats_date.dart';
 import '../../../core/common/design_tokens.dart';
 import '../../../core/ui/theme/glass_theme.dart';
 import '../../../core/ui/theme/season_scheme.dart';
-import '../../../core/ui/components/glass.dart';
+import '../../../core/ui/components/glass/Nav.dart';
 import 'keepsake_card.dart';
 import '../../../l10n/lr_localizations.dart';
 
@@ -71,7 +71,8 @@ class _StatsPageState extends State<StatsPage> {
     final int userExcerptCount = state.userExcerpts.length;
 
     void cycleNext() => setState(() => _excerptIndex = cycler.next().index);
-    void cyclePrevious() => setState(() => _excerptIndex = cycler.previous().index);
+    void cyclePrevious() =>
+        setState(() => _excerptIndex = cycler.previous().index);
     void removeCurrent() {
       final Excerpt? current = cycler.current;
       if (current == null || !current.isUserAdded) return;
@@ -84,11 +85,12 @@ class _StatsPageState extends State<StatsPage> {
         : state.effective(state.books.cached.first);
     final TextTheme text = Theme.of(context).textTheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final SeasonPalette palette = Theme.of(context).extension<LrSeasonTheme>()?.palette ??
-        SeasonSchemes.resolve(
-          state.season.value,
-          isDark ? Brightness.dark : Brightness.light,
-        );
+    final SeasonPalette palette =
+        Theme.of(context).extension<LrSeasonTheme>()?.palette ??
+            SeasonSchemes.resolve(
+              state.season.value,
+              isDark ? Brightness.dark : Brightness.light,
+            );
 
     return Container(
       decoration: BoxDecoration(
@@ -96,19 +98,28 @@ class _StatsPageState extends State<StatsPage> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: isDark
-              ? <Color>[palette.seed, Color.lerp(palette.seed, Colors.black, 0.35)!]
-              : <Color>[palette.seed, Color.lerp(palette.seed, Colors.white, 0.5)!],
+              ? <Color>[
+                  palette.seed,
+                  Color.lerp(palette.seed, Colors.black, 0.35)!
+                ]
+              : <Color>[
+                  palette.seed,
+                  Color.lerp(palette.seed, Colors.white, 0.5)!
+                ],
         ),
       ),
       child: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.xl, LrSpacing.l, 120),
+          padding: const EdgeInsets.fromLTRB(
+              LrSpacing.l, LrSpacing.xl, LrSpacing.l, 120),
           children: <Widget>[
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: <Widget>[
-                Expanded(child: Text(context.t('uiReadingStats'), style: text.displayMedium)),
+                Expanded(
+                    child: Text(context.t('uiReadingStats'),
+                        style: text.displayMedium)),
                 TextButton.icon(
                   onPressed: () => widget.onOpenExcerptLibrary?.call('', null),
                   icon: const Icon(Icons.format_quote_outlined, size: 17),
@@ -117,13 +128,15 @@ class _StatsPageState extends State<StatsPage> {
                 const SizedBox(width: LrSpacing.xs),
                 TextButton.icon(
                   onPressed: widget.onOpenWidgetConfig,
-                  icon: const Icon(Icons.dashboard_customize_outlined, size: 17),
+                  icon:
+                      const Icon(Icons.dashboard_customize_outlined, size: 17),
                   label: Text(context.t('uiWidgets'), style: text.labelLarge),
                 ),
               ],
             ),
             const SizedBox(height: LrSpacing.xs),
-            Text(context.t('uiTurnReadingTimeIntoPagesYouCanFlipBackThrough'), style: text.bodyMedium),
+            Text(context.t('uiTurnReadingTimeIntoPagesYouCanFlipBackThrough'),
+                style: text.bodyMedium),
             const SizedBox(height: LrSpacing.l),
 
             // 今日阅读：点最近一本书直接续读（由 AppShell 注入导航）
@@ -137,39 +150,57 @@ class _StatsPageState extends State<StatsPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Text(context.tArgs('uiGoalminutesMinutes', <Object?>[snapshot]), style: text.labelSmall),
-                            const SizedBox(height: LrSpacing.s),
+                            Text(
+                                context.tArgs('uiGoalminutesMinutes',
+                                    <Object?>[snapshot]),
+                                style: text.labelSmall),
+                            const SizedBox(height: LrSpacing.xs),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.baseline,
                               textBaseline: TextBaseline.alphabetic,
                               children: <Widget>[
-                                Text(snapshot.todayLabel, style: text.displayLarge),
-                                const SizedBox(width: LrSpacing.s),
-                                Text(context.t('uiMinutes2'), style: text.titleMedium),
+                                Text(snapshot.todayLabel,
+                                    style: text.displayLarge),
+                                const SizedBox(width: LrSpacing.xs),
+                                Text(context.t('uiMinutes2'),
+                                    style: text.titleMedium),
                               ],
                             ),
-                            const SizedBox(height: LrSpacing.s),
+                            const SizedBox(height: LrSpacing.xs),
                             Text(
-                              context.tArgs('uiDaysThisWeek', <Object?>[snapshot.streakDays, snapshot.weekLabel]) +
-                              context.tArgs('uiBooksExcerptsItems', <Object?>[snapshot.totalBooks, userExcerptCount]),
+                              context.tArgs('uiDaysThisWeek', <Object?>[
+                                    snapshot.streakDays,
+                                    snapshot.weekLabel
+                                  ]) +
+                                  context.tArgs(
+                                      'uiBooksExcerptsItems', <Object?>[
+                                    snapshot.totalBooks,
+                                    userExcerptCount
+                                  ]),
                               style: text.bodySmall,
                             ),
                           ],
                         ),
                       ),
-                      _RingProgress(value: snapshot.progress, color: palette.accent),
+                      _RingProgress(
+                          value: snapshot.progress, color: palette.accent),
                     ],
                   ),
                   if (recent != null) ...<Widget>[
-                    const SizedBox(height: LrSpacing.s),
-                    Divider(color: Theme.of(context).dividerTheme.color, height: 1),
+                    const SizedBox(height: LrSpacing.xs),
+                    Divider(
+                        color: Theme.of(context).dividerTheme.color, height: 1),
                     const SizedBox(height: LrSpacing.xs),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: TextButton.icon(
-                        onPressed: () => widget.onResume?.call(recent, DemoDocumentFactory.resumeChapter(recent)),
+                        onPressed: () => widget.onResume?.call(
+                            recent, DemoDocumentFactory.resumeChapter(recent)),
                         icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                        label: Text(context.tArgs('uiContinueReading2', <Object?>[recent.title]), style: text.labelLarge),
+                        label: Text(
+                            context.tArgs(
+                                'uiContinueReading2', <Object?>[recent.title]),
+                            style: text.labelLarge),
                       ),
                     ),
                   ],
@@ -185,29 +216,36 @@ class _StatsPageState extends State<StatsPage> {
                 children: <Widget>[
                   Row(
                     children: <Widget>[
-                      Text(context.t('uiReadingHeatmap'), style: text.titleLarge),
+                      Text(context.t('uiReadingHeatmap'),
+                          style: text.titleLarge),
                       const Spacer(),
-                      Text(context.tArgs('uiDays3', <Object?>[snapshot.days.length]), style: text.labelSmall),
+                      Text(
+                          context.tArgs(
+                              'uiDays3', <Object?>[snapshot.days.length]),
+                          style: text.labelSmall),
                     ],
                   ),
                   const SizedBox(height: LrSpacing.m),
                   _Heatmap(days: snapshot.days, accent: palette.accent),
-                  const SizedBox(height: LrSpacing.s),
+                  const SizedBox(height: LrSpacing.xs),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
                       Text(context.t('uiLow'), style: text.labelSmall),
-                      ...List<Widget>.generate(5, (int i) => Container(
-                            width: 12,
-                            height: 12,
-                            margin: const EdgeInsets.only(left: 4),
-                            decoration: BoxDecoration(
-                              color: i == 0
-                                  ? palette.accent.withOpacity(0.06)
-                                  : palette.accent.withOpacity(0.16 + (i - 1) * 0.22),
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                          )),
+                      ...List<Widget>.generate(
+                          5,
+                          (int i) => Container(
+                                width: 12,
+                                height: 12,
+                                margin: const EdgeInsets.only(left: 4),
+                                decoration: BoxDecoration(
+                                  color: i == 0
+                                      ? palette.accent.withValues(alpha: 0.06)
+                                      : palette.accent.withValues(
+                                          alpha: 0.16 + (i - 1) * 0.22),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              )),
                       const SizedBox(width: 4),
                       Text(context.t('uiHigh'), style: text.labelSmall),
                     ],
@@ -224,25 +262,32 @@ class _StatsPageState extends State<StatsPage> {
                 children: <Widget>[
                   Row(
                     children: <Widget>[
-                      Text(context.t('uiReadingCalendar'), style: text.titleLarge),
+                      Text(context.t('uiReadingCalendar'),
+                          style: text.titleLarge),
                       const Spacer(),
                       TextButton.icon(
-                        onPressed: widget.onOpenCalendarMonth == null || snapshot.days.isEmpty
+                        onPressed: widget.onOpenCalendarMonth == null ||
+                                snapshot.days.isEmpty
                             ? null
                             : () => widget.onOpenCalendarMonth!(
                                   snapshot.days.last.date.year,
                                   snapshot.days.last.date.month,
                                 ),
-                        icon: const Icon(Icons.calendar_month_outlined, size: 16),
-                        label: Text(context.t('calendarOpenMonth'), style: text.labelLarge),
+                        icon:
+                            const Icon(Icons.calendar_month_outlined, size: 16),
+                        label: Text(context.t('calendarOpenMonth'),
+                            style: text.labelLarge),
                       ),
                     ],
                   ),
                   const SizedBox(height: LrSpacing.m),
                   _CalendarStrip(days: snapshot.calendarWeek),
-                  const SizedBox(height: LrSpacing.s),
+                  const SizedBox(height: LrSpacing.xs),
                   Text(
-                    context.tArgs('uiDaysTotalPages', <Object?>[snapshot.totalPages, context.t('demoDataNote')]),
+                    context.tArgs('uiDaysTotalPages', <Object?>[
+                      snapshot.totalPages,
+                      context.t('demoDataNote')
+                    ]),
                     style: text.labelSmall,
                   ),
                 ],
@@ -253,8 +298,8 @@ class _StatsPageState extends State<StatsPage> {
             // 摘录卡：点击卡片或箭头环形切换（cycle to another excerpt）
             GlassPanel(
               tint: <Color>[
-                palette.seed.withOpacity(0.85),
-                palette.accent.withOpacity(0.12),
+                palette.seed.withValues(alpha: 0.85),
+                palette.accent.withValues(alpha: 0.12),
               ],
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,22 +307,30 @@ class _StatsPageState extends State<StatsPage> {
                   Row(
                     children: <Widget>[
                       Text(context.t('uiExcerpts2'), style: text.labelSmall),
-                      const SizedBox(width: LrSpacing.s),
-                      Text(context.tArgs('uiTotalItemsItems', <Object?>[excerpts.length, userExcerptCount]), style: text.labelSmall),
+                      const SizedBox(width: LrSpacing.xs),
+                      Text(
+                          context.tArgs('uiTotalItemsItems',
+                              <Object?>[excerpts.length, userExcerptCount]),
+                          style: text.labelSmall),
                       const Spacer(),
                       TextButton(
-                        onPressed: () => widget.onOpenExcerptLibrary?.call('', null),
+                        onPressed: () =>
+                            widget.onOpenExcerptLibrary?.call('', null),
                         style: TextButton.styleFrom(
                           minimumSize: Size.zero,
-                          padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: LrSpacing.xs),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: Text(context.t('uiManage'), style: text.labelLarge),
+                        child:
+                            Text(context.t('uiManage'), style: text.labelLarge),
                       ),
                       if (cycler.hasMultiple)
                         Padding(
-                          padding: const EdgeInsets.only(left: LrSpacing.s),
-                          child: Text('${cycler.index + 1} / ${cycler.excerpts.length}', style: text.labelSmall),
+                          padding: const EdgeInsets.only(left: LrSpacing.xs),
+                          child: Text(
+                              '${cycler.index + 1} / ${cycler.excerpts.length}',
+                              style: text.labelSmall),
                         ),
                     ],
                   ),
@@ -294,13 +347,17 @@ class _StatsPageState extends State<StatsPage> {
                             height: 46,
                             margin: const EdgeInsets.only(right: LrSpacing.m),
                             decoration: BoxDecoration(
-                              color: HighlightPalette.spine(cycler.current!.highlight),
-                              borderRadius: BorderRadius.circular(LrRadius.pill),
+                              color: HighlightPalette.spine(
+                                  cycler.current!.highlight),
+                              borderRadius:
+                                  BorderRadius.circular(LrRadius.pill),
                             ),
                           ),
                         Expanded(
                           child: Text(
-                            cycler.current?.text ?? context.t('uiNoExcerptsYetSelectAFewLinesInTheReaderToStart'),
+                            cycler.current?.text ??
+                                context.t(
+                                    'uiNoExcerptsYetSelectAFewLinesInTheReaderToStart'),
                             style: text.headlineMedium?.copyWith(height: 1.6),
                           ),
                         ),
@@ -310,23 +367,28 @@ class _StatsPageState extends State<StatsPage> {
                   // 批注独立成行，不与原文混排成一个大字号
                   if (cycler.current?.note.isNotEmpty ?? false)
                     Padding(
-                      padding: const EdgeInsets.only(top: LrSpacing.s, left: LrSpacing.m),
-                      child: Text('—— ${cycler.current!.note}', style: text.bodySmall),
+                      padding: const EdgeInsets.only(
+                          top: LrSpacing.xs, left: LrSpacing.m),
+                      child: Text('—— ${cycler.current!.note}',
+                          style: text.bodySmall),
                     ),
                   const SizedBox(height: LrSpacing.m),
                   Divider(color: Theme.of(context).dividerTheme.color),
-                  const SizedBox(height: LrSpacing.s),
+                  const SizedBox(height: LrSpacing.xs),
                   Row(
                     children: <Widget>[
                       if (cycler.current?.isUserAdded ?? false)
                         Container(
-                          margin: const EdgeInsets.only(right: LrSpacing.s),
-                          padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s, vertical: 2),
+                          margin: const EdgeInsets.only(right: LrSpacing.xs),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: LrSpacing.xs, vertical: 2),
                           decoration: BoxDecoration(
-                            color: HighlightPalette.lineTint(cycler.current!.highlight),
+                            color: HighlightPalette.lineTint(
+                                cycler.current!.highlight),
                             borderRadius: BorderRadius.circular(LrRadius.pill),
                           ),
-                          child: Text(context.t('uiYours2'), style: text.labelSmall),
+                          child: Text(context.t('uiYours2'),
+                              style: text.labelSmall),
                         ),
                       Expanded(
                         child: Text(
@@ -370,19 +432,21 @@ class _StatsPageState extends State<StatsPage> {
               kindFilter: _keepsakeKind,
               onIndexChanged: (int i) => setState(() => _keepsakeIndex = i),
               onMonthChanged: (String? m) => setState(() => _keepsakeMonth = m),
-              onKindChanged: (KeepsakeKind? k) => setState(() => _keepsakeKind = k),
+              onKindChanged: (KeepsakeKind? k) =>
+                  setState(() => _keepsakeKind = k),
               onOpenLibrary: widget.onOpenKeepsakeLibrary == null
                   ? null
                   : () => widget.onOpenKeepsakeLibrary!(
                         _keepsakeKind,
                         _keepsakeMonth,
                       ),
-              onOpenCalendarMonth: widget.onOpenCalendarMonth == null || snapshot.days.isEmpty
-                  ? null
-                  : () => widget.onOpenCalendarMonth!(
-                        snapshot.days.last.date.year,
-                        snapshot.days.last.date.month,
-                      ),
+              onOpenCalendarMonth:
+                  widget.onOpenCalendarMonth == null || snapshot.days.isEmpty
+                      ? null
+                      : () => widget.onOpenCalendarMonth!(
+                            snapshot.days.last.date.year,
+                            snapshot.days.last.date.month,
+                          ),
             ),
             const SizedBox(height: LrSpacing.l),
 
@@ -392,17 +456,22 @@ class _StatsPageState extends State<StatsPage> {
               child: GlassPanel(
                 child: Row(
                   children: <Widget>[
-                    Icon(Icons.dashboard_customize_outlined, size: 20, color: Theme.of(context).colorScheme.primary),
+                    Icon(Icons.dashboard_customize_outlined,
+                        size: 20, color: Theme.of(context).colorScheme.primary),
                     const SizedBox(width: LrSpacing.m),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text(context.tArgs('uiItemswidgets', <Object?>[state.widgetSpecs.length]), style: text.titleMedium),
+                          Text(
+                              context.tArgs('uiItemswidgets',
+                                  <Object?>[state.widgetSpecs.length]),
+                              style: text.titleMedium),
                           const SizedBox(height: 2),
                           Text(
                             state.widgetSpecs
-                                .map<String>((WidgetSpec s) => WidgetSpecLabels.content[s.content]!)
+                                .map<String>((WidgetSpec s) =>
+                                    WidgetSpecLabels.content[s.content]!)
                                 .join(' · '),
                             style: text.labelSmall,
                           ),
@@ -434,8 +503,13 @@ class _RingProgress extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
-          CircularProgressIndicator(value: value, strokeWidth: 6, backgroundColor: color.withOpacity(0.14), color: color),
-          Text('${(value * 100).round()}%', style: Theme.of(context).textTheme.labelLarge),
+          CircularProgressIndicator(
+              value: value,
+              strokeWidth: 6,
+              backgroundColor: color.withValues(alpha: 0.14),
+              color: color),
+          Text('${(value * 100).round()}%',
+              style: Theme.of(context).textTheme.labelLarge),
         ],
       ),
     );
@@ -461,12 +535,13 @@ class _Heatmap extends StatelessWidget {
       itemBuilder: (BuildContext context, int i) {
         final int level = StatsSnapshot.heatmapLevel(days[i].minutes);
         return Tooltip(
-          message: context.tArgs('uiMinutes3', <Object?>[days[i].key, days[i].minutes]),
+          message: context
+              .tArgs('uiMinutes3', <Object?>[days[i].key, days[i].minutes]),
           child: Container(
             decoration: BoxDecoration(
               color: level == 0
-                  ? accent.withOpacity(0.06)
-                  : accent.withOpacity(0.16 + (level - 1) * 0.22),
+                  ? accent.withValues(alpha: 0.06)
+                  : accent.withValues(alpha: 0.16 + (level - 1) * 0.22),
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -489,21 +564,26 @@ class _CalendarStrip extends StatelessWidget {
           Column(
             children: <Widget>[
               Text(
-                statsWeekdayLabels[(days[i].date.weekday - 1).clamp(0, 6).toInt()],
+                statsWeekdayLabels[
+                    (days[i].date.weekday - 1).clamp(0, 6).toInt()],
                 style: Theme.of(context).textTheme.labelSmall,
               ),
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               Container(
                 width: 30,
                 height: 30,
                 decoration: BoxDecoration(
                   color: days[i].hasRead
-                      ? Theme.of(context).colorScheme.primary.withOpacity(0.16)
+                      ? Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.16)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 alignment: Alignment.center,
-                child: Text('${days[i].date.day}', style: Theme.of(context).textTheme.bodySmall),
+                child: Text('${days[i].date.day}',
+                    style: Theme.of(context).textTheme.bodySmall),
               ),
             ],
           ),

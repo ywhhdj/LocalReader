@@ -5,16 +5,10 @@ import '../../assembly/app_scope.dart';
 import '../../core/common/design_tokens.dart';
 import '../../core/ui/theme/glass_theme.dart';
 import '../../core/ui/theme/season_scheme.dart';
-import '../../core/ui/components/glass.dart';
+import '../../core/ui/components/glass/Nav.dart';
 import '../../l10n/lr_localizations.dart';
 
 /// 导入向导：格式说明 → 选择授权方式 → 扫描结果 → 冲突处理 → 完成写回。
-///
-/// 页面只持有 `ImportSession` 这一份**局部交互状态**；完成时唯一一次写入
-/// `AppState.applyImport()`。授权、扫描、冲突决策全部是纯 Dart 演示，
-/// 不调用系统文件选择器、不读文件、不联网（见 LegalTexts.importWizardStaticNote）。
-///
-/// 路由由 AppShell / AppRoutes 注入，页面自己不构造页面路由。
 class ImportFlowPage extends StatefulWidget {
   const ImportFlowPage({super.key, this.initialStep = ImportStep.intro});
 
@@ -61,7 +55,12 @@ class _ImportFlowPageState extends State<ImportFlowPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          lrTextArgs('uiBooksN1', <Object?>[added, commit.deferredCount > 0 ? lrTextArgs('uiDeferredN', <Object?>[commit.deferredCount]) : '']),
+          lrTextArgs('uiBooksN1', <Object?>[
+            added,
+            commit.deferredCount > 0
+                ? lrTextArgs('uiDeferredN', <Object?>[commit.deferredCount])
+                : ''
+          ]),
         ),
       ),
     );
@@ -71,11 +70,12 @@ class _ImportFlowPageState extends State<ImportFlowPage> {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final SeasonPalette palette = Theme.of(context).extension<LrSeasonTheme>()?.palette ??
-        SeasonSchemes.resolve(
-          AppScope.of(context).season.value,
-          isDark ? Brightness.dark : Brightness.light,
-        );
+    final SeasonPalette palette =
+        Theme.of(context).extension<LrSeasonTheme>()?.palette ??
+            SeasonSchemes.resolve(
+              AppScope.of(context).season.value,
+              isDark ? Brightness.dark : Brightness.light,
+            );
 
     return Scaffold(
       backgroundColor: isDark ? palette.seed : null,
@@ -91,8 +91,14 @@ class _ImportFlowPageState extends State<ImportFlowPage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: isDark
-                ? <Color>[palette.seed, Color.lerp(palette.seed, Colors.black, 0.35)!]
-                : <Color>[palette.seed, Color.lerp(palette.seed, Colors.white, 0.55)!],
+                ? <Color>[
+                    palette.seed,
+                    Color.lerp(palette.seed, Colors.black, 0.35)!
+                  ]
+                : <Color>[
+                    palette.seed,
+                    Color.lerp(palette.seed, Colors.white, 0.55)!
+                  ],
           ),
         ),
         child: Column(
@@ -101,7 +107,10 @@ class _ImportFlowPageState extends State<ImportFlowPage> {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(
-                  LrSpacing.l, LrSpacing.s, LrSpacing.l, LrSpacing.l,
+                  LrSpacing.l,
+                  LrSpacing.xs,
+                  LrSpacing.l,
+                  LrSpacing.l,
                 ),
                 child: _body(),
               ),
@@ -132,8 +141,10 @@ class _ImportFlowPageState extends State<ImportFlowPage> {
       case ImportStep.conflicts:
         return _ConflictStep(
           session: _session,
-          onResolve: (int i, ConflictResolution r) => _update(_session.resolve(i, r)),
-          onResolveAll: (ConflictResolution r) => _update(_session.resolveAll(r)),
+          onResolve: (int i, ConflictResolution r) =>
+              _update(_session.resolve(i, r)),
+          onResolveAll: (ConflictResolution r) =>
+              _update(_session.resolveAll(r)),
         );
       case ImportStep.done:
         return _DoneStep(session: _session, existingIds: <String>{
@@ -156,14 +167,17 @@ class _StepHeader extends StatelessWidget {
     final TextTheme text = Theme.of(context).textTheme;
     final Color accent = Theme.of(context).colorScheme.primary;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: LrSpacing.l, vertical: LrSpacing.s),
+      padding: const EdgeInsets.symmetric(
+          horizontal: LrSpacing.l, vertical: LrSpacing.xs),
       child: Row(
         children: <Widget>[
           for (int i = 0; i < ImportStep.values.length; i++) ...<Widget>[
             if (i > 0)
               Expanded(
                 child: Divider(
-                  color: i <= session.stepIndex ? accent : Theme.of(context).dividerTheme.color,
+                  color: i <= session.stepIndex
+                      ? accent
+                      : Theme.of(context).dividerTheme.color,
                   thickness: 1.5,
                 ),
               ),
@@ -175,9 +189,10 @@ class _StepHeader extends StatelessWidget {
                   backgroundColor: i <= session.stepIndex
                       ? accent
                       : Theme.of(context).dividerTheme.color,
-                  child: Text('${i + 1}', style: text.labelSmall?.copyWith(
-                    color: i <= session.stepIndex ? Colors.white : null,
-                  )),
+                  child: Text('${i + 1}',
+                      style: text.labelSmall?.copyWith(
+                        color: i <= session.stepIndex ? Colors.white : null,
+                      )),
                 ),
                 const SizedBox(height: LrSpacing.xs),
                 Text(labels[ImportStep.values[i]]!, style: text.labelSmall),
@@ -205,11 +220,26 @@ class _IntroStep extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              _Line(text: text, label: context.t('uiSupportedFormats'), value: context.t('importFormats')),
-              _Line(text: text, label: context.t('uiArchives'), value: context.t('archiveNotice')),
-              _Line(text: text, label: context.t('uiPermissions'), value: context.t('permissionNotice')),
-              _Line(text: text, label: context.t('uiImportChannels'), value: context.t('importChannels')),
-              _Line(text: text, label: context.t('uiOnline'), value: context.t('localOnlyNote')),
+              _Line(
+                  text: text,
+                  label: context.t('uiSupportedFormats'),
+                  value: context.t('importFormats')),
+              _Line(
+                  text: text,
+                  label: context.t('uiArchives'),
+                  value: context.t('archiveNotice')),
+              _Line(
+                  text: text,
+                  label: context.t('uiPermissions'),
+                  value: context.t('permissionNotice')),
+              _Line(
+                  text: text,
+                  label: context.t('uiImportChannels'),
+                  value: context.t('importChannels')),
+              _Line(
+                  text: text,
+                  label: context.t('uiOnline'),
+                  value: context.t('localOnlyNote')),
             ],
           ),
         ),
@@ -218,9 +248,12 @@ class _IntroStep extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Icon(Icons.info_outline, size: 18, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: LrSpacing.s),
-              Expanded(child: Text(context.t('importWizardStaticNote'), style: text.bodySmall)),
+              Icon(Icons.info_outline,
+                  size: 18, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: LrSpacing.xs),
+              Expanded(
+                  child: Text(context.t('importWizardStaticNote'),
+                      style: text.bodySmall)),
             ],
           ),
         ),
@@ -238,7 +271,7 @@ class _Line extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: LrSpacing.s),
+        padding: const EdgeInsets.only(bottom: LrSpacing.xs),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -269,23 +302,28 @@ class _PermissionStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(context.t('uiChooseAnAuthorizationMethod'), style: text.headlineMedium),
+        Text(context.t('uiChooseAnAuthorizationMethod'),
+            style: text.headlineMedium),
         const SizedBox(height: LrSpacing.xs),
         Text(context.t('permissionNotice'), style: text.bodySmall),
         const SizedBox(height: LrSpacing.m),
         ...ImportPermissionMode.values.map<Widget>((ImportPermissionMode m) {
           final bool selected = session.mode == m;
           return Padding(
-            padding: const EdgeInsets.only(bottom: LrSpacing.s),
+            padding: const EdgeInsets.only(bottom: LrSpacing.xs),
             child: GestureDetector(
               onTap: () => onChoose(m),
               child: GlassPanel(
                 child: Row(
                   children: <Widget>[
                     Icon(
-                      selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                      selected
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_off,
                       size: 19,
-                      color: selected ? Theme.of(context).colorScheme.primary : null,
+                      color: selected
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
                     ),
                     const SizedBox(width: LrSpacing.m),
                     Expanded(
@@ -294,7 +332,8 @@ class _PermissionStep extends StatelessWidget {
                         children: <Widget>[
                           Text(ImportLabels.modes[m]!, style: text.titleMedium),
                           const SizedBox(height: 2),
-                          Text(ImportLabels.modeHints[m]!, style: text.bodySmall),
+                          Text(ImportLabels.modeHints[m]!,
+                              style: text.bodySmall),
                         ],
                       ),
                     ),
@@ -304,13 +343,16 @@ class _PermissionStep extends StatelessWidget {
             ),
           );
         }),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Row(
           children: <Widget>[
             FilledButton.icon(
-              onPressed: session.mode == null || session.granted ? null : onGrant,
+              onPressed:
+                  session.mode == null || session.granted ? null : onGrant,
               icon: const Icon(Icons.folder_open_outlined, size: 17),
-              label: Text(session.granted ? context.t('uiAuthorizationConfirmed') : context.t('uiSimulateAuthorization')),
+              label: Text(session.granted
+                  ? context.t('uiAuthorizationConfirmed')
+                  : context.t('uiSimulateAuthorization')),
             ),
             const SizedBox(width: LrSpacing.m),
             Expanded(
@@ -342,32 +384,39 @@ class _ScanStep extends StatelessWidget {
     final TextTheme text = Theme.of(context).textTheme;
     final ScanReport? report = session.report;
     if (report == null) {
-      return GlassPanel(child: Text(context.t('importScanEmpty'), style: text.bodyMedium));
+      return GlassPanel(
+          child: Text(context.t('importScanEmpty'), style: text.bodyMedium));
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(context.t('uiScanResults'), style: text.headlineMedium),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Wrap(
-          spacing: LrSpacing.s,
-          runSpacing: LrSpacing.s,
+          spacing: LrSpacing.xs,
+          runSpacing: LrSpacing.xs,
           children: <Widget>[
             _CountChip(label: context.t('uiScanned'), value: report.total),
-            _CountChip(label: context.t('uiImportable'), value: report.acceptedCount),
-            _CountChip(label: context.t('uiUnsupported'), value: report.rejectedCount),
-            _CountChip(label: context.t('uiUnregistered'), value: report.unsupportedCount),
-            _CountChip(label: context.t('uiNameConflict'), value: session.conflicts.length),
+            _CountChip(
+                label: context.t('uiImportable'), value: report.acceptedCount),
+            _CountChip(
+                label: context.t('uiUnsupported'), value: report.rejectedCount),
+            _CountChip(
+                label: context.t('uiUnregistered'),
+                value: report.unsupportedCount),
+            _CountChip(
+                label: context.t('uiNameConflict'),
+                value: session.conflicts.length),
           ],
         ),
         const SizedBox(height: LrSpacing.m),
         ...report.candidates.map<Widget>(
           (ImportCandidate c) => Padding(
-            padding: const EdgeInsets.only(bottom: LrSpacing.s),
+            padding: const EdgeInsets.only(bottom: LrSpacing.xs),
             child: _CandidateCard(candidate: c),
           ),
         ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Text(context.t('archiveNotice'), style: text.labelSmall),
       ],
     );
@@ -383,8 +432,10 @@ class _CountChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => GlassPanel(
         borderRadius: LrRadius.pill,
-        padding: const EdgeInsets.symmetric(horizontal: LrSpacing.m, vertical: LrSpacing.xs),
-        child: Text('$label $value', style: Theme.of(context).textTheme.labelLarge),
+        padding: const EdgeInsets.symmetric(
+            horizontal: LrSpacing.m, vertical: LrSpacing.xs),
+        child: Text('$label $value',
+            style: Theme.of(context).textTheme.labelLarge),
       );
 }
 
@@ -418,8 +469,10 @@ class _CandidateCard extends StatelessWidget {
                 Row(
                   children: <Widget>[
                     Expanded(
-                      child: Text(candidate.title, style: text.titleMedium,
-                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                      child: Text(candidate.title,
+                          style: text.titleMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
                     ),
                     Text(candidate.format, style: text.labelSmall),
                   ],
@@ -480,7 +533,7 @@ class _ConflictStep extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(context.t('uiNoNameConflicts'), style: text.titleMedium),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Text(context.t('importConflictNote'), style: text.bodySmall),
           ],
         ),
@@ -494,11 +547,14 @@ class _ConflictStep extends StatelessWidget {
         Text(context.t('importConflictNote'), style: text.bodySmall),
         const SizedBox(height: LrSpacing.m),
         Wrap(
-          spacing: LrSpacing.s,
+          spacing: LrSpacing.xs,
           children: <Widget>[
             for (final ConflictResolution r in ConflictResolution.values)
               ActionChip(
-                label: Text(context.tArgs('uiAll', <Object?>[ImportLabels.resolutions[r]]), style: text.labelLarge),
+                label: Text(
+                    context
+                        .tArgs('uiAll', <Object?>[ImportLabels.resolutions[r]]),
+                    style: text.labelLarge),
                 onPressed: () => onResolveAll(r),
               ),
           ],
@@ -506,7 +562,7 @@ class _ConflictStep extends StatelessWidget {
         const SizedBox(height: LrSpacing.m),
         ...session.conflicts.asMap().entries.map<Widget>(
               (MapEntry<int, ImportConflict> e) => Padding(
-                padding: const EdgeInsets.only(bottom: LrSpacing.s),
+                padding: const EdgeInsets.only(bottom: LrSpacing.xs),
                 child: _ConflictCard(
                   conflict: e.value,
                   onPick: (ConflictResolution r) => onResolve(e.key, r),
@@ -535,12 +591,13 @@ class _ConflictCard extends StatelessWidget {
           Text(conflict.candidate.title, style: text.titleMedium),
           const SizedBox(height: 2),
           Text(
-            context.tArgs('uiDuplicateOf', <Object?>[conflict.existing.title, conflict.candidate.format]),
+            context.tArgs('uiDuplicateOf',
+                <Object?>[conflict.existing.title, conflict.candidate.format]),
             style: text.labelSmall,
           ),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           Wrap(
-            spacing: LrSpacing.s,
+            spacing: LrSpacing.xs,
             runSpacing: LrSpacing.xs,
             children: <Widget>[
               for (final ConflictResolution r in ConflictResolution.values)
@@ -577,18 +634,38 @@ class _DoneStep extends StatelessWidget {
         GlassPanel(
           child: Column(
             children: <Widget>[
-              _SummaryRow(text: text, label: context.t('uiScannedFiles'), value: context.tArgs('uiItems3', <Object?>[commit.totalCandidates])),
-              _SummaryRow(text: text, label: context.t('uiToBeAdded'), value: context.tArgs('uiBooks', <Object?>[commit.addedCount])),
-              _SummaryRow(text: text, label: context.t('uiSkippedUnsupported'), value: context.tArgs('uiItems4', <Object?>[commit.skipped + commit.unsupported])),
-              _SummaryRow(text: text, label: context.t('uiNameConflict'), value: context.tArgs('uiItems5', <Object?>[commit.conflictCount])),
-              _SummaryRow(text: text, label: context.t('uiDeferred'), value: context.tArgs('uiItems6', <Object?>[commit.deferredCount])),
+              _SummaryRow(
+                  text: text,
+                  label: context.t('uiScannedFiles'),
+                  value: context
+                      .tArgs('uiItems3', <Object?>[commit.totalCandidates])),
+              _SummaryRow(
+                  text: text,
+                  label: context.t('uiToBeAdded'),
+                  value:
+                      context.tArgs('uiBooks', <Object?>[commit.addedCount])),
+              _SummaryRow(
+                  text: text,
+                  label: context.t('uiSkippedUnsupported'),
+                  value: context.tArgs('uiItems4',
+                      <Object?>[commit.skipped + commit.unsupported])),
+              _SummaryRow(
+                  text: text,
+                  label: context.t('uiNameConflict'),
+                  value: context
+                      .tArgs('uiItems5', <Object?>[commit.conflictCount])),
+              _SummaryRow(
+                  text: text,
+                  label: context.t('uiDeferred'),
+                  value: context
+                      .tArgs('uiItems6', <Object?>[commit.deferredCount])),
             ],
           ),
         ),
         const SizedBox(height: LrSpacing.m),
         if (commit.added.isNotEmpty) ...<Widget>[
           Text(context.t('uiToBeAdded2'), style: text.labelLarge),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           ...commit.added.map<Widget>(
             (ImportBookDraft d) => Padding(
               padding: const EdgeInsets.only(bottom: LrSpacing.xs),
@@ -606,7 +683,7 @@ class _DoneStep extends StatelessWidget {
         ],
         const SizedBox(height: LrSpacing.m),
         Text(context.t('importDoneNote'), style: text.bodySmall),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Text(context.t('demoDataNote'), style: text.labelSmall),
       ],
     );
@@ -614,7 +691,8 @@ class _DoneStep extends StatelessWidget {
 }
 
 class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({required this.text, required this.label, required this.value});
+  const _SummaryRow(
+      {required this.text, required this.label, required this.value});
 
   final TextTheme text;
   final String label;
@@ -652,14 +730,15 @@ class _BottomBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.s, LrSpacing.l, LrSpacing.m),
+        padding: const EdgeInsets.fromLTRB(
+            LrSpacing.l, LrSpacing.xs, LrSpacing.l, LrSpacing.m),
         child: GlassPanel(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               if (!session.canAdvance && !done)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: LrSpacing.s),
+                  padding: const EdgeInsets.only(bottom: LrSpacing.xs),
                   child: Text(session.blockingHint, style: text.labelSmall),
                 ),
               Row(
@@ -672,9 +751,13 @@ class _BottomBar extends StatelessWidget {
                     ),
                   const Spacer(),
                   FilledButton.icon(
-                    onPressed: done ? onNext : (session.canAdvance ? onNext : null),
-                    icon: Icon(done ? Icons.check : Icons.arrow_forward, size: 17),
-                    label: Text(done ? context.t('uiWriteToShelfAndClose') : context.t('uiNext')),
+                    onPressed:
+                        done ? onNext : (session.canAdvance ? onNext : null),
+                    icon: Icon(done ? Icons.check : Icons.arrow_forward,
+                        size: 17),
+                    label: Text(done
+                        ? context.t('uiWriteToShelfAndClose')
+                        : context.t('uiNext')),
                   ),
                 ],
               ),

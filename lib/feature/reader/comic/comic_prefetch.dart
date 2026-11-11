@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import '../../domain/repositories/render_bridge.dart';
+import '../../../domain/repositories/render_bridge.dart';
 
 /// 预加载窗口：对应原项目「预加载窗口、按页宽高比占位」。
 /// 只在窗口差集变化时批量 prefetch / evict，不在滚动回调里逐帧跨 channel。

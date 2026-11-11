@@ -3042,4 +3042,265 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get uiClose => '关闭';
+
+  @override
+  String get uiWenkuLibrary => '轻小说文库';
+
+  @override
+  String get uiRecentReads => '最近阅读';
+
+  @override
+  String get uiMyFavorites => '我的收藏';
+
+  @override
+  String get uiLoginWenkuAccount => '登录文库账号';
+
+  @override
+  String get uiLoginToSyncCloud => '登录后同步云书架';
+
+  @override
+  String get uiAccountName => '文库账号';
+
+  @override
+  String get uiSyncStatus => '同步状态';
+
+  @override
+  String get uiSwitchToOnlineToLogin => '切到联网模式后可登录';
+
+  @override
+  String get uiGoCollect => '去收藏';
+
+  @override
+  String get uiCloudEmpty => '还没有云端藏书';
+
+  @override
+  String get uiRankingDaily => '日榜';
+
+  @override
+  String get uiRankingWeekly => '周榜';
+
+  @override
+  String get uiRankingMonthly => '月榜';
+
+  @override
+  String get uiRankingAll => '总榜';
+
+  @override
+  String get uiRecommendedForYou => '推荐喜欢';
+
+  @override
+  String get uiStatsOverview => '总览';
+
+  @override
+  String get uiStatsCharts => '图表';
+
+  @override
+  String get uiStatsBooks => '书目';
+
+  @override
+  String get uiStatsMarks => '记号';
+
+  @override
+  String get uiStatsTouch => '触摸';
+
+  @override
+  String get uiSettingsAppearance => '外观';
+
+  @override
+  String get uiSettingsPerformance => '性能';
+
+  @override
+  String get uiSettingsWidgets => '小组件';
+
+  @override
+  String get uiSettingsDataStorage => '数据与存储';
+
+  @override
+  String get uiCacheManagement => '缓存管理';
+
+  @override
+  String get uiBackup => '备份';
+
+  @override
+  String get uiTheme => '主题';
+
+  @override
+  String get uiThemeFollowSystem => '跟随系统';
+
+  @override
+  String get uiThemeDark => '夜间';
+
+  @override
+  String get uiThemeLight => '浅色';
+
+  @override
+  String get uiLanguage => '语言';
+
+  @override
+  String get uiLangFollowSystem => '跟随系统';
+
+  @override
+  String get uiLangZh => '简体中文';
+
+  @override
+  String get uiLangEn => '英文';
+
+  @override
+  String get uiTtsEngine => '语言接口';
+
+  @override
+  String get uiTtsSystem => '系统语音';
+
+  @override
+  String get uiTtsOpenAi => 'OpenAI 兼容';
+
+  @override
+  String get uiTtsSsml => 'SSML';
+
+  @override
+  String get uiSearchByTitle => '书名';
+
+  @override
+  String get uiSearchByAuthor => '作者';
+
+  @override
+  String get uiSearchByTag => '标签';
+
+  @override
+  String get uiNovel => '小说';
+
+  @override
+  String get uiComic => '漫画';
+
+  @override
+  String get uiGridList => '列表';
+
+  @override
+  String get uiGridTwoColumns => '两栏';
+
+  @override
+  String get uiGridThreeColumns => '三栏';
+
+  @override
+  String get uiRecentLimit => '最近阅读记录条数';
+
+  @override
+  String get uiImportBooks => '导入书籍';
+
+  @override
+  String get uiImportSettings => '导入设置';
+
+  @override
+  String get uiTxtEncoding => 'TXT 编码';
+
+  @override
+  String get uiEncAuto => '自动';
+
+  @override
+  String get uiEncUtf8 => 'UTF-8';
+
+  @override
+  String get uiEncGbk => 'GBK';
+
+  @override
+  String get uiEncBig5 => 'Big5';
+
+  @override
+  String get uiEncUtf16 => 'UTF-16';
+
+  @override
+  String get uiEncGb18030 => 'GB18030';
+
+  @override
+  String get uiTxtTocDetection => 'TXT 目录识别';
+
+  @override
+  String get uiTocAuto => '自动识别';
+
+  @override
+  String get uiTocCustom => '自定义规则';
+
+  @override
+  String get uiChapterRegex => '章节正则';
+
+  @override
+  String get uiVolumeRegex => '分卷正则';
+
+  @override
+  String get uiRulePreview => '规则命中预览';
+
+  @override
+  String get uiUntitledPolicy => '原书未提供标题';
+
+  @override
+  String get uiFillChapterName => '补齐章节名';
+
+  @override
+  String get uiMarkBodyFragment => '标为正文片段';
+
+  @override
+  String get uiScanLocalFolder => '扫描本地文件夹';
+
+  @override
+  String get uiScanFormat => '扫描格式';
+
+  @override
+  String get uiFormatAll => '全部格式';
+
+  @override
+  String get uiFormatAllShort => '全部';
+
+  @override
+  String get uiScanScope => '选择扫描范围';
+
+  @override
+  String get uiScopeSaf => '授权目录';
+
+  @override
+  String get uiScopeFolder => '指定文件夹';
+
+  @override
+  String get uiScopeAllStorage => '所有文件访问';
+
+  @override
+  String get uiScopeLastUsed => '上次范围';
+
+  @override
+  String get uiMergeBooks => '合并书籍';
+
+  @override
+  String get uiSearchFiles => '搜索书名 / 文件名 / 路径';
+
+  @override
+  String get uiFileName => '文件名';
+
+  @override
+  String get uiFileFormat => '格式';
+
+  @override
+  String get uiFilePath => '路径';
+
+  @override
+  String get uiVolumeGroup => '合并后';
+
+  @override
+  String get uiVolumeCount => '卷';
+
+  @override
+  String get uiSelectToImport => '选择要导入的文件';
+
+  @override
+  String get uiImportSelected => '导入所选';
+
+  @override
+  String get uiOriginalStructure => '按原目录结构';
+
+  @override
+  String get uiStartScan => '开始扫描';
+
+  @override
+  String get uiScanning => '扫描中…';
+
+  @override
+  String get uiLoadMore => '加载更多';
 }

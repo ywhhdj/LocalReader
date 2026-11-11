@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../common/design_tokens.dart';
-import 'glass.dart';
+import '../../../core/common/design_tokens.dart';
+import '../../../core/ui/components/glass/Nav.dart';
 
-/// 第三十轮：参考用户给出的项目页左下角朗读悬浮球，用 Flutter clean-room 重写。
+/// 参考用户给出的项目页左下角朗读悬浮球
 ///
-/// 交互契约（与参考实现一致，但不是搬代码）：
+/// 交互契约：
 ///   * 未朗读时右下角只有一颗「朗读」圆球 [TtsFab]；
 ///   * 开始朗读后换成左下角 [DraggableTtsProgressOrb]；
 ///   * 进度球可拖动、拖到左右 15% / 85% 边缘会贴边隐藏，留 24px 把手点开；
@@ -95,16 +95,15 @@ class _DraggableTtsProgressOrbState extends State<DraggableTtsProgressOrb> {
   _OrbSide? _hidden;
   bool _dragging = false;
 
-  Offset _bottomLeft(Size parent) => Offset(
-      _edge, parent.height - _orbHeight - _edge - 76);
+  Offset _bottomLeft(Size parent) =>
+      Offset(_edge, parent.height - _orbHeight - _edge - 76);
 
   @override
   Widget build(BuildContext context) {
     if (!widget.visible) return const SizedBox.shrink();
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final Size parent =
-            Size(constraints.maxWidth, constraints.maxHeight);
+        final Size parent = Size(constraints.maxWidth, constraints.maxHeight);
         _pos ??= _bottomLeft(parent);
         final double minX = -_orbWidth + _peek;
         final double maxX = parent.width - _peek;
@@ -138,7 +137,8 @@ class _DraggableTtsProgressOrbState extends State<DraggableTtsProgressOrb> {
                       setState(() {
                         _pos = Offset(
                           (_pos!.dx + d.delta.dx).clamp(minX, maxX),
-                          (_pos!.dy + d.delta.dy).clamp(0.0, maxY < 0 ? 0.0 : maxY),
+                          (_pos!.dy + d.delta.dy)
+                              .clamp(0.0, maxY < 0 ? 0.0 : maxY),
                         );
                       });
                     },
@@ -182,9 +182,7 @@ class _DraggableTtsProgressOrbState extends State<DraggableTtsProgressOrb> {
             ),
             if (_hidden != null)
               Positioned(
-                left: _hidden == _OrbSide.left
-                    ? 0
-                    : parent.width - _peek,
+                left: _hidden == _OrbSide.left ? 0 : parent.width - _peek,
                 top: (_pos!.dy + (_orbHeight - 56) / 2)
                     .clamp(0.0, parent.height - 56),
                 child: Semantics(
@@ -198,7 +196,7 @@ class _DraggableTtsProgressOrbState extends State<DraggableTtsProgressOrb> {
                         color: Theme.of(context)
                             .colorScheme
                             .surface
-                            .withOpacity(0.94),
+                            .withValues(alpha: 0.94),
                         borderRadius: BorderRadius.horizontal(
                           left: _hidden == _OrbSide.right
                               ? const Radius.circular(16)
@@ -262,7 +260,7 @@ class TtsProgressOrb extends StatelessWidget {
     return GlassPanel(
       borderRadius: LrRadius.pill,
       padding: const EdgeInsets.symmetric(
-          horizontal: LrSpacing.s, vertical: LrSpacing.xs),
+          horizontal: LrSpacing.xs, vertical: LrSpacing.xs),
       child: SizedBox(
         width: _orbWidth,
         height: _orbHeight,
@@ -275,7 +273,7 @@ class TtsProgressOrb extends StatelessWidget {
               spinning: playing,
               animationsEnabled: animationsEnabled,
             ),
-            const SizedBox(width: LrSpacing.s),
+            const SizedBox(width: LrSpacing.xs),
             SizedBox(
               width: 40,
               height: 40,
@@ -286,7 +284,7 @@ class TtsProgressOrb extends StatelessWidget {
                     value: progress.clamp(0.0, 1.0),
                     strokeWidth: 3,
                     color: scheme.primary,
-                    backgroundColor: scheme.primary.withOpacity(0.18),
+                    backgroundColor: scheme.primary.withValues(alpha: 0.18),
                   ),
                   IconButton(
                     tooltip: playing ? pauseLabel : resumeLabel,
@@ -381,7 +379,10 @@ class _SpinningCoverState extends State<SpinningCover>
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.25)),
+              color: Theme.of(context)
+                  .colorScheme
+                  .outline
+                  .withValues(alpha: 0.25)),
           gradient: const LinearGradient(
             colors: <Color>[Color(0xFF8A6A4F), Color(0xFFC99AA6)],
           ),

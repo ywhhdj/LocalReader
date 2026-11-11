@@ -1,11 +1,10 @@
+import 'package:Local_reader/core/ui/components/glass/Page.dart';
 import 'package:flutter/material.dart';
 
 import '../../assembly/app_scope.dart';
 import '../../l10n/lr_localizations.dart';
 import '../../core/ui/components/account_card.dart';
 import '../../core/ui/components/menu_entry_card.dart';
-import '../../core/ui/components/page_scaffold.dart';
-import '../../core/ui/components/page_scroll_header.dart';
 
 /// 「我的」页（第三十轮按参考图重排，纯组件组合）。
 ///

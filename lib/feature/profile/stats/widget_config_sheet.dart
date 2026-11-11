@@ -9,7 +9,7 @@ import '../../../core/model/stats/reading_stats.dart';
 import '../../../core/model/stats/widget_preview.dart';
 import '../../../core/common/design_tokens.dart';
 import '../../../core/ui/theme/season_scheme.dart';
-import '../../../core/ui/components/glass.dart';
+import '../../../core/ui/components/glass/Nav.dart';
 import '../../../l10n/lr_localizations.dart';
 
 /// 应用内小组件配置面板。
@@ -66,7 +66,8 @@ class _WidgetConfigSheetState extends State<WidgetConfigSheet> {
         LrSpacing.l + MediaQuery.of(context).viewInsets.bottom,
       ),
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.86),
+        constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.86),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -79,12 +80,16 @@ class _WidgetConfigSheetState extends State<WidgetConfigSheet> {
                   TextButton.icon(
                     onPressed: state.resetWidgetSpecs,
                     icon: const Icon(Icons.restart_alt_outlined, size: 17),
-                    label: Text(context.t('uiResetToDefault'), style: text.labelLarge),
+                    label: Text(context.t('uiResetToDefault'),
+                        style: text.labelLarge),
                   ),
                 ],
               ),
               const SizedBox(height: LrSpacing.xs),
-              Text(context.tArgs('uiTotalItemsItemsItems', <Object?>[specs.length]), style: text.bodySmall),
+              Text(
+                  context
+                      .tArgs('uiTotalItemsItemsItems', <Object?>[specs.length]),
+                  style: text.bodySmall),
               const SizedBox(height: LrSpacing.m),
 
               // 明暗预览开关：同一套配置在浅/深色下都要可读
@@ -94,14 +99,18 @@ class _WidgetConfigSheetState extends State<WidgetConfigSheet> {
                 child: Row(
                   children: <Widget>[
                     Icon(
-                      _previewDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+                      _previewDark
+                          ? Icons.dark_mode_outlined
+                          : Icons.light_mode_outlined,
                       size: 18,
                       color: Theme.of(context).colorScheme.primary,
                     ),
-                    const SizedBox(width: LrSpacing.s),
+                    const SizedBox(width: LrSpacing.xs),
                     Expanded(
                       child: Text(
-                        _previewDark ? context.t('uiDarkPreview') : context.t('uiLightPreview'),
+                        _previewDark
+                            ? context.t('uiDarkPreview')
+                            : context.t('uiLightPreview'),
                         style: text.labelLarge,
                       ),
                     ),
@@ -112,32 +121,36 @@ class _WidgetConfigSheetState extends State<WidgetConfigSheet> {
                   ],
                 ),
               ),
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
 
               ...specs.map<Widget>((WidgetSpec spec) => Padding(
-                    padding: const EdgeInsets.only(bottom: LrSpacing.s),
+                    padding: const EdgeInsets.only(bottom: LrSpacing.xs),
                     child: _SpecCard(
                       spec: spec,
                       expanded: _expandedId == spec.id,
-                      previewBrightness: _previewDark ? Brightness.dark : Brightness.light,
+                      previewBrightness:
+                          _previewDark ? Brightness.dark : Brightness.light,
                       onToggle: () => setState(
-                        () => _expandedId = _expandedId == spec.id ? null : spec.id,
+                        () => _expandedId =
+                            _expandedId == spec.id ? null : spec.id,
                       ),
-                      onChange: (WidgetSpec next) => state.updateWidgetSpec(next),
+                      onChange: (WidgetSpec next) =>
+                          state.updateWidgetSpec(next),
                       onRemove: () => state.removeWidgetSpec(spec.id),
-                      keepsakePreview: (spec.content == WidgetContent.keepsake &&
-                              monthDate != null)
-                          ? KeepsakeMonthPreview.build(
-                              keepsakes: keepsakes,
-                              monthDate: monthDate,
-                              kind: spec.keepsakeKind,
-                            )
-                          : null,
+                      keepsakePreview:
+                          (spec.content == WidgetContent.keepsake &&
+                                  monthDate != null)
+                              ? KeepsakeMonthPreview.build(
+                                  keepsakes: keepsakes,
+                                  monthDate: monthDate,
+                                  kind: spec.keepsakeKind,
+                                )
+                              : null,
                       onOpenKeepsakeMonth: widget.onOpenKeepsakeMonth,
                     ),
                   )),
 
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               OutlinedButton.icon(
                 onPressed: () => setState(() {
                   final WidgetSpec added = state.addWidgetSpec();
@@ -154,19 +167,24 @@ class _WidgetConfigSheetState extends State<WidgetConfigSheet> {
                   children: <Widget>[
                     Row(
                       children: <Widget>[
-                        Icon(Icons.info_outline, size: 16, color: Theme.of(context).colorScheme.primary),
-                        const SizedBox(width: LrSpacing.s),
-                        Text(context.t('uiAboutDesktopWidgets'), style: text.titleMedium),
+                        Icon(Icons.info_outline,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.primary),
+                        const SizedBox(width: LrSpacing.xs),
+                        Text(context.t('uiAboutDesktopWidgets'),
+                            style: text.titleMedium),
                       ],
                     ),
-                    const SizedBox(height: LrSpacing.s),
+                    const SizedBox(height: LrSpacing.xs),
                     Text(
                       context.t('uiSaveWidgetsFlutter') +
-                      context.t('uiAndroidUsesInAppConfigIosUsesWidgetkitEditCont') +
-                      context.t('uiAllThreePlatformsNeedNativeImplementationsRead'),
+                          context.t(
+                              'uiAndroidUsesInAppConfigIosUsesWidgetkitEditCont') +
+                          context.t(
+                              'uiAllThreePlatformsNeedNativeImplementationsRead'),
                       style: text.bodySmall,
                     ),
-                    const SizedBox(height: LrSpacing.s),
+                    const SizedBox(height: LrSpacing.xs),
                     Text(context.t('demoDataNote'), style: text.labelSmall),
                   ],
                 ),
@@ -203,14 +221,15 @@ class _SpecCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextTheme text = Theme.of(context).textTheme;
-    final SeasonPalette palette = SeasonSchemes.preview(spec.season, brightness: previewBrightness);
+    final SeasonPalette palette =
+        SeasonSchemes.preview(spec.season, brightness: previewBrightness);
     final Color on = ReaderStyle.onColor(palette.seed);
     final bool isDark = previewBrightness == Brightness.dark;
     // 提到局部变量，避免在字符串插值里再嵌一层插值（静态阶段无 SDK 验证，宁可直白）。
-    final String kindSuffix = (spec.content == WidgetContent.keepsake &&
-            spec.keepsakeKind != null)
-        ? ' · ${KeepsakeKindLabels.labels[spec.keepsakeKind]!}'
-        : '';
+    final String kindSuffix =
+        (spec.content == WidgetContent.keepsake && spec.keepsakeKind != null)
+            ? ' · ${KeepsakeKindLabels.labels[spec.keepsakeKind]!}'
+            : '';
 
     return GlassPanel(
       padding: const EdgeInsets.all(LrSpacing.m),
@@ -226,11 +245,13 @@ class _SpecCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: palette.seed,
                 borderRadius: BorderRadius.circular(LrRadius.card),
-                border: Border.all(color: palette.accent.withOpacity(0.4)),
+                border:
+                    Border.all(color: palette.accent.withValues(alpha: 0.4)),
               ),
               child: Row(
                 children: <Widget>[
-                  Icon(WidgetSpecLabels.icon[spec.content], size: 22, color: palette.accent),
+                  Icon(WidgetSpecLabels.icon[spec.content],
+                      size: 22, color: palette.accent),
                   const SizedBox(width: LrSpacing.m),
                   Expanded(
                     child: Column(
@@ -248,7 +269,8 @@ class _SpecCard extends StatelessWidget {
                             spec.showProgress ? lrText('uiShowProgress') : '',
                             kindSuffix,
                           ]),
-                          style: text.labelSmall?.copyWith(color: on.withOpacity(0.62)),
+                          style: text.labelSmall
+                              ?.copyWith(color: on.withValues(alpha: 0.62)),
                         ),
                       ],
                     ),
@@ -256,7 +278,7 @@ class _SpecCard extends StatelessWidget {
                   Icon(
                     expanded ? Icons.expand_less : Icons.expand_more,
                     size: 18,
-                    color: on.withOpacity(0.6),
+                    color: on.withValues(alpha: 0.6),
                   ),
                 ],
               ),
@@ -265,7 +287,7 @@ class _SpecCard extends StatelessWidget {
           // 第十九轮：内容 = 纪念物时，预览块下方直接给出「本月」真实聚合结果，
           // 而不只是四个配置项。桌面小组件本体仍 ❄️ 冻结，这里只是应用内预览。
           if (keepsakePreview != null) ...<Widget>[
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             _MonthKeepsakePreview(
               preview: keepsakePreview!,
               palette: palette,
@@ -280,7 +302,7 @@ class _SpecCard extends StatelessWidget {
             Text(context.t('uiContent2'), style: text.labelSmall),
             const SizedBox(height: LrSpacing.xs),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               runSpacing: LrSpacing.xs,
               children: <Widget>[
                 for (final WidgetContent c in WidgetContent.values)
@@ -294,11 +316,12 @@ class _SpecCard extends StatelessWidget {
             // 内容 = 纪念物时，每个小组件可独立指定一种类型；null = 显示全部。
             // 面板只在展开且内容匹配时渲染，其它内容档不会多出一排无关 chip。
             if (spec.content == WidgetContent.keepsake) ...<Widget>[
-              const SizedBox(height: LrSpacing.s),
-              Text(context.t('uiKeepsakeTypePerWidget'), style: text.labelSmall),
+              const SizedBox(height: LrSpacing.xs),
+              Text(context.t('uiKeepsakeTypePerWidget'),
+                  style: text.labelSmall),
               const SizedBox(height: LrSpacing.xs),
               Wrap(
-                spacing: LrSpacing.s,
+                spacing: LrSpacing.xs,
                 runSpacing: LrSpacing.xs,
                 children: <Widget>[
                   ChoiceChip(
@@ -319,11 +342,11 @@ class _SpecCard extends StatelessWidget {
               const SizedBox(height: LrSpacing.xs),
               Text(context.t('keepsakeWidgetKindNote'), style: text.labelSmall),
             ],
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Text(context.t('uiSize2'), style: text.labelSmall),
             const SizedBox(height: LrSpacing.xs),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               children: <Widget>[
                 for (final WidgetSize s in WidgetSize.values)
                   ChoiceChip(
@@ -333,11 +356,12 @@ class _SpecCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: LrSpacing.s),
-            Text(context.t('uiSeasonStyleIndependentOfAppTheme'), style: text.labelSmall),
+            const SizedBox(height: LrSpacing.xs),
+            Text(context.t('uiSeasonStyleIndependentOfAppTheme'),
+                style: text.labelSmall),
             const SizedBox(height: LrSpacing.xs),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               runSpacing: LrSpacing.xs,
               children: <Widget>[
                 for (final SeasonStyle s in SeasonSchemes.styles)
@@ -345,15 +369,19 @@ class _SpecCard extends StatelessWidget {
                     onTap: () => onChange(spec.copyWith(season: s)),
                     child: CircleAvatar(
                       radius: 14,
-                      backgroundColor: SeasonSchemes.preview(s, brightness: previewBrightness).accent,
+                      backgroundColor: SeasonSchemes.preview(s,
+                              brightness: previewBrightness)
+                          .accent,
                       child: spec.season == s
-                          ? Icon(Icons.check, size: 15, color: isDark ? Colors.black : Colors.white)
+                          ? Icon(Icons.check,
+                              size: 15,
+                              color: isDark ? Colors.black : Colors.white)
                           : null,
                     ),
                   ),
               ],
             ),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
               dense: true,
@@ -394,32 +422,34 @@ class _MonthKeepsakePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextTheme text = Theme.of(context).textTheme;
-    final Color sub = on.withOpacity(0.72);
+    final Color sub = on.withValues(alpha: 0.72);
     final KeepsakeMonthEmptyKind empty = preview.emptyKind;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(LrSpacing.m),
       decoration: BoxDecoration(
-        color: palette.accent.withOpacity(0.12),
+        color: palette.accent.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(LrRadius.card),
-        border: Border.all(color: palette.accent.withOpacity(0.32)),
+        border: Border.all(color: palette.accent.withValues(alpha: 0.32)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Row(
             children: <Widget>[
-              Icon(Icons.auto_awesome_outlined, size: 16, color: palette.accent),
-              const SizedBox(width: LrSpacing.s),
-              Text(context.t('uiThisMonthKeepsakePreview'), style: text.labelLarge?.copyWith(color: on)),
+              Icon(Icons.auto_awesome_outlined,
+                  size: 16, color: palette.accent),
+              const SizedBox(width: LrSpacing.xs),
+              Text(context.t('uiThisMonthKeepsakePreview'),
+                  style: text.labelLarge?.copyWith(color: on)),
               const Spacer(),
-              Text(preview.monthKey, style: text.labelSmall?.copyWith(color: sub)),
+              Text(preview.monthKey,
+                  style: text.labelSmall?.copyWith(color: sub)),
             ],
           ),
-          const SizedBox(height: LrSpacing.s),
-          Text(preview.headline,
-              style: text.titleMedium?.copyWith(color: on)),
+          const SizedBox(height: LrSpacing.xs),
+          Text(preview.headline, style: text.titleMedium?.copyWith(color: on)),
           if (preview.subline.isNotEmpty) ...<Widget>[
             const SizedBox(height: LrSpacing.xs),
             Text(preview.subline,
@@ -428,7 +458,7 @@ class _MonthKeepsakePreview extends StatelessWidget {
                 style: text.bodySmall?.copyWith(color: sub)),
           ],
           if (preview.kindOptions.isNotEmpty) ...<Widget>[
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Wrap(
               spacing: LrSpacing.xs,
               runSpacing: LrSpacing.xs,
@@ -436,11 +466,11 @@ class _MonthKeepsakePreview extends StatelessWidget {
                 for (final KeepsakeKindOption o in preview.kindOptions)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: LrSpacing.s,
+                      horizontal: LrSpacing.xs,
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: palette.seed.withOpacity(0.6),
+                      color: palette.seed.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(LrRadius.pill),
                     ),
                     child: Text('${o.label} ${o.count}',
@@ -450,8 +480,9 @@ class _MonthKeepsakePreview extends StatelessWidget {
             ),
           ],
           if (empty != KeepsakeMonthEmptyKind.none) ...<Widget>[
-            const SizedBox(height: LrSpacing.s),
-            Text(_emptyBody(empty), style: text.bodySmall?.copyWith(color: sub)),
+            const SizedBox(height: LrSpacing.xs),
+            Text(_emptyBody(empty),
+                style: text.bodySmall?.copyWith(color: sub)),
           ],
           const SizedBox(height: LrSpacing.xs),
           Text(context.t('keepsakeMonthPreviewNote'),

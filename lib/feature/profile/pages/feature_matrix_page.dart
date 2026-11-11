@@ -14,7 +14,7 @@ import '../../../core/model/reader_motion.dart';
 import '../../../core/model/stats/stats_views.dart';
 import '../../../core/ui/theme/color_source.dart';
 import '../../../core/common/design_tokens.dart';
-import '../../../core/ui/components/glass.dart';
+import '../../../core/ui/components/glass/Nav.dart';
 import '../../../l10n/lr_localizations.dart';
 
 /// 功能总览
@@ -37,8 +37,12 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
   ImportSourceKind _importSource = ImportSourceKind.multipleFiles;
 
   static List<String> get _tabs => <String>[
-    lrText('uiReadingFonts'), lrText('uiMotionReadAloud'), lrText('uiStatsReports'), lrText('uiShelfImport'), lrText('uiBuildCompliance'),
-  ];
+        lrText('uiReadingFonts'),
+        lrText('uiMotionReadAloud'),
+        lrText('uiStatsReports'),
+        lrText('uiShelfImport'),
+        lrText('uiBuildCompliance'),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -50,9 +54,11 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
     return Scaffold(
       appBar: AppBar(title: Text(context.t('uiFeatureOverview'))),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.m, LrSpacing.l, 96),
+        padding: const EdgeInsets.fromLTRB(
+            LrSpacing.l, LrSpacing.m, LrSpacing.l, 96),
         children: <Widget>[
-          Text(context.t('uiReferenceRepoFeatureAlignment'), style: text.headlineSmall),
+          Text(context.t('uiReferenceRepoFeatureAlignment'),
+              style: text.headlineSmall),
           const SizedBox(height: LrSpacing.xs),
           Text(
             context.t('uiAllGlobalDefaultStaticStageSaveChars'),
@@ -60,7 +66,7 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
           ),
           const SizedBox(height: LrSpacing.m),
           Wrap(
-            spacing: LrSpacing.s,
+            spacing: LrSpacing.xs,
             children: <Widget>[
               for (int i = 0; i < _tabs.length; i++)
                 ChoiceChip(
@@ -92,8 +98,10 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
   Widget _readingPane(BuildContext context, AppState state,
       List<BookSummary> books, String bookId) {
     final TextTheme text = Theme.of(context).textTheme;
-    final EffectiveReaderStyle effective = state.effectiveReaderStyleFor(bookId);
-    final PerBookStyle override = state.perBookStyles[bookId] ?? PerBookStyle.empty;
+    final EffectiveReaderStyle effective =
+        state.effectiveReaderStyleFor(bookId);
+    final PerBookStyle override =
+        state.perBookStyles[bookId] ?? PerBookStyle.empty;
     final FontCatalog fonts = state.fontCatalog;
     final ColorSource colors = state.colorSource;
 
@@ -105,7 +113,7 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
           lrText('uiSaveCharsFontSizeCharsCharsLineHeightNullGloba'),
           style: text.bodySmall,
         ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         DropdownButton<String>(
           isExpanded: true,
           value: books.any((BookSummary b) => b.id == bookId) ? bookId : null,
@@ -116,16 +124,24 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
           ],
           onChanged: (String? v) => setState(() => _bookId = v),
         ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Text(
-          lrTextArgs('uiCurrentPt', <Object?>[effective.fontFamily, effective.fontSize.toStringAsFixed(1)]) +
-          lrTextArgs('uiLineHeight', <Object?>[effective.lineHeight.toStringAsFixed(2)]) +
-          lrTextArgs('uiPhrase141', <Object?>[effective.isBookSpecific ? lrText('uiBookOverride') : lrText('uiGlobalDefault')]),
+          lrTextArgs('uiCurrentPt', <Object?>[
+                effective.fontFamily,
+                effective.fontSize.toStringAsFixed(1)
+              ]) +
+              lrTextArgs('uiLineHeight',
+                  <Object?>[effective.lineHeight.toStringAsFixed(2)]) +
+              lrTextArgs('uiPhrase141', <Object?>[
+                effective.isBookSpecific
+                    ? lrText('uiBookOverride')
+                    : lrText('uiGlobalDefault')
+              ]),
           style: text.bodyMedium,
         ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Wrap(
-          spacing: LrSpacing.s,
+          spacing: LrSpacing.xs,
           children: <Widget>[
             FilledButton.tonal(
               onPressed: books.isEmpty
@@ -150,23 +166,24 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
           lrText('uiCharsRemoveCharsChars'),
           style: text.bodySmall,
         ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         for (final FontRole role in FontRole.values)
           _fontRoleRow(context, state, fonts, role),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Wrap(
-          spacing: LrSpacing.s,
+          spacing: LrSpacing.xs,
           children: <Widget>[
             FilledButton.tonal(
               onPressed: () => state.updateFontCatalog(
-                    fonts.addImported(lrText('uiImportFontSourceHanSans'), <String>['otf']),
-                  ),
+                fonts.addImported(
+                    lrText('uiImportFontSourceHanSans'), <String>['otf']),
+              ),
               child: Text(lrText('uiRegisterImportedTtfOtf')),
             ),
             OutlinedButton(
               onPressed: () => state.updateFontCatalog(
-                    fonts.withState('dl-serif-sc', FontInstallState.installed),
-                  ),
+                fonts.withState('dl-serif-sc', FontInstallState.installed),
+              ),
               child: Text(lrText('uiMarkOnDemandPackInstalled')),
             ),
           ],
@@ -186,14 +203,19 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
             onChanged: (ColorSourceKind? v) =>
                 state.updateColorSource(colors.copyWith(kind: v)),
           ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Builder(builder: (BuildContext context) {
           final ReaderColorScheme scheme = ReaderColorScheme.derive(
             state.settings.reader.backgroundColor,
           );
           return Text(
-            context.tArgs('uiContrast1', <Object?>[scheme.contrast.toStringAsFixed(2)]) +
-            context.tArgs('uiWcagAaBodyText45', <Object?>[scheme.meetsMinimum ? lrText('uiMeetsMinimum') : lrText('uiBelowMinimum')]),
+            context.tArgs('uiContrast1',
+                    <Object?>[scheme.contrast.toStringAsFixed(2)]) +
+                context.tArgs('uiWcagAaBodyText45', <Object?>[
+                  scheme.meetsMinimum
+                      ? lrText('uiMeetsMinimum')
+                      : lrText('uiBelowMinimum')
+                ]),
             style: text.bodySmall,
           );
         }),
@@ -208,7 +230,9 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
       children: <Widget>[
         SizedBox(
           width: 84,
-          child: Text(role == FontRole.app ? context.t('uiAppFont') : context.t('uiReadingFont')),
+          child: Text(role == FontRole.app
+              ? context.t('uiAppFont')
+              : context.t('uiReadingFont')),
         ),
         Expanded(
           child: DropdownButton<String>(
@@ -265,28 +289,36 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
           onChanged: (ReaderTransition? v) =>
               state.updateReaderMotion(m.copyWith(transition: v)),
         ),
-        const SizedBox(height: LrSpacing.s),
-        Text(context.tArgs('uiPages', <Object?>[m.turnSpeed.toStringAsFixed(1)]), style: text.bodySmall),
+        const SizedBox(height: LrSpacing.xs),
+        Text(
+            context.tArgs('uiPages', <Object?>[m.turnSpeed.toStringAsFixed(1)]),
+            style: text.bodySmall),
         Slider(
           value: m.turnSpeed.clamp(0.5, 2.0).toDouble(),
           min: 0.5,
           max: 2.0,
           divisions: 6,
-          onChanged: (double v) => state.updateReaderMotion(m.copyWith(turnSpeed: v)),
+          onChanged: (double v) =>
+              state.updateReaderMotion(m.copyWith(turnSpeed: v)),
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(context.t('uiInterfaceMotion')),
-          subtitle: Text(m.globalMotion ? context.t('uiOn') : context.t('uiOffLocksToNoAnimationAndStopsAutoRead')),
+          subtitle: Text(m.globalMotion
+              ? context.t('uiOn')
+              : context.t('uiOffLocksToNoAnimationAndStopsAutoRead')),
           value: m.globalMotion,
-          onChanged: (bool v) => state.updateReaderMotion(m.copyWith(globalMotion: v)),
+          onChanged: (bool v) =>
+              state.updateReaderMotion(m.copyWith(globalMotion: v)),
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(context.t('uiAutoRead')),
-          subtitle: Text(context.tArgs('uiIntervalMsAutoStopsWhenMotionIsOff', <Object?>[m.autoReadIntervalMs])),
+          subtitle: Text(context.tArgs('uiIntervalMsAutoStopsWhenMotionIsOff',
+              <Object?>[m.autoReadIntervalMs])),
           value: m.isAutoReading,
-          onChanged: (bool v) => state.updateReaderMotion(m.copyWith(autoRead: v)),
+          onChanged: (bool v) =>
+              state.updateReaderMotion(m.copyWith(autoRead: v)),
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
@@ -308,7 +340,7 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
           context.t('uiReadAloudLanguagesItemsVoice'),
           style: text.bodySmall,
         ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         DropdownButton<ReadingLanguage>(
           isExpanded: true,
           value: b.displayLanguage,
@@ -320,10 +352,17 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
           onChanged: (ReadingLanguage? v) =>
               state.updateBilingual(b.copyWith(displayLanguage: v)),
         ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Text(
-          context.tArgs('uiReadAloud', <Object?>[b.speakable().map((ReadingLanguage l) => BilingualPrefs.labels[l]).join("、")]) +
-          lrTextArgs('uiPhrase171', <Object?>[b.speakable().isEmpty ? lrText('uiNoVoiceSkipped') : ""]),
+          context.tArgs('uiReadAloud', <Object?>[
+                b
+                    .speakable()
+                    .map((ReadingLanguage l) => BilingualPrefs.labels[l])
+                    .join("、")
+              ]) +
+              lrTextArgs('uiPhrase171', <Object?>[
+                b.speakable().isEmpty ? lrText('uiNoVoiceSkipped') : ""
+              ]),
           style: text.bodySmall,
         ),
         Text(
@@ -343,7 +382,7 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
       children: <Widget>[
         _title(text, context.t('uiFiveViews')),
         Wrap(
-          spacing: LrSpacing.s,
+          spacing: LrSpacing.xs,
           children: <Widget>[
             for (final StatsViewKind v in StatsViewKind.values)
               ChoiceChip(
@@ -356,20 +395,21 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
         const SizedBox(height: LrSpacing.m),
         _title(text, context.t('uiPeriodPresetsCustomRange')),
         Wrap(
-          spacing: LrSpacing.s,
+          spacing: LrSpacing.xs,
           children: <Widget>[
             for (final StatsPeriodKind k in StatsPeriodKind.values)
               ChoiceChip(
                 label: Text(_periodLabel(k)),
                 selected: state.statsPeriod.kind == k,
-                onSelected: (_) => state.updateStatsPeriod(StatsPeriod(kind: k)),
+                onSelected: (_) =>
+                    state.updateStatsPeriod(StatsPeriod(kind: k)),
               ),
           ],
         ),
         const Divider(height: 28),
         _title(text, context.t('uiEightReportLayouts')),
         Wrap(
-          spacing: LrSpacing.s,
+          spacing: LrSpacing.xs,
           children: <Widget>[
             for (final ReportLayout l in ReportLayout.values)
               ChoiceChip(
@@ -381,11 +421,17 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
         ),
         const SizedBox(height: LrSpacing.m),
         Text(
-          context.tArgs('uiChars', <Object?>[payload.sections.map((ReportSection s) => ReportPayload.sectionLabels[s]).join("、")]) +
-          lrTextArgs('uiPhrase177', <Object?>[payload.sections.isEmpty ? lrText('uiNoDataOmitted') : ""]),
+          context.tArgs('uiChars', <Object?>[
+                payload.sections
+                    .map((ReportSection s) => ReportPayload.sectionLabels[s])
+                    .join("、")
+              ]) +
+              lrTextArgs('uiPhrase177', <Object?>[
+                payload.sections.isEmpty ? lrText('uiNoDataOmitted') : ""
+              ]),
           style: text.bodySmall,
         ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Text(context.t('uiTotalContent'), style: text.bodySmall),
         const SizedBox(height: 4),
         SelectableText(payload.render(), style: text.bodySmall),
@@ -424,19 +470,20 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
       children: <Widget>[
         _title(text, context.t('uiShelfViewFilters')),
         Wrap(
-          spacing: LrSpacing.s,
+          spacing: LrSpacing.xs,
           children: <Widget>[
             for (final ShelfViewMode m in ShelfViewMode.values)
               ChoiceChip(
                 label: Text(ShelfPrefs.modeLabels[m]!),
                 selected: prefs.mode == m,
-                onSelected: (_) => state.updateShelfPrefs(prefs.copyWith(mode: m)),
+                onSelected: (_) =>
+                    state.updateShelfPrefs(prefs.copyWith(mode: m)),
               ),
           ],
         ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Wrap(
-          spacing: LrSpacing.s,
+          spacing: LrSpacing.xs,
           children: <Widget>[
             DropdownButton<ReadingStatusFilter>(
               value: prefs.status,
@@ -468,20 +515,25 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
               state.updateShelfPrefs(prefs.copyWith(mergeLocalIntoShelf: v)),
         ),
         Text(
-          context.tArgs('uiCurrentBooks', <Object?>[prefs.apply(state.allBooks).length, state.allBooks.length]) +
-          context.t('uiCarouselParametersLockBackToDefaultInListMode'),
+          context.tArgs('uiCurrentBooks', <Object?>[
+                prefs.apply(state.allBooks).length,
+                state.allBooks.length
+              ]) +
+              context.t('uiCarouselParametersLockBackToDefaultInListMode'),
           style: text.bodySmall,
         ),
         const Divider(height: 28),
         _title(text, context.t('uiPreImportReviewSeriesVolumeMerge')),
         Text(
-          context.tArgs('uiSource2', <Object?>[ImportReview.sourceLabels.values.join(" / ")]) +
-          context.tArgs('uiPolicy', <Object?>[ImportReview.policyLabels.values.join(" / ")]),
+          context.tArgs('uiSource2',
+                  <Object?>[ImportReview.sourceLabels.values.join(" / ")]) +
+              context.tArgs('uiPolicy',
+                  <Object?>[ImportReview.policyLabels.values.join(" / ")]),
           style: text.bodySmall,
         ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Wrap(
-          spacing: LrSpacing.s,
+          spacing: LrSpacing.xs,
           children: <Widget>[
             for (final ImportSourceKind k in ImportSourceKind.values)
               ChoiceChip(
@@ -491,9 +543,9 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
               ),
           ],
         ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Wrap(
-          spacing: LrSpacing.s,
+          spacing: LrSpacing.xs,
           children: <Widget>[
             for (final VolumeMergePolicy p in VolumeMergePolicy.values)
               ChoiceChip(
@@ -503,18 +555,27 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
               ),
           ],
         ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         Text(
-          context.tArgs('uiCurrent', <Object?>[ImportReview.sourceLabels[_importSource]]) +
-          context.tArgs('uiPhrase194', <Object?>[ImportReview.policyLabels[_policy]]) +
-          context.tArgs('uiItems7', <Object?>[const ImportReview().withPolicy(VolumeMergePolicy.mergeBySeries).resolution.name]),
+          context.tArgs(
+                  'uiCurrent',
+                  <Object?>[ImportReview.sourceLabels[_importSource]]) +
+              context.tArgs('uiPhrase194',
+                  <Object?>[ImportReview.policyLabels[_policy]]) +
+              context.tArgs('uiItems7', <Object?>[
+                const ImportReview()
+                    .withPolicy(VolumeMergePolicy.mergeBySeries)
+                    .resolution
+                    .name
+              ]),
           style: text.bodySmall,
         ),
         const Divider(height: 28),
         _title(text, context.t('uiWebdavBackupOffByDefault')),
         Text(
-          context.tArgs('uiContent', <Object?>[BackupSnapshot.payloadLabels.join(" / ")]) +
-          context.t('uiWhenOffEvenTestConnectionMakesNoRequest'),
+          context.tArgs('uiContent',
+                  <Object?>[BackupSnapshot.payloadLabels.join(" / ")]) +
+              context.t('uiWhenOffEvenTestConnectionMakesNoRequest'),
           style: text.bodySmall,
         ),
         SwitchListTile(
@@ -524,15 +585,16 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
           onChanged: (bool v) => state.updateBackup(backup.setEnabled(v)),
         ),
         Wrap(
-          spacing: LrSpacing.s,
+          spacing: LrSpacing.xs,
           children: <Widget>[
             for (final BackupAction a in BackupSnapshot.actions)
               OutlinedButton(
                 onPressed: !backup.enabled
                     ? null
-                    : () => state.updateBackup(backup
-                        .dispatch(a)
-                        .finish(ok: true, note: context.t('uiStaticDemoNoNetworkRequestWasMade'))),
+                    : () => state.updateBackup(backup.dispatch(a).finish(
+                        ok: true,
+                        note:
+                            context.t('uiStaticDemoNoNetworkRequestWasMade'))),
                 child: Text(BackupSnapshot.actionLabels[a]!),
               ),
           ],
@@ -555,23 +617,32 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _title(text, context.t('uiAndroidPermissionTiers')),
-        Text('13+：${p33.requiredPermissions().join(", ")}', style: text.bodySmall),
-        Text('12-：${p31.requiredPermissions().join(", ")}', style: text.bodySmall),
-        Text(context.tArgs('uiRemove', <Object?>[AndroidPermissionProfile.removed.join(", ")]),
+        Text('13+：${p33.requiredPermissions().join(", ")}',
+            style: text.bodySmall),
+        Text('12-：${p31.requiredPermissions().join(", ")}',
+            style: text.bodySmall),
+        Text(
+            context.tArgs('uiRemove',
+                <Object?>[AndroidPermissionProfile.removed.join(", ")]),
             style: text.bodySmall),
         Text(AndroidPermissionProfile.safNote, style: text.bodySmall),
         const Divider(height: 28),
         _title(text, context.t('uiCrashLoopProtection')),
         Text(
-          context.tArgs('uiMinutes', <Object?>[guard.policy.threshold, guard.policy.window.inMinutes]) +
-          context.tArgs('uiSkipped', <Object?>[guard.policy.safeModeLabel, CrashGuard.skippedInSafeMode.join("、")]),
+          context.tArgs('uiMinutes', <Object?>[
+                guard.policy.threshold,
+                guard.policy.window.inMinutes
+              ]) +
+              context.tArgs('uiSkipped', <Object?>[
+                guard.policy.safeModeLabel,
+                CrashGuard.skippedInSafeMode.join("、")
+              ]),
           style: text.bodySmall,
         ),
         const Divider(height: 28),
         _title(text, context.t('uiStaticDeliveryBoundary')),
         Text(
-          context.t('uiAllDartCharsChars') +
-          context.t('uiBooksBooksPages'),
+          context.t('uiAllDartCharsChars') + context.t('uiBooksBooksPages'),
           style: text.bodySmall,
         ),
       ],

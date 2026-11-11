@@ -10,14 +10,10 @@ import '../../../core/model/stats/stats_date.dart';
 import '../../../core/common/design_tokens.dart';
 import '../../../core/ui/theme/glass_theme.dart';
 import '../../../core/ui/theme/season_scheme.dart';
-import '../../../core/ui/components/glass.dart';
+import '../../../core/ui/components/glass/Nav.dart';
 import '../../../l10n/lr_localizations.dart';
 
 /// 阅读日历 · 整月：月份翻页、6 周热力网格、点某天看当日详情。
-///
-/// 数据全部由 `CalendarMonth.build()` 从 `StatsSnapshot` / `AppState.keepsakes`
-/// / `AppState.excerpts` 聚合，页面不缓存、不硬编码演示数字。
-/// 跨月补格只用于对齐周起始，不计入月度合计（见 LegalTexts.calendarStaticNote）。
 class CalendarMonthPage extends StatefulWidget {
   const CalendarMonthPage({
     super.key,
@@ -54,11 +50,12 @@ class _CalendarMonthPageState extends State<CalendarMonthPage> {
     final List<Excerpt> excerpts = state.excerpts;
     final TextTheme text = Theme.of(context).textTheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final SeasonPalette palette = Theme.of(context).extension<LrSeasonTheme>()?.palette ??
-        SeasonSchemes.resolve(
-          state.season.value,
-          isDark ? Brightness.dark : Brightness.light,
-        );
+    final SeasonPalette palette =
+        Theme.of(context).extension<LrSeasonTheme>()?.palette ??
+            SeasonSchemes.resolve(
+              state.season.value,
+              isDark ? Brightness.dark : Brightness.light,
+            );
 
     final MonthAnchor first = snapshot.days.isEmpty
         ? const MonthAnchor(1970, 1)
@@ -99,7 +96,8 @@ class _CalendarMonthPageState extends State<CalendarMonthPage> {
     }
     final String? defaultKey =
         (todayCell != null && todayCell.inMonth) ? month.todayKey : fallbackKey;
-    final String? argKey = _ignoreArgsSelection ? null : widget.args.selectedDateKey;
+    final String? argKey =
+        _ignoreArgsSelection ? null : widget.args.selectedDateKey;
     // 第二十轮：两个方向的深链都由 KeepsakeCalendarLink 构造并校验。
     final OpenKeepsakeLibraryArgs? openLibrary = widget.onOpenKeepsakeLibrary;
     final KeepsakeLibraryArgs? monthArgs =
@@ -132,12 +130,19 @@ class _CalendarMonthPageState extends State<CalendarMonthPage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: isDark
-                ? <Color>[palette.seed, Color.lerp(palette.seed, Colors.black, 0.35)!]
-                : <Color>[palette.seed, Color.lerp(palette.seed, Colors.white, 0.55)!],
+                ? <Color>[
+                    palette.seed,
+                    Color.lerp(palette.seed, Colors.black, 0.35)!
+                  ]
+                : <Color>[
+                    palette.seed,
+                    Color.lerp(palette.seed, Colors.white, 0.55)!
+                  ],
           ),
         ),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.s, LrSpacing.l, 120),
+          padding: const EdgeInsets.fromLTRB(
+              LrSpacing.l, LrSpacing.xs, LrSpacing.l, 120),
           children: <Widget>[
             // 月份切换
             GlassPanel(
@@ -160,19 +165,20 @@ class _CalendarMonthPageState extends State<CalendarMonthPage> {
                     onPressed: nav.canNext ? () => goTo(nav.next()) : null,
                     icon: const Icon(Icons.chevron_right, size: 20),
                   ),
-                  const SizedBox(width: LrSpacing.s),
+                  const SizedBox(width: LrSpacing.xs),
                   TextButton(
                     onPressed: () => goTo(nav.jumpToThisMonth()),
-                    child: Text(context.t('calendarBackToThisMonth'), style: text.labelLarge),
+                    child: Text(context.t('calendarBackToThisMonth'),
+                        style: text.labelLarge),
                   ),
                 ],
               ),
             ),
             if (!nav.canPrev && !nav.canNext)
               Padding(
-                padding: const EdgeInsets.only(top: LrSpacing.s),
-                child:
-                    Text(context.t('calendarOutOfRangeNote'), style: text.labelSmall),
+                padding: const EdgeInsets.only(top: LrSpacing.xs),
+                child: Text(context.t('calendarOutOfRangeNote'),
+                    style: text.labelSmall),
               ),
             const SizedBox(height: LrSpacing.m),
 
@@ -185,14 +191,26 @@ class _CalendarMonthPageState extends State<CalendarMonthPage> {
                     label: context.t('uiThisMonth2'),
                     value: StatsSnapshot.formatMinutes(month.totalMinutes),
                   ),
-                  _StatTile(text: text, label: context.t('uiReadingDays'), value: context.tArgs('uiDays2', <Object?>[month.readDays])),
-                  _StatTile(text: text, label: context.t('uiKeepsakes'), value: context.tArgs('uiKeepsakes2', <Object?>[month.keepsakeCount])),
-                  _StatTile(text: text, label: context.t('uiExcerpts'), value: context.tArgs('uiItems10', <Object?>[month.excerptCount])),
+                  _StatTile(
+                      text: text,
+                      label: context.t('uiReadingDays'),
+                      value:
+                          context.tArgs('uiDays2', <Object?>[month.readDays])),
+                  _StatTile(
+                      text: text,
+                      label: context.t('uiKeepsakes'),
+                      value: context.tArgs(
+                          'uiKeepsakes2', <Object?>[month.keepsakeCount])),
+                  _StatTile(
+                      text: text,
+                      label: context.t('uiExcerpts'),
+                      value: context
+                          .tArgs('uiItems10', <Object?>[month.excerptCount])),
                 ],
               ),
             ),
             if (openLibrary != null && monthArgs != null) ...<Widget>[
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton.icon(
@@ -213,15 +231,18 @@ class _CalendarMonthPageState extends State<CalendarMonthPage> {
                     children: <Widget>[
                       for (final String w in statsWeekdayLabels)
                         Expanded(
-                          child: Text(w, textAlign: TextAlign.center, style: text.labelSmall),
+                          child: Text(w,
+                              textAlign: TextAlign.center,
+                              style: text.labelSmall),
                         ),
                     ],
                   ),
-                  const SizedBox(height: LrSpacing.s),
+                  const SizedBox(height: LrSpacing.xs),
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 7,
                       mainAxisSpacing: 6,
                       crossAxisSpacing: 6,
@@ -243,22 +264,25 @@ class _CalendarMonthPageState extends State<CalendarMonthPage> {
                       );
                     },
                   ),
-                  const SizedBox(height: LrSpacing.s),
+                  const SizedBox(height: LrSpacing.xs),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
                       Text(context.t('uiLow'), style: text.labelSmall),
-                      ...List<Widget>.generate(5, (int i) => Container(
-                            width: 12,
-                            height: 12,
-                            margin: const EdgeInsets.only(left: 4),
-                            decoration: BoxDecoration(
-                              color: i == 0
-                                  ? palette.accent.withOpacity(0.06)
-                                  : palette.accent.withOpacity(0.16 + (i - 1) * 0.22),
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                          )),
+                      ...List<Widget>.generate(
+                          5,
+                          (int i) => Container(
+                                width: 12,
+                                height: 12,
+                                margin: const EdgeInsets.only(left: 4),
+                                decoration: BoxDecoration(
+                                  color: i == 0
+                                      ? palette.accent.withValues(alpha: 0.06)
+                                      : palette.accent.withValues(
+                                          alpha: 0.16 + (i - 1) * 0.22),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              )),
                       const SizedBox(width: 4),
                       Text(context.t('uiHigh'), style: text.labelSmall),
                     ],
@@ -303,7 +327,7 @@ class _CalendarMonthPageState extends State<CalendarMonthPage> {
             ],
 
             Text(context.t('calendarStaticNote'), style: text.bodySmall),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Text(context.t('demoDataNote'), style: text.labelSmall),
           ],
         ),
@@ -313,7 +337,8 @@ class _CalendarMonthPageState extends State<CalendarMonthPage> {
 }
 
 class _StatTile extends StatelessWidget {
-  const _StatTile({required this.text, required this.label, required this.value});
+  const _StatTile(
+      {required this.text, required this.label, required this.value});
 
   final TextTheme text;
   final String label;
@@ -352,16 +377,18 @@ class _DayCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme text = Theme.of(context).textTheme;
     final Color base = cell.level == 0
-        ? accent.withOpacity(0.06)
-        : accent.withOpacity(0.16 + (cell.level - 1) * 0.22);
+        ? accent.withValues(alpha: 0.06)
+        : accent.withValues(alpha: 0.16 + (cell.level - 1) * 0.22);
     return Container(
       decoration: BoxDecoration(
-        color: cell.inMonth ? base : base.withOpacity(0.28),
+        color: cell.inMonth ? base : base.withValues(alpha: 0.28),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: selected
               ? accent
-              : (cell.isToday ? accent.withOpacity(0.55) : Colors.transparent),
+              : (cell.isToday
+                  ? accent.withValues(alpha: 0.55)
+                  : Colors.transparent),
           width: selected ? 2 : 1,
         ),
       ),
@@ -371,7 +398,9 @@ class _DayCell extends StatelessWidget {
           Text(
             '${cell.date.day}',
             style: text.bodySmall?.copyWith(
-              color: cell.inMonth ? null : text.bodySmall?.color?.withOpacity(0.45),
+              color: cell.inMonth
+                  ? null
+                  : text.bodySmall?.color?.withValues(alpha: 0.45),
               fontWeight: cell.isToday ? FontWeight.bold : null,
             ),
           ),
@@ -397,7 +426,7 @@ class _DayCell extends StatelessWidget {
                       height: 5,
                       margin: const EdgeInsets.symmetric(horizontal: 1),
                       decoration: BoxDecoration(
-                        color: accent.withOpacity(0.5),
+                        color: accent.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -431,29 +460,31 @@ class _DayDetail extends StatelessWidget {
     final bool empty = !cell.hasRead && !cell.hasKeepsake && !cell.hasExcerpt;
     return GlassPanel(
       tint: <Color>[
-        palette.seed.withOpacity(0.85),
-        palette.accent.withOpacity(0.12),
+        palette.seed.withValues(alpha: 0.85),
+        palette.accent.withValues(alpha: 0.12),
       ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Row(
             children: <Widget>[
-              Text('${dateLabelOf(cell.date)} · ${cell.key}', style: text.titleMedium),
+              Text('${dateLabelOf(cell.date)} · ${cell.key}',
+                  style: text.titleMedium),
               const Spacer(),
-              if (!cell.inMonth) Text(context.t('uiAdjacentMonthCells'), style: text.labelSmall),
+              if (!cell.inMonth)
+                Text(context.t('uiAdjacentMonthCells'), style: text.labelSmall),
             ],
           ),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           Text(calendarDaySummary(cell), style: text.bodySmall),
           if (empty) ...<Widget>[
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Text(context.t('calendarNoRecordNote'), style: text.labelSmall),
           ],
           if (cell.keepsakes.isNotEmpty) ...<Widget>[
             const SizedBox(height: LrSpacing.m),
             Text(context.t('uiKeepsakesThatDay'), style: text.labelLarge),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             ...cell.keepsakes.map<Widget>(
               (Keepsake k) => Padding(
                 padding: const EdgeInsets.only(bottom: LrSpacing.xs),
@@ -464,7 +495,7 @@ class _DayDetail extends StatelessWidget {
                       size: 16,
                       color: palette.accent,
                     ),
-                    const SizedBox(width: LrSpacing.s),
+                    const SizedBox(width: LrSpacing.xs),
                     Expanded(
                       child: Text(
                         '${k.kindLabel} · ${k.title}',
@@ -484,7 +515,7 @@ class _DayDetail extends StatelessWidget {
           if (onOpenKeepsakes != null || onOpenDayExcerpts != null) ...<Widget>[
             const SizedBox(height: LrSpacing.m),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               children: <Widget>[
                 if (onOpenKeepsakes != null)
                   TextButton.icon(
@@ -514,7 +545,7 @@ class _DayDetail extends StatelessWidget {
           if (cell.excerpts.isNotEmpty) ...<Widget>[
             const SizedBox(height: LrSpacing.m),
             Text(context.t('uiExcerptsThatDay'), style: text.labelLarge),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             ...cell.excerpts.map<Widget>(
               (Excerpt e) => Padding(
                 padding: const EdgeInsets.only(bottom: LrSpacing.xs),

@@ -11,7 +11,7 @@ import '../../../core/model/stats/reading_stats.dart';
 import '../../../core/common/design_tokens.dart';
 import '../../../core/ui/theme/glass_theme.dart';
 import '../../../core/ui/theme/season_scheme.dart';
-import '../../../core/ui/components/glass.dart';
+import '../../../core/ui/components/glass/Nav.dart';
 import 'excerpt_edit_sheet.dart';
 import 'excerpt_export_sheet.dart';
 import '../../../l10n/lr_localizations.dart';
@@ -65,8 +65,11 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
     final AppState state = AppScope.of(context);
     final TextTheme text = Theme.of(context).textTheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final SeasonPalette palette = Theme.of(context).extension<LrSeasonTheme>()?.palette ??
-        SeasonSchemes.resolve(state.season.value, isDark ? Brightness.dark : Brightness.light);
+    final SeasonPalette palette = Theme.of(context)
+            .extension<LrSeasonTheme>()
+            ?.palette ??
+        SeasonSchemes.resolve(
+            state.season.value, isDark ? Brightness.dark : Brightness.light);
 
     // 唯一数据源：不缓存，阅读器新增 / 编辑 / 删除后本页同一次 build 即可见。
     final List<Excerpt> all = state.excerpts;
@@ -113,9 +116,8 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
         }
       }
     }
-    final int scopedCount = scopedBookId == null
-        ? 0
-        : ExcerptQuery.countForBook(all, scopedBookId);
+    final int scopedCount =
+        scopedBookId == null ? 0 : ExcerptQuery.countForBook(all, scopedBookId);
     final int scopedDayCount = _filter.dateKey == null
         ? 0
         : ExcerptQuery.countForDay(all, _filter.dateKey!);
@@ -154,20 +156,28 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: isDark
-                ? <Color>[palette.seed, Color.lerp(palette.seed, Colors.black, 0.35)!]
-                : <Color>[palette.seed, Color.lerp(palette.seed, Colors.white, 0.5)!],
+                ? <Color>[
+                    palette.seed,
+                    Color.lerp(palette.seed, Colors.black, 0.35)!
+                  ]
+                : <Color>[
+                    palette.seed,
+                    Color.lerp(palette.seed, Colors.white, 0.5)!
+                  ],
           ),
         ),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.s, LrSpacing.l, LrSpacing.xxl),
+          padding: const EdgeInsets.fromLTRB(
+              LrSpacing.l, LrSpacing.xs, LrSpacing.l, LrSpacing.xxl),
           children: <Widget>[
             GlassPanel(
               borderRadius: LrRadius.pill,
-              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.m, vertical: LrSpacing.xs),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: LrSpacing.m, vertical: LrSpacing.xs),
               child: Row(
                 children: <Widget>[
                   Icon(Icons.search, size: 19, color: text.bodySmall?.color),
-                  const SizedBox(width: LrSpacing.s),
+                  const SizedBox(width: LrSpacing.xs),
                   Expanded(
                     child: TextField(
                       controller: _controller,
@@ -193,8 +203,9 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
             ),
             const SizedBox(height: LrSpacing.xs),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s),
-              child: Text(context.t('excerptSearchTitleNote'), style: text.labelSmall),
+              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.xs),
+              child: Text(context.t('excerptSearchTitleNote'),
+                  style: text.labelSmall),
             ),
             const SizedBox(height: LrSpacing.m),
 
@@ -202,9 +213,9 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
             // 清除后回到全部摘录；与纪念物册的日期 chip 同一套交互。
             if (_filter.dateKey != null) ...<Widget>[
               Padding(
-                padding: const EdgeInsets.only(bottom: LrSpacing.s),
+                padding: const EdgeInsets.only(bottom: LrSpacing.xs),
                 child: Wrap(
-                  spacing: LrSpacing.s,
+                  spacing: LrSpacing.xs,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: <Widget>[
                     InputChip(
@@ -218,7 +229,8 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
                       ),
                       deleteIcon: const Icon(Icons.close, size: 16),
                     ),
-                    Text(context.t('excerptDayFilterNote'), style: text.labelSmall),
+                    Text(context.t('excerptDayFilterNote'),
+                        style: text.labelSmall),
                   ],
                 ),
               ),
@@ -233,12 +245,17 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
                     children: <Widget>[
                       Row(
                         children: <Widget>[
-                          Icon(Icons.menu_book_outlined, size: 17,
+                          Icon(Icons.menu_book_outlined,
+                              size: 17,
                               color: Theme.of(context).colorScheme.primary),
-                          const SizedBox(width: LrSpacing.s),
+                          const SizedBox(width: LrSpacing.xs),
                           Expanded(
                             child: Text(
-                              context.tArgs('uiItemsN1', <Object?>[context.t('bookExcerptTitle'), scopedTitle, scopedCount]),
+                              context.tArgs('uiItemsN1', <Object?>[
+                                context.t('bookExcerptTitle'),
+                                scopedTitle,
+                                scopedCount
+                              ]),
                               style: text.titleMedium,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -253,14 +270,17 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
                         ],
                       ),
                       const SizedBox(height: LrSpacing.xs),
-                      Text(context.t('bookExcerptScopedNote'), style: text.bodySmall),
+                      Text(context.t('bookExcerptScopedNote'),
+                          style: text.bodySmall),
                       if (scopedBookMissing) ...<Widget>[
                         const SizedBox(height: LrSpacing.xs),
-                        Text(context.t('bookExcerptMissingNote'), style: text.labelSmall),
+                        Text(context.t('bookExcerptMissingNote'),
+                            style: text.labelSmall),
                       ],
                       if (scopedCount == 0) ...<Widget>[
                         const SizedBox(height: LrSpacing.xs),
-                        Text(context.t('bookExcerptPinnedNote'), style: text.labelSmall),
+                        Text(context.t('bookExcerptPinnedNote'),
+                            style: text.labelSmall),
                       ],
                     ],
                   ),
@@ -269,19 +289,21 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
 
             // 摘要：来自 ExcerptSummary，页面不算数
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s),
+              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.xs),
               child: Text(
-                context.tArgs('uiTotalYours', <Object?>[summary.total, summary.userCount]) +
-                context.tArgs('uiNoteItemsItems', <Object?>[summary.withNoteCount, results.length]),
+                context.tArgs('uiTotalYours',
+                        <Object?>[summary.total, summary.userCount]) +
+                    context.tArgs('uiNoteItemsItems',
+                        <Object?>[summary.withNoteCount, results.length]),
                 style: text.labelSmall,
               ),
             ),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
 
             Text(context.t('uiScope2'), style: text.labelSmall),
             const SizedBox(height: LrSpacing.xs),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               children: <Widget>[
                 for (final ExcerptScope s in ExcerptScope.values)
                   ChoiceChip(
@@ -293,12 +315,12 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
                   ),
               ],
             ),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
 
             Text(context.t('uiByBook'), style: text.labelSmall),
             const SizedBox(height: LrSpacing.xs),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               runSpacing: LrSpacing.xs,
               children: <Widget>[
                 ChoiceChip(
@@ -318,12 +340,12 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
                   ),
               ],
             ),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
 
             Text(context.t('uiHighlight'), style: text.labelSmall),
             const SizedBox(height: LrSpacing.xs),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               runSpacing: LrSpacing.xs,
               children: <Widget>[
                 ChoiceChip(
@@ -356,7 +378,7 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
                     onChanged: (ExcerptSort v) => setState(() => _sort = v),
                   ),
                 ),
-                const SizedBox(width: LrSpacing.s),
+                const SizedBox(width: LrSpacing.xs),
                 Expanded(
                   child: _DropdownRow<ExcerptGroup>(
                     label: context.t('uiGroup'),
@@ -380,11 +402,11 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
             else
               ...groups.entries.map<Widget>(
                 (MapEntry<String, List<Excerpt>> e) => _ExcerptSection(
-                      title: e.key,
-                      excerpts: e.value,
-                      onEdit: _edit,
-                      onDelete: _delete,
-                    ),
+                  title: e.key,
+                  excerpts: e.value,
+                  onEdit: _edit,
+                  onDelete: _delete,
+                ),
               ),
 
             const SizedBox(height: LrSpacing.l),
@@ -393,11 +415,12 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(context.t('excerptReadOnlyNote'), style: text.bodySmall),
-                  const SizedBox(height: LrSpacing.s),
+                  const SizedBox(height: LrSpacing.xs),
                   Text(context.t('excerptLocalNote'), style: text.bodySmall),
-                  const SizedBox(height: LrSpacing.s),
-                  Text(context.t('excerptExportSnapshotNote'), style: text.bodySmall),
-                  const SizedBox(height: LrSpacing.s),
+                  const SizedBox(height: LrSpacing.xs),
+                  Text(context.t('excerptExportSnapshotNote'),
+                      style: text.bodySmall),
+                  const SizedBox(height: LrSpacing.xs),
                   Text(context.t('demoDataNote'), style: text.labelSmall),
                 ],
               ),
@@ -409,13 +432,19 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
   }
 
   String _filterDescription(String scopedTitle) {
-    final List<String> parts = <String>[ExcerptQuery.scopeLabels[_filter.scope]!];
+    final List<String> parts = <String>[
+      ExcerptQuery.scopeLabels[_filter.scope]!
+    ];
     if (_filter.bookId != null) {
-      parts.add(scopedTitle.isEmpty ? lrText('uiSelectedBook') : '《$scopedTitle》');
+      parts.add(
+          scopedTitle.isEmpty ? lrText('uiSelectedBook') : '《$scopedTitle》');
     }
-    if (_filter.color != null) parts.add(HighlightPalette.labels[_filter.color]!);
-    if (_filter.dateKey != null) parts.add(lrTextArgs('uiDays', <Object?>[_filter.dateKey]));
-    if (_filter.query.isNotEmpty) parts.add(lrTextArgs('uiKeyword', <Object?>[_filter.query]));
+    if (_filter.color != null)
+      parts.add(HighlightPalette.labels[_filter.color]!);
+    if (_filter.dateKey != null)
+      parts.add(lrTextArgs('uiDays', <Object?>[_filter.dateKey]));
+    if (_filter.query.isNotEmpty)
+      parts.add(lrTextArgs('uiKeyword', <Object?>[_filter.query]));
     parts.add(ExcerptQuery.sortLabels[_sort]!);
     return parts.join(' · ');
   }
@@ -440,7 +469,10 @@ class _ExcerptLibraryPageState extends State<ExcerptLibraryPage> {
     final AppState state = AppScope.of(context);
     final bool removed = state.removeExcerpt(e.id);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(removed ? lrText('uiExcerptDeleted') : lrText('uiItemsexcerpts'))),
+      SnackBar(
+          content: Text(removed
+              ? lrText('uiExcerptDeleted')
+              : lrText('uiItemsexcerpts'))),
     );
   }
 }
@@ -463,11 +495,12 @@ class _DropdownRow<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassPanel(
-      padding: const EdgeInsets.symmetric(horizontal: LrSpacing.m, vertical: LrSpacing.xs),
+      padding: const EdgeInsets.symmetric(
+          horizontal: LrSpacing.m, vertical: LrSpacing.xs),
       child: Row(
         children: <Widget>[
           Text(label, style: Theme.of(context).textTheme.labelSmall),
-          const SizedBox(width: LrSpacing.s),
+          const SizedBox(width: LrSpacing.xs),
           Expanded(
             child: DropdownButton<T>(
               value: value,
@@ -515,20 +548,23 @@ class _ExcerptSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s),
+            padding: const EdgeInsets.symmetric(horizontal: LrSpacing.xs),
             child: Row(
               children: <Widget>[
                 Text(title, style: text.titleLarge),
-                const SizedBox(width: LrSpacing.s),
-                Text(context.tArgs('uiItems2', <Object?>[excerpts.length]), style: text.labelSmall),
-                const SizedBox(width: LrSpacing.s),
-                Expanded(child: Divider(color: Theme.of(context).dividerTheme.color)),
+                const SizedBox(width: LrSpacing.xs),
+                Text(context.tArgs('uiItems2', <Object?>[excerpts.length]),
+                    style: text.labelSmall),
+                const SizedBox(width: LrSpacing.xs),
+                Expanded(
+                    child:
+                        Divider(color: Theme.of(context).dividerTheme.color)),
               ],
             ),
           ),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           ...excerpts.map<Widget>((Excerpt e) => Padding(
-                padding: const EdgeInsets.only(bottom: LrSpacing.s),
+                padding: const EdgeInsets.only(bottom: LrSpacing.xs),
                 child: _ExcerptCard(
                   excerpt: e,
                   onEdit: () => onEdit(e),
@@ -574,12 +610,13 @@ class _ExcerptCard extends StatelessWidget {
               ),
               const SizedBox(width: LrSpacing.m),
               Expanded(
-                child: Text(excerpt.text, style: text.bodyLarge?.copyWith(height: 1.7)),
+                child: Text(excerpt.text,
+                    style: text.bodyLarge?.copyWith(height: 1.7)),
               ),
             ],
           ),
           if (excerpt.note.trim().isNotEmpty) ...<Widget>[
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Padding(
               padding: const EdgeInsets.only(left: LrSpacing.l),
               child: Text('—— ${excerpt.note.trim()}', style: text.bodySmall),
@@ -587,21 +624,24 @@ class _ExcerptCard extends StatelessWidget {
           ],
           const SizedBox(height: LrSpacing.m),
           Divider(color: Theme.of(context).dividerTheme.color, height: 1),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           Row(
             children: <Widget>[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: LrSpacing.xs, vertical: 2),
                 decoration: BoxDecoration(
                   color: HighlightPalette.lineTint(excerpt.highlight),
                   borderRadius: BorderRadius.circular(LrRadius.pill),
                 ),
                 child: Text(
-                  excerpt.isUserAdded ? context.t('uiYours') : context.t('uiSampleReadOnly'),
+                  excerpt.isUserAdded
+                      ? context.t('uiYours')
+                      : context.t('uiSampleReadOnly'),
                   style: text.labelSmall,
                 ),
               ),
-              const SizedBox(width: LrSpacing.s),
+              const SizedBox(width: LrSpacing.xs),
               Expanded(
                 child: Text(
                   '《${excerpt.bookTitle}》· ${excerpt.chapterTitle} · '
@@ -653,7 +693,8 @@ class _EmptyState extends StatelessWidget {
     final bool bookHasNone = kind == ExcerptEmptyKind.bookHasNone;
     final bool dayHasNone = kind == ExcerptEmptyKind.dayHasNone;
     return GlassPanel(
-      padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.xl, LrSpacing.l, LrSpacing.xl),
+      padding: const EdgeInsets.fromLTRB(
+          LrSpacing.l, LrSpacing.xl, LrSpacing.l, LrSpacing.xl),
       child: Column(
         children: <Widget>[
           Icon(
@@ -661,7 +702,7 @@ class _EmptyState extends StatelessWidget {
                 ? Icons.format_quote_outlined
                 : Icons.filter_alt_off_outlined,
             size: 40,
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
           ),
           const SizedBox(height: LrSpacing.m),
           Text(
@@ -677,9 +718,10 @@ class _EmptyState extends StatelessWidget {
           ),
           if (bookHasNone && bookTitle.isNotEmpty) ...<Widget>[
             const SizedBox(height: LrSpacing.xs),
-            Text('《$bookTitle》', style: text.titleMedium, textAlign: TextAlign.center),
+            Text('《$bookTitle》',
+                style: text.titleMedium, textAlign: TextAlign.center),
           ],
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           Text(
             noExcerpts
                 ? context.t('excerptEmptyBody')
@@ -699,7 +741,9 @@ class _EmptyState extends StatelessWidget {
               label: Text(
                 dayHasNone
                     ? context.t('uiClearDateFilter')
-                    : (bookHasNone ? context.t('uiAllBooks2') : context.t('uiClearFilters')),
+                    : (bookHasNone
+                        ? context.t('uiAllBooks2')
+                        : context.t('uiClearFilters')),
               ),
             ),
           ],

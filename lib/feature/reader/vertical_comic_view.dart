@@ -7,9 +7,9 @@ import '../../core/model/book_document.dart';
 import '../../assembly/app_scope.dart';
 import '../../core/model/reader_style.dart';
 import '../../core/common/design_tokens.dart';
-import '../../core/ui/components/glass.dart';
-import 'comic_prefetch.dart';
-import 'page_turn_view.dart';
+import '../../core/ui/components/glass/Nav.dart';
+import 'comic/comic_prefetch.dart';
+import 'reader/page_turn_view.dart';
 import '../../l10n/lr_localizations.dart';
 
 /// 从阅读器外部发跳转指令，不改变页面栈。
@@ -245,7 +245,7 @@ class _ComicReaderViewState extends State<ComicReaderView> {
           top: false,
           child: Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: LrSpacing.m, vertical: LrSpacing.s),
+                horizontal: LrSpacing.m, vertical: LrSpacing.xs),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -407,7 +407,7 @@ class _ComicReaderViewState extends State<ComicReaderView> {
     return ListView.builder(
       controller: _vertical,
       padding: const EdgeInsets.symmetric(
-          horizontal: LrSpacing.m, vertical: LrSpacing.s),
+          horizontal: LrSpacing.m, vertical: LrSpacing.xs),
       itemCount: _items.length,
       itemBuilder: (BuildContext context, int i) => SizedBox(
         height: _metrics.itemHeight(_items[i]),
@@ -545,14 +545,14 @@ class _BlankSlot extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme text = Theme.of(context).textTheme;
     return GlassPanel(
-      padding: const EdgeInsets.all(LrSpacing.s),
+      padding: const EdgeInsets.all(LrSpacing.xs),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Icon(Icons.crop_din_outlined,
                 size: 24, color: Theme.of(context).disabledColor),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Text(
               note,
               textAlign: TextAlign.center,
@@ -597,7 +597,7 @@ class _PageSlot extends StatelessWidget {
               children: <Widget>[
                 Icon(Icons.bookmark_outline,
                     size: 15, color: style.subtleTextColor),
-                const SizedBox(width: LrSpacing.s),
+                const SizedBox(width: LrSpacing.xs),
                 Expanded(
                   child: Text(
                     header,
@@ -621,7 +621,7 @@ class _PageSlot extends StatelessWidget {
                 children: <Widget>[
                   Icon(Icons.image_outlined,
                       size: 30, color: style.subtleTextColor),
-                  const SizedBox(height: LrSpacing.s),
+                  const SizedBox(height: LrSpacing.xs),
                   Text(
                     context.tArgs('uiPAspectRatioPlaceholder', <Object?>[
                       item.pageIndex + 1,
@@ -672,7 +672,7 @@ class _SpineShadedSlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!shade.visible || (!shadeRight && !shadeLeft)) return child;
-    final Color edge = shade.color.withOpacity(shade.opacity);
+    final Color edge = shade.color.withValues(alpha: shade.opacity);
     return Stack(
       children: <Widget>[
         child,

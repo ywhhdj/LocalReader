@@ -235,3 +235,39 @@ class MineSectionArgs {
 
   final MineSection section;
 }
+
+/// R13 · 导入书籍流程的强类型参数（合并版新增，命名避开现有 *Args）。
+/// 页面只认 Args，不自己拼路由名；接入 onGenerateRoute 时补 `args is` 守卫。
+class ImportBooksArgs {
+  const ImportBooksArgs({this.openScanFolder = false});
+  final bool openScanFolder;
+}
+
+class ImportSettingsArgs {
+  const ImportSettingsArgs({this.showRulePreview = true});
+  final bool showRulePreview;
+}
+
+class ScanFolderArgs {
+  const ScanFolderArgs({this.root = '', this.format = 'all'});
+  final String root;
+  final String format;
+}
+
+class MergeBooksArgs {
+  const MergeBooksArgs({required this.batchId, this.query = ''});
+  final String batchId;
+  final String query;
+}
+
+/// E23 · 底栏两个新 tab 的强类型参数（路由 /favorites 与 /wenkuLibrary）。
+class WenkuLibraryArgs {
+  const WenkuLibraryArgs({this.initialRank = 0});
+  final int initialRank;
+}
+
+class FavoritesArgs {
+  const FavoritesArgs({this.section = 0, this.comicOnly = false});
+  final int section;
+  final bool comicOnly;
+}

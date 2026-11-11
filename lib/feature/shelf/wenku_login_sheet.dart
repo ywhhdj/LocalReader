@@ -7,19 +7,10 @@ import '../../core/common/design_tokens.dart';
 import '../../core/model/wenku/wenku8_compliance.dart';
 import '../../core/model/wenku/wenku8_hosts.dart';
 import '../../core/model/wenku/wenku8_session.dart';
-import '../../core/ui/components/glass.dart';
+import '../../core/ui/components/glass/Nav.dart';
 import '../../l10n/lr_localizations.dart';
 
-/// Wenku8 网页表单登录（第二十五轮）。
-///
-/// 按用户提供的清单：POST `login.php`（username / password / submit），
-/// 302 不自动跟随，登录态由 Cookie 维持，之后可读 `bookcase.php` 个人书架。
-/// 面板只收集凭据并交给 `Wenku8Session`，自己不碰网络、不打印密码、不写文件。
-///
-/// 三条产品口径钉死在界面上：
-/// 1. 纯本地模式锁定态不允许登录（全应用零请求）；
-/// 2. 来源返回站点关闭公告时不会提交账号密码；
-/// 3. 路径按提供的页面清单配置，尚未经页面解析验证，需真机核对。
+/// Wenku8 网页表单登录
 class Wenku8LoginSheet extends StatefulWidget {
   const Wenku8LoginSheet({super.key});
 
@@ -55,8 +46,7 @@ class _Wenku8LoginSheetState extends State<Wenku8LoginSheet> {
     final TextTheme text = Theme.of(context).textTheme;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-          LrSpacing.l, LrSpacing.m, LrSpacing.l,
+      padding: EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.m, LrSpacing.l,
           MediaQuery.of(context).viewInsets.bottom + LrSpacing.l),
       child: SingleChildScrollView(
         child: GlassPanel(
@@ -69,8 +59,10 @@ class _Wenku8LoginSheetState extends State<Wenku8LoginSheet> {
                 Text(context.t('wenkuLoginTitle'), style: text.headlineSmall),
                 const SizedBox(height: LrSpacing.m),
                 if (!state.onlineEnabled) ...<Widget>[
-                  _Note(icon: Icons.lock_outline, text: context.t('wenkuLockedBody')),
-                  const SizedBox(height: LrSpacing.s),
+                  _Note(
+                      icon: Icons.lock_outline,
+                      text: context.t('wenkuLockedBody')),
+                  const SizedBox(height: LrSpacing.xs),
                   FilledButton.tonal(
                     onPressed: state.enableOnlineDirectory,
                     child: Text(context.t('wenkuUnlockButton')),
@@ -78,13 +70,13 @@ class _Wenku8LoginSheetState extends State<Wenku8LoginSheet> {
                   const SizedBox(height: LrSpacing.m),
                 ],
                 if (session == null)
-                  _Note(icon: Icons.cloud_off_outlined,
+                  _Note(
+                      icon: Icons.cloud_off_outlined,
                       text: context.t('wenkuLoginNoSession'))
                 else
                   AnimatedBuilder(
                     animation: session,
-                    builder: (BuildContext ctx, Widget? _) =>
-                        _SessionBody(
+                    builder: (BuildContext ctx, Widget? _) => _SessionBody(
                       session: session,
                       state: state,
                       username: _username,
@@ -98,13 +90,16 @@ class _Wenku8LoginSheetState extends State<Wenku8LoginSheet> {
                     ),
                   ),
                 const SizedBox(height: LrSpacing.m),
-                _Note(icon: Icons.security_outlined,
+                _Note(
+                    icon: Icons.security_outlined,
                     text: context.t('wenkuLoginCredentialNote')),
                 const SizedBox(height: LrSpacing.xs),
-                _Note(icon: Icons.public_outlined,
+                _Note(
+                    icon: Icons.public_outlined,
                     text: context.t('wenkuLoginHostNote')),
                 const SizedBox(height: LrSpacing.xs),
-                _Note(icon: Icons.rule_folder_outlined,
+                _Note(
+                    icon: Icons.rule_folder_outlined,
                     text: context.t('wenkuEndpointsPendingNote')),
               ],
             ),
@@ -138,7 +133,8 @@ class _Wenku8LoginSheetState extends State<Wenku8LoginSheet> {
       _busy = false;
       _bookcaseNote = listing == null
           ? lrText('uiOnlineDirectoryIsOffNoRequestWasMade')
-          : lrTextArgs('uiItemsShelfBooks', <Object?>[listing.books.length, listing.note]);
+          : lrTextArgs('uiItemsShelfBooks',
+              <Object?>[listing.books.length, listing.note]);
     });
   }
 }
@@ -180,7 +176,7 @@ class _SessionBody extends StatelessWidget {
         Row(
           children: <Widget>[
             const Icon(Icons.language_outlined, size: 18),
-            const SizedBox(width: LrSpacing.s),
+            const SizedBox(width: LrSpacing.xs),
             Text(context.t('uiSourceDomain'), style: text.labelLarge),
             const SizedBox(width: LrSpacing.m),
             Expanded(
@@ -192,18 +188,23 @@ class _SessionBody extends StatelessWidget {
                 items: <DropdownMenuItem<String>>[
                   for (final String h in Wenku8Hosts.authorities.values)
                     DropdownMenuItem<String>(
-                        value: h, child: Text(Wenku8Hosts.labels[Wenku8Hosts.fromAuthority(h)]!)),
+                        value: h,
+                        child: Text(
+                            Wenku8Hosts.labels[Wenku8Hosts.fromAuthority(h)]!)),
                 ],
                 onChanged: (String? h) => h == null ? null : onHostChanged(h),
               ),
             ),
           ],
         ),
-        const SizedBox(height: LrSpacing.s),
-        _Note(icon: Icons.info_outline, text: _stateNote(session.state, session.note)),
+        const SizedBox(height: LrSpacing.xs),
+        _Note(
+            icon: Icons.info_outline,
+            text: _stateNote(session.state, session.note)),
         if (session.state == Wenku8AuthState.sourceClosed) ...<Widget>[
           const SizedBox(height: LrSpacing.xs),
-          _Note(icon: Icons.report_gmailerrorred_outlined,
+          _Note(
+              icon: Icons.report_gmailerrorred_outlined,
               text: context.t('wenkuSourceClosedNote')),
         ],
         const SizedBox(height: LrSpacing.m),
@@ -218,7 +219,7 @@ class _SessionBody extends StatelessWidget {
           textInputAction: TextInputAction.next,
           autofillHints: const <String>[AutofillHints.username],
         ),
-        const SizedBox(height: LrSpacing.s),
+        const SizedBox(height: LrSpacing.xs),
         TextField(
           controller: password,
           enabled: !locked && !busy && !loggedIn,
@@ -234,12 +235,14 @@ class _SessionBody extends StatelessWidget {
         ),
         const SizedBox(height: LrSpacing.m),
         Wrap(
-          spacing: LrSpacing.s,
-          runSpacing: LrSpacing.s,
+          spacing: LrSpacing.xs,
+          runSpacing: LrSpacing.xs,
           children: <Widget>[
             FilledButton(
               onPressed: locked || busy || loggedIn ? null : onLogin,
-              child: Text(busy ? context.t('uiPleaseWait') : context.t('wenkuLoginAction')),
+              child: Text(busy
+                  ? context.t('uiPleaseWait')
+                  : context.t('wenkuLoginAction')),
             ),
             OutlinedButton(
               onPressed: loggedIn ? onLogout : null,
@@ -252,7 +255,7 @@ class _SessionBody extends StatelessWidget {
           ],
         ),
         if (bookcaseNote.isNotEmpty) ...<Widget>[
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           _Note(icon: Icons.menu_book_outlined, text: bookcaseNote),
         ],
       ],
@@ -267,7 +270,9 @@ class _SessionBody extends StatelessWidget {
       case Wenku8AuthState.submitting:
         return note.isEmpty ? lrText('uiWorking') : note;
       case Wenku8AuthState.loggedIn:
-        return note.isEmpty ? lrText('uiSignedInLaterRequestsCarryTheSessionCookieIssu') : note;
+        return note.isEmpty
+            ? lrText('uiSignedInLaterRequestsCarryTheSessionCookieIssu')
+            : note;
       case Wenku8AuthState.failed:
         return lrText('wenkuLoginFailed');
       case Wenku8AuthState.sessionExpired:
@@ -295,7 +300,7 @@ class _Note extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: LrSpacing.s),
+          const SizedBox(width: LrSpacing.xs),
           Expanded(
             child: Text(text, style: Theme.of(context).textTheme.bodySmall),
           ),

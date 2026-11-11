@@ -13,11 +13,14 @@ import 'app_navigation.dart';
 import '../feature/profile/stats/keepsake_library_page.dart';
 import '../feature/profile/stats/calendar_month_page.dart';
 import '../feature/shelf/import_flow_page.dart';
-import '../feature/reader/reader_page.dart';
+import '../feature/reader/reader/reader_page.dart';
 import '../feature/shelf/search_page.dart';
 import '../core/ui/components/import_dialog.dart';
 import '../domain/repositories/book_repository.dart';
 import 'route_args.dart';
+import 'tab_pages.dart';
+import '../feature/import/import_pages.dart';
+import '../feature/import/import_pages_widgets.dart';
 
 /// 导航目标由 app 层统一注入
 class AppRoutes {
@@ -38,6 +41,16 @@ class AppRoutes {
   static const String about = '/mine/about';
   static const String support = '/mine/support';
 
+  /// R13 导入书籍流程（常量先行；builder 待页面 widget 接线，见 docs/09 §9.6）
+  static const String importBooks = '/importBooks';
+  static const String importSettings = '/importSettings';
+  static const String scanFolder = '/scanFolder';
+  static const String mergeBooks = '/mergeBooks';
+
+  /// E23 · 底栏两个新 tab 的具名路由
+  static const String wenkuLibrary = '/wenkuLibrary';
+  static const String favorites = '/favorites';
+
   /// 装配层把导航契约交给路由表
   /// 具体跳转仍由页面的 `AppNavigationScope.of(context)` 读取，避免 core 反向依赖 app。
   static Object? _boundNavigation;
@@ -46,6 +59,91 @@ class AppRoutes {
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case AppRoutes.wenkuLibrary:
+        if (settings.arguments is WenkuLibraryArgs || settings.arguments == null) {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (BuildContext ctx) => buildWenkuLibraryPage(ctx),
+          );
+        }
+        return _fallback(settings, '打开轻小说文库需要 WenkuLibraryArgs 参数');
+
+      case AppRoutes.favorites:
+        if (settings.arguments is FavoritesArgs || settings.arguments == null) {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (BuildContext ctx) => buildFavoritesPage(ctx),
+          );
+        }
+        return _fallback(settings, '打开收藏需要 FavoritesArgs 参数');
+
+      case AppRoutes.importBooks:
+        if (settings.arguments is ImportBooksArgs || settings.arguments == null) {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (BuildContext ctx) => ImportBooksPage(
+              state: const ImportBooksPageState(),
+              onBack: () => Navigator.of(ctx).pop(),
+              onOpenSettings: () => Navigator.of(ctx).pushNamed<void>(
+                AppRoutes.importSettings,
+                arguments: const ImportSettingsArgs(),
+              ),
+              onScanFolder: () => Navigator.of(ctx).pushNamed<void>(
+                AppRoutes.scanFolder,
+                arguments: const ScanFolderArgs(),
+              ),
+            ),
+          );
+        }
+        return _fallback(settings, '打开导入书籍需要 ImportBooksArgs 参数');
+
+      case AppRoutes.importSettings:
+        if (settings.arguments is ImportSettingsArgs || settings.arguments == null) {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (BuildContext ctx) => ImportSettingsPage(
+              state: const ImportSettingsPageState(),
+              onChanged: (_) {},
+              onBack: () => Navigator.of(ctx).pop(),
+            ),
+          );
+        }
+        return _fallback(settings, '打开导入设置需要 ImportSettingsArgs 参数');
+
+      case AppRoutes.scanFolder:
+        if (settings.arguments is ScanFolderArgs || settings.arguments == null) {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (BuildContext ctx) => ScanFolderPage(
+              state: const ScanFolderPageState(),
+              onSpecChanged: (_) {},
+              onScan: () => Navigator.of(ctx).pushNamed<void>(
+                AppRoutes.mergeBooks,
+                arguments: const MergeBooksArgs(batchId: 'pending'),
+              ),
+              onBack: () => Navigator.of(ctx).pop(),
+            ),
+          );
+        }
+        return _fallback(settings, '打开扫描页需要 ScanFolderArgs 参数');
+
+      case AppRoutes.mergeBooks:
+        if (settings.arguments is MergeBooksArgs || settings.arguments == null) {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (BuildContext ctx) => MergeBooksPage(
+              state: const MergePageState(),
+              onQuery: (_) {},
+              onFormat: (_) {},
+              onToggle: (_) {},
+              onLoadMore: () {},
+              onImportSelected: () {},
+              onBack: () => Navigator.of(ctx).pop(),
+            ),
+          );
+        }
+        return _fallback(settings, '打开合并页需要 MergeBooksArgs 参数');
+
       case AppRoutes.detail:
         final Object? args = settings.arguments;
         if (args is DetailArgs) {

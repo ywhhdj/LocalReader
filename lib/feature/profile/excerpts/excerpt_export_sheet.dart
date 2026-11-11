@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/model/stats/excerpt_query.dart';
 import '../../../core/model/stats/reading_stats.dart';
 import '../../../core/common/design_tokens.dart';
-import '../../../core/ui/components/glass.dart';
+import '../../../core/ui/components/glass/Nav.dart';
 import '../../../l10n/lr_localizations.dart';
 
 /// 导出预览：把当前筛选结果生成纯文本，用 `SelectableText` 供用户自行复制。
@@ -38,9 +38,11 @@ class ExcerptExportSheet extends StatelessWidget {
     final TextTheme text = Theme.of(context).textTheme;
     final String plain = ExcerptExporter.toPlainText(excerpts);
     return GlassPanel(
-      padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.l, LrSpacing.l, LrSpacing.xl),
+      padding: const EdgeInsets.fromLTRB(
+          LrSpacing.l, LrSpacing.l, LrSpacing.l, LrSpacing.xl),
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.84),
+        constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.84),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -48,9 +50,11 @@ class ExcerptExportSheet extends StatelessWidget {
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  Text(context.t('uiExportPreview'), style: text.headlineMedium),
+                  Text(context.t('uiExportPreview'),
+                      style: text.headlineMedium),
                   const Spacer(),
-                  Text(context.tArgs('uiItems2', <Object?>[excerpts.length]), style: text.labelSmall),
+                  Text(context.tArgs('uiItems2', <Object?>[excerpts.length]),
+                      style: text.labelSmall),
                 ],
               ),
               const SizedBox(height: LrSpacing.xs),
@@ -69,9 +73,12 @@ class ExcerptExportSheet extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Icon(Icons.info_outline, size: 16, color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(width: LrSpacing.s),
-                  Expanded(child: Text(context.t('excerptExportNote'), style: text.bodySmall)),
+                  Icon(Icons.info_outline,
+                      size: 16, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: LrSpacing.xs),
+                  Expanded(
+                      child: Text(context.t('excerptExportNote'),
+                          style: text.bodySmall)),
                 ],
               ),
             ],

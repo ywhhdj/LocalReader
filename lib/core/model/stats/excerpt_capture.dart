@@ -34,7 +34,7 @@ class HighlightPalette {
 
   /// 行底色：低 alpha，保证正文仍可读；不随阅读背景反推，四种色板本身
   /// 在纸白/米黄/护眼/夜间四档上都有足够区分。
-  static Color lineTint(HighlightColor c) => colors[c]!.withOpacity(0.22);
+  static Color lineTint(HighlightColor c) => colors[c]!.withValues(alpha: 0.22);
 
   static Color spine(HighlightColor c) => colors[c]!;
 }

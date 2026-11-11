@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../common/design_tokens.dart';
-import 'glass.dart';
+import '../../../common/design_tokens.dart';
+import '../glass/Nav.dart';
 
-/// 第三十轮：阅读页的三块热区。
-///
-/// 用户要求「点击中间收起按钮之类的，不应该占用阅读，左下角和右下角热区」。
-/// 所以这里**不铺满整页**：只在左右下角各放 68×68 的透明热区（上一页 / 下一页），
-/// 正文区域完全不拦截点选；中间只保留一枚可收起的小胶囊按钮（顶栏显隐）。
-/// 章节底栏在热区下方 68px，不会被吞掉。
+/// 阅读页的三块热区
 class ReaderTapZones extends StatelessWidget {
   const ReaderTapZones({
     super.key,
@@ -60,14 +55,14 @@ class ReaderTapZones extends StatelessWidget {
           ),
           if (chromeVisible)
             Positioned(
-              top: LrSpacing.s,
+              top: LrSpacing.xs,
               left: 0,
               right: 0,
               child: Center(
                 child: GlassPanel(
                   borderRadius: LrRadius.pill,
                   padding: const EdgeInsets.symmetric(
-                      horizontal: LrSpacing.s, vertical: 2),
+                      horizontal: LrSpacing.xs, vertical: 2),
                   child: InkWell(
                     onTap: onToggleChrome,
                     child: Row(

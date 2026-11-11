@@ -1,12 +1,11 @@
 import '../../domain/repositories/book_repository.dart';
 import 'wenku/wenku8_registry.dart';
 
-/// 书架范围：本地书库 / 云端来源。页面只认这个枚举，
-/// 不在页面里散写第二份 `bool _isCloud` 真相。
+/// 书架范围：本地书库 / 云端来源
 enum LibraryScope { local, cloud }
 
 /// 书架布局三档；布局是页面局部 UI 状态，不写回 AppSettings。
-enum ShelfLayout { shelf3d, grid, list }
+enum ShelfLayout { list, grid2, grid3 }
 
 class ShelfCategory {
   const ShelfCategory({

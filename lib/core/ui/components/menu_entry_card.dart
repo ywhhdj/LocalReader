@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../common/design_tokens.dart';
-import 'glass.dart';
+import 'glass/Nav.dart';
 
 /// 参考图里「统计 / 书签 / 设置 / 关于 / 赞助与反馈」那一行行大卡片。
 /// 图标 + 主标题 + 副标题 + 右侧 chevron，整卡可点；组件不持有任何业务状态。

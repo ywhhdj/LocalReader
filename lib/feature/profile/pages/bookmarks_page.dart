@@ -1,4 +1,5 @@
 import 'package:Local_reader/core/model/stats/reading_stats.dart';
+import 'package:Local_reader/core/ui/components/glass/Page.dart';
 import 'package:flutter/material.dart';
 
 import '../../../assembly/app_navigation.dart';
@@ -6,8 +7,6 @@ import '../../../assembly/app_scope.dart';
 import '../../../core/model/stats/excerpt_query.dart';
 import '../../../core/model/stats/excerpt_title_lookup.dart';
 import '../../../l10n/lr_localizations.dart';
-import '../../../core/ui/components/page_scaffold.dart';
-import '../../../core/ui/components/page_scroll_header.dart';
 import '../../../core/ui/components/section_card.dart';
 import '../../../core/common/design_tokens.dart';
 
@@ -57,7 +56,7 @@ class BookmarksPage extends StatelessWidget {
               children: <Widget>[
                 Text(context.t('bookmarksEmptyTitle'),
                     style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: LrSpacing.s),
+                const SizedBox(height: LrSpacing.xs),
                 Text(context.t('bookmarksEmptyBody'),
                     style: Theme.of(context).textTheme.bodySmall),
               ],
@@ -98,10 +97,12 @@ class _BookmarkTile extends StatelessWidget {
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.bookmark_outline, size: 20),
         title: Text('$title · $chapterTitle',
-            maxLines: 1, overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: textTheme.titleMedium),
         subtitle: Text(text,
-            maxLines: 2, overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: textTheme.bodySmall),
         trailing: const Icon(Icons.chevron_right, size: 18),
         onTap: onTap,

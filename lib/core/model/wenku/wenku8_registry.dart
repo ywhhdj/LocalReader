@@ -3,11 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../l10n/legal_texts.dart';
 import 'wenku8_compliance.dart';
 
-/// 「云端（云端来源）」导航栏的数据源注册表（第二十二轮）。
-///
-/// 用户要求书架页有「本地 / 云端（云端来源）」导航；云端这一侧**只列来源，
-/// 不列用户自己加的书源**。参考仓库 README 明确：仅 Wenku8 与本地导入，
-/// 其它来源与自定义书源不再支持。所以这里固定两条、不提供 add / remove。
+/// 「云端（云端来源）」导航栏的数据源注册表
 enum BookSourceKind { online, local }
 
 @immutable
@@ -58,8 +54,5 @@ class Wenku8Registry {
     }
     return null;
   }
-
-  /// 自定义书源在产品层面不提供；页面不会渲染「添加书源」按钮，
-  /// 这里保留纯函数供规格单测与静态自检双重验证。
   static bool canAddCustomSource() => Wenku8Compliance.customSourcesAllowed;
 }

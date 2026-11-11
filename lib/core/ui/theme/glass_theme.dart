@@ -9,8 +9,16 @@ class GlassTheme {
 
   static const String _serif = 'Noto Serif SC';
   static const String _sans = 'Noto Sans SC';
-  static const List<String> _serifFallback = <String>['Songti SC', 'SimSun', 'serif'];
-  static const List<String> _sansFallback = <String>['PingFang SC', 'Microsoft YaHei', 'sans-serif'];
+  static const List<String> _serifFallback = <String>[
+    'Songti SC',
+    'SimSun',
+    'serif'
+  ];
+  static const List<String> _sansFallback = <String>[
+    'PingFang SC',
+    'Microsoft YaHei',
+    'sans-serif'
+  ];
 
   /// 季节样式由 AppScope 注入：MaterialApp 的 theme 随季节重建，
   /// 四个 tab 都能通过 Theme.extension<LrSeasonTheme>() 拿到同一套色板。
@@ -35,15 +43,19 @@ class GlassTheme {
       colorScheme: scheme,
       scaffoldBackgroundColor: Colors.transparent,
       splashFactory: InkSparkle.splashFactory,
-      textTheme: editorialTextTheme(isDark ? const Color(0xFFF2F2F4) : const Color(0xFF25231F)),
+      textTheme: editorialTextTheme(
+          isDark ? const Color(0xFFF2F2F4) : const Color(0xFF25231F)),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: _serifStyle(22, isDark ? const Color(0xFFF2F2F4) : const Color(0xFF25231F), FontWeight.w600),
+        titleTextStyle: _serifStyle(
+            22,
+            isDark ? const Color(0xFFF2F2F4) : const Color(0xFF25231F),
+            FontWeight.w600),
       ),
       dividerTheme: DividerThemeData(
-        color: (isDark ? Colors.white : Colors.black).withOpacity(0.08),
+        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
         thickness: 1,
         space: 1,
       ),
@@ -53,7 +65,7 @@ class GlassTheme {
 
   /// 让页面可通过 Theme.of(context).extension<LrSeasonTheme>() 读取季节色板。
   static TextTheme editorialTextTheme(Color onSurface) {
-    final Color secondary = onSurface.withOpacity(0.62);
+    final Color secondary = onSurface.withValues(alpha: 0.62);
     return TextTheme(
       displayLarge: _serifStyle(40, onSurface, FontWeight.w700, height: 1.25),
       displayMedium: _serifStyle(32, onSurface, FontWeight.w700, height: 1.3),
@@ -64,9 +76,11 @@ class GlassTheme {
       bodyLarge: _sansStyle(16, onSurface, FontWeight.w400, height: 1.75),
       bodyMedium: _sansStyle(14, onSurface, FontWeight.w400, height: 1.7),
       bodySmall: _sansStyle(12, secondary, FontWeight.w400, height: 1.6),
-      labelLarge: _sansStyle(14, onSurface, FontWeight.w600, letterSpacing: 0.4),
+      labelLarge:
+          _sansStyle(14, onSurface, FontWeight.w600, letterSpacing: 0.4),
       labelMedium: _sansStyle(12, secondary, FontWeight.w500),
-      labelSmall: _sansStyle(11, secondary, FontWeight.w500, letterSpacing: 1.2),
+      labelSmall:
+          _sansStyle(11, secondary, FontWeight.w500, letterSpacing: 1.2),
     );
   }
 
@@ -103,7 +117,8 @@ class LrSeasonTheme extends ThemeExtension<LrSeasonTheme> {
   const LrSeasonTheme({required this.palette});
 
   @override
-  LrSeasonTheme copyWith({SeasonPalette? palette}) => LrSeasonTheme(palette: palette ?? this.palette);
+  LrSeasonTheme copyWith({SeasonPalette? palette}) =>
+      LrSeasonTheme(palette: palette ?? this.palette);
 
   @override
   LrSeasonTheme lerp(ThemeExtension<LrSeasonTheme>? other, double t) {

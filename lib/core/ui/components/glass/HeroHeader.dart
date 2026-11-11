@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../common/design_tokens.dart';
+import '../../../common/design_tokens.dart';
 
 /// 页面 / 区块的 Hero 头：`[icon?]  Title / Subtitle  [trailing?]`。
 ///
@@ -21,7 +21,7 @@ class HeroHeader extends StatelessWidget {
     this.titleStyle,
     this.subtitleStyle,
     this.spacing = LrSpacing.xs,
-    this.iconGap = LrSpacing.s,
+    this.iconGap = LrSpacing.xs,
     this.bottomSpacing = LrSpacing.m,
   });
 

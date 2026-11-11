@@ -6,10 +6,13 @@ import '../../assembly/route_args.dart';
 import '../../assembly/app_scope.dart';
 import '../../core/common/design_tokens.dart';
 import '../../core/ui/theme/glass_theme.dart';
-import '../../core/ui/components/glass.dart';
+import '../../core/ui/components/glass/Nav.dart';
 import 'wenku_login_sheet.dart';
 import '../../l10n/lr_localizations.dart';
 
+/// 【E23 退役说明】原「发现 / WenkuPage」开关说明页已不再挂底栏；
+/// 轻小说文库改由 lib/feature/wenku/wenku_library_page.dart 承担，
+/// 本文件仅为兼容历史 import 保留，不再由 AppShell 引用。
 /// 轻小说文库：默认关闭的在线目录 + 本地导入入口。
 /// 设计要点：LocalReader 原定位是「纯本地、无联网、无广告」，
 /// 因此在线能力必须是显式开关；开关关闭时本页与全应用都不产生任何网络请求。
@@ -29,8 +32,9 @@ class WenkuPage extends StatelessWidget {
     final bool pureLocal = state.settings.pureLocal;
     final TextTheme text = Theme.of(context).textTheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final SeasonPalette palette = Theme.of(context).extension<LrSeasonTheme>()?.palette ??
-        SeasonPalette.all[isDark ? SeasonStyle.winter : SeasonStyle.paper]!;
+    final SeasonPalette palette =
+        Theme.of(context).extension<LrSeasonTheme>()?.palette ??
+            SeasonPalette.all[isDark ? SeasonStyle.winter : SeasonStyle.paper]!;
 
     return Container(
       decoration: BoxDecoration(
@@ -39,17 +43,22 @@ class WenkuPage extends StatelessWidget {
           end: Alignment.bottomCenter,
           colors: isDark
               ? <Color>[const Color(0xFF15171C), const Color(0xFF1D2027)]
-              : <Color>[palette.seed, Color.lerp(palette.seed, Colors.white, 0.5)!],
+              : <Color>[
+                  palette.seed,
+                  Color.lerp(palette.seed, Colors.white, 0.5)!
+                ],
         ),
       ),
       child: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.xl, LrSpacing.l, 120),
+          padding: const EdgeInsets.fromLTRB(
+              LrSpacing.l, LrSpacing.xl, LrSpacing.l, 120),
           children: <Widget>[
             Text(context.t('uiLightNovels'), style: text.displayMedium),
             const SizedBox(height: LrSpacing.xs),
-            Text(context.t('uiOnlineDirectoryAndLocalLibraryStayIndependent'), style: text.bodyMedium),
+            Text(context.t('uiOnlineDirectoryAndLocalLibraryStayIndependent'),
+                style: text.bodyMedium),
             const SizedBox(height: LrSpacing.l),
 
             // 显式开关：默认关闭 = 零网络请求。
@@ -59,16 +68,22 @@ class WenkuPage extends StatelessWidget {
               child: SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 value: onlineEnabled,
-                onChanged: pureLocal ? null : (bool v) => state.setOnlineDirectory(v),
-                title: Text(context.t('uiEnableOnlineDirectoryWenku8'), style: text.titleMedium),
+                onChanged:
+                    pureLocal ? null : (bool v) => state.setOnlineDirectory(v),
+                title: Text(context.t('uiEnableOnlineDirectoryWenku8'),
+                    style: text.titleMedium),
                 subtitle: Padding(
                   padding: const EdgeInsets.only(top: LrSpacing.xs),
                   child: Text(
                     pureLocal
-                        ? context.t('uiPureLocalModeIsOnTheAppMakesNoNetworkRequests') +
-                            context.t('uiTurnOffPureLocalModeOnTheProfilePageFirst')
-                        : context.t('uiWhenOffTheAppStaysFullyLocalAndMakesNoNetworkR') +
-                            context.t('uiWhenOnOnlyWenku8ListingsAndTocMetadataAreRead'),
+                        ? context.t(
+                                'uiPureLocalModeIsOnTheAppMakesNoNetworkRequests') +
+                            context.t(
+                                'uiTurnOffPureLocalModeOnTheProfilePageFirst')
+                        : context.t(
+                                'uiWhenOffTheAppStaysFullyLocalAndMakesNoNetworkR') +
+                            context.t(
+                                'uiWhenOnOnlyWenku8ListingsAndTocMetadataAreRead'),
                     style: text.bodySmall,
                   ),
                 ),
@@ -96,8 +111,9 @@ class WenkuPage extends StatelessWidget {
               GlassPanel(
                 child: Row(
                   children: <Widget>[
-                    Icon(Icons.info_outline, size: 18, color: Theme.of(context).colorScheme.primary),
-                    const SizedBox(width: LrSpacing.s),
+                    Icon(Icons.info_outline,
+                        size: 18, color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(width: LrSpacing.xs),
                     Expanded(
                       child: Text(
                         context.t('onlineAvailability'),
@@ -109,8 +125,9 @@ class WenkuPage extends StatelessWidget {
               ),
               const SizedBox(height: LrSpacing.m),
               ..._demoEntries.map<Widget>((Map<String, String> e) => Padding(
-                    padding: const EdgeInsets.only(bottom: LrSpacing.s),
-                    child: _EntryCard(entry: e, onTap: () => _showEntry(context, e)),
+                    padding: const EdgeInsets.only(bottom: LrSpacing.xs),
+                    child: _EntryCard(
+                        entry: e, onTap: () => _showEntry(context, e)),
                   )),
               const SizedBox(height: LrSpacing.l),
               _ComplianceCard(),
@@ -123,15 +140,28 @@ class WenkuPage extends StatelessWidget {
 
   // 演示条目：仅元数据与目录，不内置任何小说正文文件。
   static List<Map<String, String>> get _demoEntries => <Map<String, String>>[
-    <String, String>{'title': lrText('uiSampleWorkTocPreview'), 'author': lrText('uiSampleData2'), 'tag': lrText('uiContents')},
-    <String, String>{'title': lrText('uiSampleWorkVolumeList'), 'author': lrText('uiSampleData2'), 'tag': lrText('uiContents')},
-    <String, String>{'title': lrText('uiSampleWorkDetail'), 'author': lrText('uiSampleData2'), 'tag': lrText('uiMetadata')},
-  ];
+        <String, String>{
+          'title': lrText('uiSampleWorkTocPreview'),
+          'author': lrText('uiSampleData2'),
+          'tag': lrText('uiContents')
+        },
+        <String, String>{
+          'title': lrText('uiSampleWorkVolumeList'),
+          'author': lrText('uiSampleData2'),
+          'tag': lrText('uiContents')
+        },
+        <String, String>{
+          'title': lrText('uiSampleWorkDetail'),
+          'author': lrText('uiSampleData2'),
+          'tag': lrText('uiMetadata')
+        },
+      ];
 
   void _showImport(BuildContext context) {
     final ShowImport? show = onImport;
     if (show == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.t('uiImportEntryIsNotWiredIntoThisPage'))));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(context.t('uiImportEntryIsNotWiredIntoThisPage'))));
       return;
     }
     show();
@@ -142,18 +172,23 @@ class WenkuPage extends StatelessWidget {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (BuildContext ctx) => GlassPanel(
-        padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.l, LrSpacing.l, LrSpacing.xl),
+        padding: const EdgeInsets.fromLTRB(
+            LrSpacing.l, LrSpacing.l, LrSpacing.l, LrSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(e['title'] ?? '', style: Theme.of(context).textTheme.headlineMedium),
+            Text(e['title'] ?? '',
+                style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: LrSpacing.m),
-            Text(context.t('onlineEntryNote'), style: Theme.of(context).textTheme.bodyMedium),
+            Text(context.t('onlineEntryNote'),
+                style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: LrSpacing.m),
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.t('uiGotIt'))),
+              child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(context.t('uiGotIt'))),
             ),
           ],
         ),
@@ -163,7 +198,11 @@ class WenkuPage extends StatelessWidget {
 }
 
 class _ActionCard extends StatelessWidget {
-  const _ActionCard({required this.icon, required this.title, required this.subtitle, required this.onTap});
+  const _ActionCard(
+      {required this.icon,
+      required this.title,
+      required this.subtitle,
+      required this.onTap});
   final IconData icon;
   final String title;
   final String subtitle;
@@ -216,7 +255,10 @@ class _EntryCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
                 gradient: LinearGradient(
                   colors: <Color>[
-                    Theme.of(context).colorScheme.primary.withOpacity(0.75),
+                    Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.75),
                     Theme.of(context).colorScheme.primary,
                   ],
                 ),
@@ -227,13 +269,18 @@ class _EntryCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(entry['title'] ?? '', style: Theme.of(context).textTheme.titleMedium),
+                  Text(entry['title'] ?? '',
+                      style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 4),
-                  Text(context.tArgs('uiSampleDataN1', <Object?>[entry['author']]), style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                      context
+                          .tArgs('uiSampleDataN1', <Object?>[entry['author']]),
+                      style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),
             ),
-            Text(entry['tag'] ?? '', style: Theme.of(context).textTheme.labelSmall),
+            Text(entry['tag'] ?? '',
+                style: Theme.of(context).textTheme.labelSmall),
           ],
         ),
       ),
@@ -252,9 +299,11 @@ class _ComplianceCard extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              Icon(Icons.gavel_outlined, size: 18, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: LrSpacing.s),
-              Text(context.t('uiAboutContentAndSources'), style: text.titleMedium),
+              Icon(Icons.gavel_outlined,
+                  size: 18, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: LrSpacing.xs),
+              Text(context.t('uiAboutContentAndSources'),
+                  style: text.titleMedium),
             ],
           ),
           const SizedBox(height: LrSpacing.m),
@@ -267,7 +316,7 @@ class _ComplianceCard extends StatelessWidget {
             context.t('issueGuidance'),
             context.t('thirdPartyService'),
           ].map<Widget>((String s) => Padding(
-                padding: const EdgeInsets.only(bottom: LrSpacing.s),
+                padding: const EdgeInsets.only(bottom: LrSpacing.xs),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[

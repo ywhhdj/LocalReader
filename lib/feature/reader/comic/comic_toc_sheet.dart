@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../core/model/comic/comic_toc.dart';
-import '../../core/common/design_tokens.dart';
-import '../../core/ui/components/glass.dart';
-import '../../l10n/lr_localizations.dart';
+import '../../../core/model/comic/comic_toc.dart';
+import '../../../core/common/design_tokens.dart';
+import '../../../core/ui/components/glass/Nav.dart';
+import '../../../l10n/lr_localizations.dart';
 
 /// 漫画话集目录：列出识别到的话，点选回传该话首页的 pageIndex。
 ///
@@ -28,7 +28,8 @@ class ComicTocSheet extends StatelessWidget {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (BuildContext ctx) => ComicTocSheet(toc: toc, currentPage: currentPage),
+        builder: (BuildContext ctx) =>
+            ComicTocSheet(toc: toc, currentPage: currentPage),
       );
 
   @override
@@ -37,9 +38,11 @@ class ComicTocSheet extends StatelessWidget {
     final int? currentEpisode = toc.episodeIndexForPage(currentPage);
 
     return GlassPanel(
-      padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.l, LrSpacing.l, LrSpacing.xl),
+      padding: const EdgeInsets.fromLTRB(
+          LrSpacing.l, LrSpacing.l, LrSpacing.l, LrSpacing.xl),
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+        constraints:
+            BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -49,36 +52,39 @@ class ComicTocSheet extends StatelessWidget {
                 children: <Widget>[
                   Text(context.t('uiEpisodeList'), style: text.headlineMedium),
                   const Spacer(),
-                  Text(context.tArgs('uiEpisodesPages2', <Object?>[toc.episodeCount, toc.pageCount]), style: text.labelSmall),
+                  Text(
+                      context.tArgs('uiEpisodesPages2',
+                          <Object?>[toc.episodeCount, toc.pageCount]),
+                      style: text.labelSmall),
                 ],
               ),
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               Text(
                 toc.recognitionRate < 1
-                    ? context.tArgs('uiRecognitionRate', <Object?>[(toc.recognitionRate * 100).round()]) +
-                        context.tArgs('uiUnrecognizedPagesEpisodes', <Object?>[toc.pageCount - toc.recognizedPages])
+                    ? context.tArgs('uiRecognitionRate',
+                            <Object?>[(toc.recognitionRate * 100).round()]) +
+                        context.tArgs('uiUnrecognizedPagesEpisodes',
+                            <Object?>[toc.pageCount - toc.recognizedPages])
                     : context.t('uiAllPagesAreGroupedIntoEpisodes'),
                 style: text.labelSmall,
               ),
               const SizedBox(height: LrSpacing.m),
-
               ...toc.episodes.asMap().entries.map<Widget>(
-                    (MapEntry<int, ComicEpisode> e) {
-                      final int i = e.key;
-                      final ComicEpisode ep = e.value;
-                      final bool current = i == currentEpisode;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: LrSpacing.s),
-                        child: _EpisodeTile(
-                          episode: ep,
-                          current: current,
-                          onTap: () => Navigator.of(context).pop(ep.pageStart),
-                        ),
-                      );
-                    },
-                  ),
-
-              const SizedBox(height: LrSpacing.s),
+                (MapEntry<int, ComicEpisode> e) {
+                  final int i = e.key;
+                  final ComicEpisode ep = e.value;
+                  final bool current = i == currentEpisode;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: LrSpacing.xs),
+                    child: _EpisodeTile(
+                      episode: ep,
+                      current: current,
+                      onTap: () => Navigator.of(context).pop(ep.pageStart),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: LrSpacing.xs),
               GlassPanel(
                 child: Text(context.t('comicTocNote'), style: text.bodySmall),
               ),
@@ -136,24 +142,34 @@ class _EpisodeTile extends StatelessWidget {
                       ),
                       if (current)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: LrSpacing.xs, vertical: 2),
                           decoration: BoxDecoration(
-                            color: accent.withOpacity(0.16),
+                            color: accent.withValues(alpha: 0.16),
                             borderRadius: BorderRadius.circular(LrRadius.pill),
                           ),
-                          child: Text(context.t('uiCurrent2'), style: text.labelSmall),
+                          child: Text(context.t('uiCurrent2'),
+                              style: text.labelSmall),
                         ),
                       if (!episode.recognized)
                         Padding(
-                          padding: const EdgeInsets.only(left: LrSpacing.s),
-                          child: Text(context.t('uiUnrecognized'), style: text.labelSmall),
+                          padding: const EdgeInsets.only(left: LrSpacing.xs),
+                          child: Text(context.t('uiUnrecognized'),
+                              style: text.labelSmall),
                         ),
                     ],
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    context.tArgs('uiPages2', <Object?>[episode.pageRangeLabel, episode.pageCount]) +
-                    context.tArgs('uiPhrase011', <Object?>[episode.kind == ComicEpisodeKind.special ? lrText('uiSpecialEpisodePrefix') : '']),
+                    context.tArgs('uiPages2', <Object?>[
+                          episode.pageRangeLabel,
+                          episode.pageCount
+                        ]) +
+                        context.tArgs('uiPhrase011', <Object?>[
+                          episode.kind == ComicEpisodeKind.special
+                              ? lrText('uiSpecialEpisodePrefix')
+                              : ''
+                        ]),
                     style: text.labelSmall,
                   ),
                 ],

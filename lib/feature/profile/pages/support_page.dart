@@ -1,8 +1,7 @@
+import 'package:Local_reader/core/ui/components/glass/Page.dart';
 import 'package:flutter/material.dart';
 
 import '../../../l10n/lr_localizations.dart';
-import '../../../core/ui/components/page_scaffold.dart';
-import '../../../core/ui/components/page_scroll_header.dart';
 import '../../../core/ui/components/section_card.dart';
 import '../../../core/common/design_tokens.dart';
 import 'feedback_sheet.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../common/design_tokens.dart';
+import '../../../common/design_tokens.dart';
 
 /// 立体书架上的单本书：透视倾角 + 书脊渐变高光 + 书页侧边 + 层板投影 + 阅读进度。
 /// 参考仓库的「three-dimensional bookshelf」，这里用纯 Flutter Transform 重实现。
@@ -29,7 +29,9 @@ class BookSpine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color ink = isDark ? Colors.white.withOpacity(0.92) : Colors.white.withOpacity(0.96);
+    final Color ink = isDark
+        ? Colors.white.withValues(alpha: 0.92)
+        : Colors.white.withValues(alpha: 0.96);
 
     return GestureDetector(
       onTap: onTap,
@@ -48,7 +50,7 @@ class BookSpine extends StatelessWidget {
             ),
             boxShadow: <BoxShadow>[
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.5 : 0.24),
+                color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.24),
                 blurRadius: 10,
                 offset: const Offset(5, 6),
               ),
@@ -61,12 +63,13 @@ class BookSpine extends StatelessWidget {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(LrRadius.spine)),
+                    borderRadius: const BorderRadius.horizontal(
+                        left: Radius.circular(LrRadius.spine)),
                     gradient: LinearGradient(
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                       colors: <Color>[
-                        spineColor.withOpacity(0.72),
+                        spineColor.withValues(alpha: 0.72),
                         spineColor,
                         Color.lerp(spineColor, Colors.black, 0.28)!,
                       ],
@@ -91,7 +94,11 @@ class BookSpine extends StatelessWidget {
                                       String.fromCharCode(r),
                                       style: TextStyle(
                                         fontFamily: 'Noto Serif SC',
-                                        fontFamilyFallback: const <String>['Songti SC', 'SimSun', 'serif'],
+                                        fontFamilyFallback: const <String>[
+                                          'Songti SC',
+                                          'SimSun',
+                                          'serif'
+                                        ],
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
                                         color: ink,
@@ -103,13 +110,16 @@ class BookSpine extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       // 烫金细线
-                      Container(height: 1, color: Colors.white.withOpacity(0.45)),
+                      Container(
+                          height: 1,
+                          color: Colors.white.withValues(alpha: 0.45)),
                       const SizedBox(height: 6),
                       Text(
                         author,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 8.5, color: ink.withOpacity(0.75)),
+                        style: TextStyle(
+                            fontSize: 8.5, color: ink.withValues(alpha: 0.75)),
                       ),
                       if (progress > 0) ...<Widget>[
                         const SizedBox(height: 6),
@@ -118,8 +128,10 @@ class BookSpine extends StatelessWidget {
                           child: LinearProgressIndicator(
                             value: progress.clamp(0.0, 1.0),
                             minHeight: 2.5,
-                            backgroundColor: Colors.white.withOpacity(0.22),
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white.withOpacity(0.9)),
+                            backgroundColor:
+                                Colors.white.withValues(alpha: 0.22),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white.withValues(alpha: 0.9)),
                           ),
                         ),
                       ],
@@ -131,7 +143,8 @@ class BookSpine extends StatelessWidget {
               Container(
                 width: 6,
                 decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.horizontal(right: Radius.circular(2)),
+                  borderRadius:
+                      const BorderRadius.horizontal(right: Radius.circular(2)),
                   gradient: LinearGradient(
                     colors: <Color>[
                       const Color(0xFFEFE9DC),
@@ -163,7 +176,10 @@ class ShelfBoard extends StatelessWidget {
         gradient: LinearGradient(colors: colors),
         borderRadius: BorderRadius.circular(3),
         boxShadow: <BoxShadow>[
-          BoxShadow(color: Colors.black.withOpacity(0.22), blurRadius: 8, offset: const Offset(0, 5)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.22),
+              blurRadius: 8,
+              offset: const Offset(0, 5)),
         ],
       ),
     );

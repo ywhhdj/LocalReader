@@ -5479,6 +5479,528 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'关闭'**
   String get uiClose;
+
+  /// No description provided for @uiWenkuLibrary.
+  ///
+  /// In zh, this message translates to:
+  /// **'轻小说文库'**
+  String get uiWenkuLibrary;
+
+  /// No description provided for @uiRecentReads.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近阅读'**
+  String get uiRecentReads;
+
+  /// No description provided for @uiMyFavorites.
+  ///
+  /// In zh, this message translates to:
+  /// **'我的收藏'**
+  String get uiMyFavorites;
+
+  /// No description provided for @uiLoginWenkuAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'登录文库账号'**
+  String get uiLoginWenkuAccount;
+
+  /// No description provided for @uiLoginToSyncCloud.
+  ///
+  /// In zh, this message translates to:
+  /// **'登录后同步云书架'**
+  String get uiLoginToSyncCloud;
+
+  /// No description provided for @uiAccountName.
+  ///
+  /// In zh, this message translates to:
+  /// **'文库账号'**
+  String get uiAccountName;
+
+  /// No description provided for @uiSyncStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'同步状态'**
+  String get uiSyncStatus;
+
+  /// No description provided for @uiSwitchToOnlineToLogin.
+  ///
+  /// In zh, this message translates to:
+  /// **'切到联网模式后可登录'**
+  String get uiSwitchToOnlineToLogin;
+
+  /// No description provided for @uiGoCollect.
+  ///
+  /// In zh, this message translates to:
+  /// **'去收藏'**
+  String get uiGoCollect;
+
+  /// No description provided for @uiCloudEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有云端藏书'**
+  String get uiCloudEmpty;
+
+  /// No description provided for @uiRankingDaily.
+  ///
+  /// In zh, this message translates to:
+  /// **'日榜'**
+  String get uiRankingDaily;
+
+  /// No description provided for @uiRankingWeekly.
+  ///
+  /// In zh, this message translates to:
+  /// **'周榜'**
+  String get uiRankingWeekly;
+
+  /// No description provided for @uiRankingMonthly.
+  ///
+  /// In zh, this message translates to:
+  /// **'月榜'**
+  String get uiRankingMonthly;
+
+  /// No description provided for @uiRankingAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'总榜'**
+  String get uiRankingAll;
+
+  /// No description provided for @uiRecommendedForYou.
+  ///
+  /// In zh, this message translates to:
+  /// **'推荐喜欢'**
+  String get uiRecommendedForYou;
+
+  /// No description provided for @uiStatsOverview.
+  ///
+  /// In zh, this message translates to:
+  /// **'总览'**
+  String get uiStatsOverview;
+
+  /// No description provided for @uiStatsCharts.
+  ///
+  /// In zh, this message translates to:
+  /// **'图表'**
+  String get uiStatsCharts;
+
+  /// No description provided for @uiStatsBooks.
+  ///
+  /// In zh, this message translates to:
+  /// **'书目'**
+  String get uiStatsBooks;
+
+  /// No description provided for @uiStatsMarks.
+  ///
+  /// In zh, this message translates to:
+  /// **'记号'**
+  String get uiStatsMarks;
+
+  /// No description provided for @uiStatsTouch.
+  ///
+  /// In zh, this message translates to:
+  /// **'触摸'**
+  String get uiStatsTouch;
+
+  /// No description provided for @uiSettingsAppearance.
+  ///
+  /// In zh, this message translates to:
+  /// **'外观'**
+  String get uiSettingsAppearance;
+
+  /// No description provided for @uiSettingsPerformance.
+  ///
+  /// In zh, this message translates to:
+  /// **'性能'**
+  String get uiSettingsPerformance;
+
+  /// No description provided for @uiSettingsWidgets.
+  ///
+  /// In zh, this message translates to:
+  /// **'小组件'**
+  String get uiSettingsWidgets;
+
+  /// No description provided for @uiSettingsDataStorage.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据与存储'**
+  String get uiSettingsDataStorage;
+
+  /// No description provided for @uiCacheManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存管理'**
+  String get uiCacheManagement;
+
+  /// No description provided for @uiBackup.
+  ///
+  /// In zh, this message translates to:
+  /// **'备份'**
+  String get uiBackup;
+
+  /// No description provided for @uiTheme.
+  ///
+  /// In zh, this message translates to:
+  /// **'主题'**
+  String get uiTheme;
+
+  /// No description provided for @uiThemeFollowSystem.
+  ///
+  /// In zh, this message translates to:
+  /// **'跟随系统'**
+  String get uiThemeFollowSystem;
+
+  /// No description provided for @uiThemeDark.
+  ///
+  /// In zh, this message translates to:
+  /// **'夜间'**
+  String get uiThemeDark;
+
+  /// No description provided for @uiThemeLight.
+  ///
+  /// In zh, this message translates to:
+  /// **'浅色'**
+  String get uiThemeLight;
+
+  /// No description provided for @uiLanguage.
+  ///
+  /// In zh, this message translates to:
+  /// **'语言'**
+  String get uiLanguage;
+
+  /// No description provided for @uiLangFollowSystem.
+  ///
+  /// In zh, this message translates to:
+  /// **'跟随系统'**
+  String get uiLangFollowSystem;
+
+  /// No description provided for @uiLangZh.
+  ///
+  /// In zh, this message translates to:
+  /// **'简体中文'**
+  String get uiLangZh;
+
+  /// No description provided for @uiLangEn.
+  ///
+  /// In zh, this message translates to:
+  /// **'英文'**
+  String get uiLangEn;
+
+  /// No description provided for @uiTtsEngine.
+  ///
+  /// In zh, this message translates to:
+  /// **'语言接口'**
+  String get uiTtsEngine;
+
+  /// No description provided for @uiTtsSystem.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统语音'**
+  String get uiTtsSystem;
+
+  /// No description provided for @uiTtsOpenAi.
+  ///
+  /// In zh, this message translates to:
+  /// **'OpenAI 兼容'**
+  String get uiTtsOpenAi;
+
+  /// No description provided for @uiTtsSsml.
+  ///
+  /// In zh, this message translates to:
+  /// **'SSML'**
+  String get uiTtsSsml;
+
+  /// No description provided for @uiSearchByTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'书名'**
+  String get uiSearchByTitle;
+
+  /// No description provided for @uiSearchByAuthor.
+  ///
+  /// In zh, this message translates to:
+  /// **'作者'**
+  String get uiSearchByAuthor;
+
+  /// No description provided for @uiSearchByTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签'**
+  String get uiSearchByTag;
+
+  /// No description provided for @uiNovel.
+  ///
+  /// In zh, this message translates to:
+  /// **'小说'**
+  String get uiNovel;
+
+  /// No description provided for @uiComic.
+  ///
+  /// In zh, this message translates to:
+  /// **'漫画'**
+  String get uiComic;
+
+  /// No description provided for @uiGridList.
+  ///
+  /// In zh, this message translates to:
+  /// **'列表'**
+  String get uiGridList;
+
+  /// No description provided for @uiGridTwoColumns.
+  ///
+  /// In zh, this message translates to:
+  /// **'两栏'**
+  String get uiGridTwoColumns;
+
+  /// No description provided for @uiGridThreeColumns.
+  ///
+  /// In zh, this message translates to:
+  /// **'三栏'**
+  String get uiGridThreeColumns;
+
+  /// No description provided for @uiRecentLimit.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近阅读记录条数'**
+  String get uiRecentLimit;
+
+  /// No description provided for @uiImportBooks.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入书籍'**
+  String get uiImportBooks;
+
+  /// No description provided for @uiImportSettings.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入设置'**
+  String get uiImportSettings;
+
+  /// No description provided for @uiTxtEncoding.
+  ///
+  /// In zh, this message translates to:
+  /// **'TXT 编码'**
+  String get uiTxtEncoding;
+
+  /// No description provided for @uiEncAuto.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动'**
+  String get uiEncAuto;
+
+  /// No description provided for @uiEncUtf8.
+  ///
+  /// In zh, this message translates to:
+  /// **'UTF-8'**
+  String get uiEncUtf8;
+
+  /// No description provided for @uiEncGbk.
+  ///
+  /// In zh, this message translates to:
+  /// **'GBK'**
+  String get uiEncGbk;
+
+  /// No description provided for @uiEncBig5.
+  ///
+  /// In zh, this message translates to:
+  /// **'Big5'**
+  String get uiEncBig5;
+
+  /// No description provided for @uiEncUtf16.
+  ///
+  /// In zh, this message translates to:
+  /// **'UTF-16'**
+  String get uiEncUtf16;
+
+  /// No description provided for @uiEncGb18030.
+  ///
+  /// In zh, this message translates to:
+  /// **'GB18030'**
+  String get uiEncGb18030;
+
+  /// No description provided for @uiTxtTocDetection.
+  ///
+  /// In zh, this message translates to:
+  /// **'TXT 目录识别'**
+  String get uiTxtTocDetection;
+
+  /// No description provided for @uiTocAuto.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动识别'**
+  String get uiTocAuto;
+
+  /// No description provided for @uiTocCustom.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义规则'**
+  String get uiTocCustom;
+
+  /// No description provided for @uiChapterRegex.
+  ///
+  /// In zh, this message translates to:
+  /// **'章节正则'**
+  String get uiChapterRegex;
+
+  /// No description provided for @uiVolumeRegex.
+  ///
+  /// In zh, this message translates to:
+  /// **'分卷正则'**
+  String get uiVolumeRegex;
+
+  /// No description provided for @uiRulePreview.
+  ///
+  /// In zh, this message translates to:
+  /// **'规则命中预览'**
+  String get uiRulePreview;
+
+  /// No description provided for @uiUntitledPolicy.
+  ///
+  /// In zh, this message translates to:
+  /// **'原书未提供标题'**
+  String get uiUntitledPolicy;
+
+  /// No description provided for @uiFillChapterName.
+  ///
+  /// In zh, this message translates to:
+  /// **'补齐章节名'**
+  String get uiFillChapterName;
+
+  /// No description provided for @uiMarkBodyFragment.
+  ///
+  /// In zh, this message translates to:
+  /// **'标为正文片段'**
+  String get uiMarkBodyFragment;
+
+  /// No description provided for @uiScanLocalFolder.
+  ///
+  /// In zh, this message translates to:
+  /// **'扫描本地文件夹'**
+  String get uiScanLocalFolder;
+
+  /// No description provided for @uiScanFormat.
+  ///
+  /// In zh, this message translates to:
+  /// **'扫描格式'**
+  String get uiScanFormat;
+
+  /// No description provided for @uiFormatAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部格式'**
+  String get uiFormatAll;
+
+  /// No description provided for @uiFormatAllShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get uiFormatAllShort;
+
+  /// No description provided for @uiScanScope.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择扫描范围'**
+  String get uiScanScope;
+
+  /// No description provided for @uiScopeSaf.
+  ///
+  /// In zh, this message translates to:
+  /// **'授权目录'**
+  String get uiScopeSaf;
+
+  /// No description provided for @uiScopeFolder.
+  ///
+  /// In zh, this message translates to:
+  /// **'指定文件夹'**
+  String get uiScopeFolder;
+
+  /// No description provided for @uiScopeAllStorage.
+  ///
+  /// In zh, this message translates to:
+  /// **'所有文件访问'**
+  String get uiScopeAllStorage;
+
+  /// No description provided for @uiScopeLastUsed.
+  ///
+  /// In zh, this message translates to:
+  /// **'上次范围'**
+  String get uiScopeLastUsed;
+
+  /// No description provided for @uiMergeBooks.
+  ///
+  /// In zh, this message translates to:
+  /// **'合并书籍'**
+  String get uiMergeBooks;
+
+  /// No description provided for @uiSearchFiles.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索书名 / 文件名 / 路径'**
+  String get uiSearchFiles;
+
+  /// No description provided for @uiFileName.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件名'**
+  String get uiFileName;
+
+  /// No description provided for @uiFileFormat.
+  ///
+  /// In zh, this message translates to:
+  /// **'格式'**
+  String get uiFileFormat;
+
+  /// No description provided for @uiFilePath.
+  ///
+  /// In zh, this message translates to:
+  /// **'路径'**
+  String get uiFilePath;
+
+  /// No description provided for @uiVolumeGroup.
+  ///
+  /// In zh, this message translates to:
+  /// **'合并后'**
+  String get uiVolumeGroup;
+
+  /// No description provided for @uiVolumeCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'卷'**
+  String get uiVolumeCount;
+
+  /// No description provided for @uiSelectToImport.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择要导入的文件'**
+  String get uiSelectToImport;
+
+  /// No description provided for @uiImportSelected.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入所选'**
+  String get uiImportSelected;
+
+  /// No description provided for @uiOriginalStructure.
+  ///
+  /// In zh, this message translates to:
+  /// **'按原目录结构'**
+  String get uiOriginalStructure;
+
+  /// No description provided for @uiStartScan.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始扫描'**
+  String get uiStartScan;
+
+  /// No description provided for @uiScanning.
+  ///
+  /// In zh, this message translates to:
+  /// **'扫描中…'**
+  String get uiScanning;
+
+  /// No description provided for @uiLoadMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'加载更多'**
+  String get uiLoadMore;
 }
 
 class _AppLocalizationsDelegate

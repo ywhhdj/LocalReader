@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../common/design_tokens.dart';
 import '../../model/wenku/wenku8_models.dart';
-import 'glass.dart';
+import 'glass/Nav.dart';
 import '../../../l10n/lr_localizations.dart';
 
-/// Wenku8 书籍详情面板（core 层，供书架云端 tab 与文库页共用，避免跨 feature import）。
-///
-/// 只展示**元数据**：书名 / 作者 / 标签 / 简介 / 卷章目录。
-/// 章节正文由 Wenku8 在使用时提供，这里不下载、不缓存、不打包。
+/// Wenku8 书籍详情面板
 class Wenku8DetailSheet extends StatelessWidget {
   const Wenku8DetailSheet({
     super.key,
@@ -86,13 +83,13 @@ class Wenku8DetailSheet extends StatelessWidget {
             ),
             const SizedBox(height: LrSpacing.m),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               children: <Widget>[
                 for (final String tag in book.tags)
                   Chip(label: Text(tag, style: text.labelSmall)),
               ],
             ),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Text(context.t('wenkuStatusNote'), style: text.labelSmall),
             const SizedBox(height: LrSpacing.m),
             Text(context.t('wenkuDetailSynopsis'), style: text.titleMedium),
@@ -137,7 +134,7 @@ class Wenku8DetailSheet extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Text(context.t('wenkuDetailStaticNote'), style: text.labelSmall),
             const SizedBox(height: LrSpacing.m),
             SizedBox(

@@ -14,7 +14,7 @@ import 'data/wenku/wenku8_bootstrap.dart';
 import 'domain/repositories/wenku8_source.dart';
 import 'feature/shelf/wenku_login_sheet.dart';
 import 'feature/profile/pages/localized_texts_sheet.dart';
-import 'feature/reader/reader_style_sheet.dart';
+import 'feature/reader/reader/reader_style_sheet.dart';
 import 'feature/profile/stats/widget_config_sheet.dart';
 import 'l10n/lr_localizations.dart';
 import 'core/ui/components/import_dialog.dart';
@@ -200,8 +200,6 @@ class _LocalReaderAppState extends State<LocalReaderApp> {
           state: _state,
           child: AnimatedBuilder(
             animation: _state,
-            // AppShell 是不随 state 变化的常量子树：走 AnimatedBuilder.child
-            // 复用同一个 widget 实例，避免每次通知都重新分配并 diff 整棵外壳。
             child: const AppShell(),
             builder: (BuildContext context, Widget? shell) => PerformanceScope(
               budget: PerformanceBudget.resolve(
@@ -209,7 +207,6 @@ class _LocalReaderAppState extends State<LocalReaderApp> {
                 _state.settings.motion,
               ),
               child: MaterialApp(
-                // 官方文档：title 与 onGenerateTitle 二选一，这里用后者做本地化标题。
                 onGenerateTitle: (BuildContext ctx) => ctx.t('appTitle'),
                 debugShowCheckedModeBanner: false,
                 // 框架侧交给 flutter_localizations，应用侧文案交给自定义 delegate。

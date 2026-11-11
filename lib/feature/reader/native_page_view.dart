@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/repositories/render_bridge.dart';
-import '../../core/ui/components/glass.dart';
+import '../../core/ui/components/glass/Nav.dart';
 import '../../l10n/lr_localizations.dart';
 
 /// 固定版式页（PDF / 漫画 / 图片型 EPUB）的展示壳。

@@ -1,3 +1,4 @@
+import 'package:Local_reader/core/ui/components/glass/Page.dart';
 import 'package:flutter/material.dart';
 
 import '../../assembly/app_navigation.dart';
@@ -9,8 +10,6 @@ import '../../assembly/app_scope.dart';
 import '../../core/model/performance_prefs.dart';
 import '../../core/model/wenku/wenku8_registry.dart';
 import '../../l10n/lr_localizations.dart';
-import '../../core/ui/components/page_scaffold.dart';
-import '../../core/ui/components/page_scroll_header.dart';
 import '../../core/ui/components/section_card.dart';
 import '../../core/ui/theme/performance_scope.dart';
 import '../../core/common/design_tokens.dart';
@@ -61,7 +60,8 @@ class SettingsPage extends StatelessWidget {
                   value: state.settings.pureLocal,
                   onChanged: state.setPureLocal,
                   title: Text(context.t('uiPureLocalMode')),
-                  subtitle: Text(context.t('uiWhenOnTheAppMakesNoNetworkRequests')),
+                  subtitle:
+                      Text(context.t('uiWhenOnTheAppMakesNoNetworkRequests')),
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
@@ -79,7 +79,9 @@ class SettingsPage extends StatelessWidget {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   value: state.settings.onlineDirectory,
-                  onChanged: state.settings.pureLocal ? null : state.setOnlineDirectory,
+                  onChanged: state.settings.pureLocal
+                      ? null
+                      : state.setOnlineDirectory,
                   title: Text(context.t('uiOnlineDirectoryWenku8')),
                 ),
                 SwitchListTile(
@@ -142,25 +144,27 @@ class SettingsPage extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: LrSpacing.xs),
                     child: Row(
                       children: <Widget>[
-                        Icon(s.isOnline
-                            ? Icons.cloud_outlined
-                            : Icons.folder_open_outlined,
+                        Icon(
+                            s.isOnline
+                                ? Icons.cloud_outlined
+                                : Icons.folder_open_outlined,
                             size: 17),
-                        const SizedBox(width: LrSpacing.s),
+                        const SizedBox(width: LrSpacing.xs),
                         Text(s.title,
                             style: Theme.of(context).textTheme.bodyMedium),
                       ],
                     ),
                   ),
-                const SizedBox(height: LrSpacing.s),
+                const SizedBox(height: LrSpacing.xs),
                 Wrap(
                   spacing: LrSpacing.xs,
                   children: <Widget>[
-                    for (final CloudImportChannel c in CloudImportChannel.values)
+                    for (final CloudImportChannel c
+                        in CloudImportChannel.values)
                       Chip(label: Text(CloudImportLabels.names[c]!)),
                   ],
                 ),
-                const SizedBox(height: LrSpacing.s),
+                const SizedBox(height: LrSpacing.xs),
                 Text(context.t('wenkuFormatsNote'),
                     style: Theme.of(context).textTheme.labelSmall),
               ],
@@ -176,13 +180,13 @@ class SettingsPage extends StatelessWidget {
               children: <Widget>[
                 Text(context.t('wenkuCacheNote'),
                     style: Theme.of(context).textTheme.bodySmall),
-                const SizedBox(height: LrSpacing.s),
+                const SizedBox(height: LrSpacing.xs),
                 Text('${context.t('uiMinutesToday')} ${summary.todayLabel}',
                     style: Theme.of(context).textTheme.labelSmall),
-                const SizedBox(height: LrSpacing.s),
+                const SizedBox(height: LrSpacing.xs),
                 Text(context.t('importWizardStaticNote'),
                     style: Theme.of(context).textTheme.labelSmall),
-                const SizedBox(height: LrSpacing.s),
+                const SizedBox(height: LrSpacing.xs),
                 TextButton(
                     onPressed: nav.onOpenImportWizard,
                     child: Text(context.t('importWizardTitle'))),

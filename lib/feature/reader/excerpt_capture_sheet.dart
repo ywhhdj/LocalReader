@@ -4,7 +4,7 @@ import '../../assembly/app_scope.dart';
 import '../../core/model/stats/excerpt_capture.dart';
 import '../../core/model/stats/reading_stats.dart';
 import '../../core/common/design_tokens.dart';
-import '../../core/ui/components/glass.dart';
+import '../../core/ui/components/glass/Nav.dart';
 import '../../l10n/lr_localizations.dart';
 
 /// 摘录采集面板：预览选中的正文、选划线色、写批注、保存。
@@ -79,7 +79,8 @@ class _ExcerptCaptureSheetState extends State<ExcerptCaptureSheet> {
         LrSpacing.l + MediaQuery.of(context).viewInsets.bottom,
       ),
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.84),
+        constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.84),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -87,11 +88,16 @@ class _ExcerptCaptureSheetState extends State<ExcerptCaptureSheet> {
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  Icon(Icons.format_quote_outlined, size: 20, color: HighlightPalette.spine(_color)),
-                  const SizedBox(width: LrSpacing.s),
-                  Text(context.t('uiCaptureThisPassage'), style: text.headlineMedium),
+                  Icon(Icons.format_quote_outlined,
+                      size: 20, color: HighlightPalette.spine(_color)),
+                  const SizedBox(width: LrSpacing.xs),
+                  Text(context.t('uiCaptureThisPassage'),
+                      style: text.headlineMedium),
                   const Spacer(),
-                  Text(context.tArgs('uiLinesChars', <Object?>[selection.count, preview.length]), style: text.labelSmall),
+                  Text(
+                      context.tArgs('uiLinesChars',
+                          <Object?>[selection.count, preview.length]),
+                      style: text.labelSmall),
                 ],
               ),
               const SizedBox(height: LrSpacing.m),
@@ -118,14 +124,16 @@ class _ExcerptCaptureSheetState extends State<ExcerptCaptureSheet> {
                     const SizedBox(width: LrSpacing.m),
                     Expanded(
                       child: Text(
-                        preview.isEmpty ? context.t('uiNoTextAvailableToCapture') : preview,
+                        preview.isEmpty
+                            ? context.t('uiNoTextAvailableToCapture')
+                            : preview,
                         style: text.bodyLarge?.copyWith(height: 1.75),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               Text(
                 context.tArgs('uiExcerptCaptureSource', <Object?>[
                   widget.bookTitle,
@@ -137,10 +145,10 @@ class _ExcerptCaptureSheetState extends State<ExcerptCaptureSheet> {
 
               const SizedBox(height: LrSpacing.m),
               Text(context.t('uiHighlightColor'), style: text.labelSmall),
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               Wrap(
-                spacing: LrSpacing.s,
-                runSpacing: LrSpacing.s,
+                spacing: LrSpacing.xs,
+                runSpacing: LrSpacing.xs,
                 children: <Widget>[
                   for (final HighlightColor c in HighlightColor.values)
                     _ColorChip(
@@ -160,23 +168,26 @@ class _ExcerptCaptureSheetState extends State<ExcerptCaptureSheet> {
                   labelText: context.t('uiNoteOptional'),
                   hintText: context.t('uiWriteSomethingToAppendToTheExcerpt'),
                   alignLabelWithHint: true,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(LrRadius.card)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(LrRadius.card)),
                 ),
               ),
 
               if (selection.spansParagraphs) ...<Widget>[
-                const SizedBox(height: LrSpacing.s),
+                const SizedBox(height: LrSpacing.xs),
                 Text(
                   context.t('uiSpreadsLinesSentencesLines'),
                   style: text.bodySmall,
                 ),
               ],
               if (invalid != null) ...<Widget>[
-                const SizedBox(height: LrSpacing.s),
-                Text(invalid, style: text.bodySmall?.copyWith(color: Theme.of(context).colorScheme.error)),
+                const SizedBox(height: LrSpacing.xs),
+                Text(invalid,
+                    style: text.bodySmall
+                        ?.copyWith(color: Theme.of(context).colorScheme.error)),
               ],
               if (duplicated) ...<Widget>[
-                const SizedBox(height: LrSpacing.s),
+                const SizedBox(height: LrSpacing.xs),
                 Text(context.t('uiStatsPages'), style: text.bodySmall),
               ],
 
@@ -188,7 +199,8 @@ class _ExcerptCaptureSheetState extends State<ExcerptCaptureSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        Text(context.t('excerptLocalNote'), style: text.labelSmall),
+                        Text(context.t('excerptLocalNote'),
+                            style: text.labelSmall),
                         const SizedBox(height: 4),
                         Text(context.t('excerptAnchorRestoreNote'),
                             style: text.labelSmall),
@@ -230,7 +242,8 @@ class _ExcerptCaptureSheetState extends State<ExcerptCaptureSheet> {
 }
 
 class _ColorChip extends StatelessWidget {
-  const _ColorChip({required this.color, required this.selected, required this.onTap});
+  const _ColorChip(
+      {required this.color, required this.selected, required this.onTap});
 
   final HighlightColor color;
   final bool selected;
@@ -242,11 +255,13 @@ class _ColorChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: LrSpacing.m, vertical: LrSpacing.s),
+        padding: const EdgeInsets.symmetric(
+            horizontal: LrSpacing.m, vertical: LrSpacing.xs),
         decoration: BoxDecoration(
           color: HighlightPalette.lineTint(color),
           borderRadius: BorderRadius.circular(LrRadius.pill),
-          border: Border.all(color: selected ? c : Colors.transparent, width: 2),
+          border:
+              Border.all(color: selected ? c : Colors.transparent, width: 2),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -257,7 +272,8 @@ class _ColorChip extends StatelessWidget {
               color: c,
             ),
             const SizedBox(width: LrSpacing.xs),
-            Text(HighlightPalette.labels[color]!, style: Theme.of(context).textTheme.labelLarge),
+            Text(HighlightPalette.labels[color]!,
+                style: Theme.of(context).textTheme.labelLarge),
           ],
         ),
       ),

@@ -85,7 +85,7 @@ class CategorySelector extends StatelessWidget {
                   const Icon(Icons.check, size: 16)
                 else
                   const SizedBox(width: 16),
-                const SizedBox(width: LrSpacing.s),
+                const SizedBox(width: LrSpacing.xs),
                 Text(o.label, style: text.bodyMedium),
               ],
             ),
@@ -101,7 +101,7 @@ class CategorySelector extends StatelessWidget {
                     const Icon(Icons.cloud_outlined, size: 16)
                   else
                     const SizedBox(width: 16),
-                  const SizedBox(width: LrSpacing.s),
+                  const SizedBox(width: LrSpacing.xs),
                   Text(s.label, style: text.bodySmall),
                 ],
               ),
@@ -169,14 +169,16 @@ class ShelfToolbar extends StatelessWidget {
             cloudLabel: cloudLabel,
             onChanged: onScopeChanged,
           ),
-          const SizedBox(width: LrSpacing.s),
+          const SizedBox(width: LrSpacing.xs),
           Expanded(
             child: CategorySelector(
               label: categoryLabel,
               options: categoryOptions,
               selectedId: selectedCategoryId,
               onChanged: onCategoryChanged,
-              sources: scope == LibraryScope.cloud ? sources : const <CategoryOption>[],
+              sources: scope == LibraryScope.cloud
+                  ? sources
+                  : const <CategoryOption>[],
               selectedSourceId: selectedSourceId,
               onSourceChanged: onSourceChanged,
             ),

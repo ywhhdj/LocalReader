@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../core/model/comic/comic_spread.dart';
-import '../../core/model/comic/comic_toc.dart';
-import '../../assembly/app_scope.dart';
-import '../../core/model/reader_style.dart';
-import '../../core/common/design_tokens.dart';
-import '../../core/ui/components/glass.dart';
-import '../../l10n/lr_localizations.dart';
+import '../../../core/model/comic/comic_spread.dart';
+import '../../../core/model/comic/comic_toc.dart';
+import '../../../assembly/app_scope.dart';
+import '../../../core/model/reader_style.dart';
+import '../../../core/common/design_tokens.dart';
+import '../../../core/ui/components/glass/Nav.dart';
+import '../../../l10n/lr_localizations.dart';
 
 /// 阅读排版面板：阅读器顶栏与「我的」页共用同一张面板，写回同一个 AppState。
-///
-/// 每次改动实时提交（静态阶段优先保证「所见即所得」与代码可读性）。
-/// TODO(静态冻结): 未来接 SDK 后可改成「拖动期间本地 draft + onChangeEnd 提交」，
-/// 避免滑块每帧触发整棵 widget 树重建；当前不引入额外状态管理包。
 class ReaderStyleSheet extends StatelessWidget {
   const ReaderStyleSheet({super.key});
 
@@ -43,7 +39,8 @@ class ReaderStyleSheet extends StatelessWidget {
         LrSpacing.l + MediaQuery.of(context).viewInsets.bottom,
       ),
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.82),
+        constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.82),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -51,17 +48,18 @@ class ReaderStyleSheet extends StatelessWidget {
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  Text(context.t('uiReadingLayout'), style: text.headlineMedium),
+                  Text(context.t('uiReadingLayout'),
+                      style: text.headlineMedium),
                   const Spacer(),
                   TextButton.icon(
                     onPressed: state.resetReader,
                     icon: const Icon(Icons.restart_alt_outlined, size: 17),
-                    label: Text(context.t('uiResetToDefault'), style: text.labelLarge),
+                    label: Text(context.t('uiResetToDefault'),
+                        style: text.labelLarge),
                   ),
                 ],
               ),
-              const SizedBox(height: LrSpacing.s),
-
+              const SizedBox(height: LrSpacing.xs),
               _SectionTitle(context.t('uiBodyText')),
               _SliderRow(
                 label: context.t('uiFontSize'),
@@ -88,7 +86,8 @@ class ReaderStyleSheet extends StatelessWidget {
                 max: 4,
                 divisions: 8,
                 display: '${s.firstLineIndentEm.toStringAsFixed(1)} em',
-                onChanged: (double v) => update(s.copyWith(firstLineIndentEm: v)),
+                onChanged: (double v) =>
+                    update(s.copyWith(firstLineIndentEm: v)),
               ),
               _SliderRow(
                 label: context.t('uiParagraphSpacing'),
@@ -97,13 +96,13 @@ class ReaderStyleSheet extends StatelessWidget {
                 max: 1.2,
                 divisions: 12,
                 display: s.paragraphSpacing.toStringAsFixed(2),
-                onChanged: (double v) => update(s.copyWith(paragraphSpacing: v)),
+                onChanged: (double v) =>
+                    update(s.copyWith(paragraphSpacing: v)),
               ),
-
               _SectionTitle(context.t('uiReadingBackground')),
               Wrap(
-                spacing: LrSpacing.s,
-                runSpacing: LrSpacing.s,
+                spacing: LrSpacing.xs,
+                runSpacing: LrSpacing.xs,
                 children: <Widget>[
                   for (final ReaderBackground bg in ReaderBackground.values)
                     _BackgroundChip(
@@ -116,19 +115,21 @@ class ReaderStyleSheet extends StatelessWidget {
               const SizedBox(height: LrSpacing.xs),
               Text(
                 context.t('uiBodyTextCharsCurrentcontrast') +
-                context.tArgs('uiWcagAaBodyText452', <Object?>[s.bodyContrast.toStringAsFixed(2)]),
+                    context.tArgs('uiWcagAaBodyText452',
+                        <Object?>[s.bodyContrast.toStringAsFixed(2)]),
                 style: text.bodySmall,
               ),
-
               _SectionTitle(context.t('uiPageTurnMotion')),
               Wrap(
-                spacing: LrSpacing.s,
+                spacing: LrSpacing.xs,
                 children: <Widget>[
                   for (final ReaderPageTurn t in ReaderPageTurn.values)
                     ChoiceChip(
                       label: Text(ReaderStyle.pageTurnLabels[t]!),
                       selected: s.pageTurn == t,
-                      onSelected: motion ? (bool _) => update(s.copyWith(pageTurn: t)) : null,
+                      onSelected: motion
+                          ? (bool _) => update(s.copyWith(pageTurn: t))
+                          : null,
                     ),
                 ],
               ),
@@ -136,7 +137,8 @@ class ReaderStyleSheet extends StatelessWidget {
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 dense: true,
-                title: Text(context.t('uiInterfaceMotion2'), style: text.titleMedium),
+                title: Text(context.t('uiInterfaceMotion2'),
+                    style: text.titleMedium),
                 subtitle: Text(
                   state.settings.motion
                       ? context.t('uiChooseSlideSimulatedPageTurnWhenEnabled')
@@ -148,72 +150,81 @@ class ReaderStyleSheet extends StatelessWidget {
               ),
               if (!motion)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: LrSpacing.s),
+                  padding: const EdgeInsets.only(bottom: LrSpacing.xs),
                   child: Text(
-                    context.t('uiNormalizationIsCentralizedInAppsettingsNormali') +
-                    context.t('uiTurningMotionOffLocksPageTurnToNonePagesNeverR'),
+                    context.t(
+                            'uiNormalizationIsCentralizedInAppsettingsNormali') +
+                        context.t(
+                            'uiTurningMotionOffLocksPageTurnToNonePagesNeverR'),
                     style: text.bodySmall,
                   ),
                 ),
-
               _SectionTitle(context.t('uiComicReading')),
               Wrap(
-                spacing: LrSpacing.s,
+                spacing: LrSpacing.xs,
                 children: <Widget>[
                   for (final ComicReadMode m in ComicReadMode.values)
                     ChoiceChip(
                       label: Text(ComicModeLabels.labels[m]!),
                       selected: s.comicReadMode == m,
-                      onSelected: (bool _) => update(s.copyWith(comicReadMode: m)),
+                      onSelected: (bool _) =>
+                          update(s.copyWith(comicReadMode: m)),
                     ),
                 ],
               ),
               const SizedBox(height: LrSpacing.xs),
-              Text(ComicModeLabels.hints[s.comicReadMode]!, style: text.bodySmall),
+              Text(ComicModeLabels.hints[s.comicReadMode]!,
+                  style: text.bodySmall),
               const SizedBox(height: LrSpacing.xs),
               Text(context.t('comicLocalNote'), style: text.labelSmall),
-
               _SectionTitle(context.t('comicSpreadTitle')),
               if (s.comicReadMode == ComicReadMode.vertical)
                 GlassPanel(
                   padding: const EdgeInsets.all(LrSpacing.m),
-                  child: Text(context.t('comicVerticalLockNote'), style: text.bodySmall),
+                  child: Text(context.t('comicVerticalLockNote'),
+                      style: text.bodySmall),
                 )
               else ...<Widget>[
                 Wrap(
-                  spacing: LrSpacing.s,
+                  spacing: LrSpacing.xs,
                   children: <Widget>[
                     for (final ComicSpreadMode m in ComicSpreadMode.values)
                       ChoiceChip(
                         label: Text(ComicSpreadLabels.mode[m]!),
                         selected: s.comicSpreadMode == m,
-                        onSelected: (bool _) => update(s.copyWith(comicSpreadMode: m)),
+                        onSelected: (bool _) =>
+                            update(s.copyWith(comicSpreadMode: m)),
                       ),
                   ],
                 ),
                 const SizedBox(height: LrSpacing.xs),
-                Text(ComicSpreadLabels.modeHint[s.comicSpreadMode]!, style: text.bodySmall),
+                Text(ComicSpreadLabels.modeHint[s.comicSpreadMode]!,
+                    style: text.bodySmall),
                 const SizedBox(height: LrSpacing.m),
                 Wrap(
-                  spacing: LrSpacing.s,
+                  spacing: LrSpacing.xs,
                   children: <Widget>[
-                    for (final ComicReadingDirection d in ComicReadingDirection.values)
+                    for (final ComicReadingDirection d
+                        in ComicReadingDirection.values)
                       ChoiceChip(
                         label: Text(ComicSpreadLabels.direction[d]!),
                         selected: s.comicDirection == d,
-                        onSelected: (bool _) => update(s.copyWith(comicDirection: d)),
+                        onSelected: (bool _) =>
+                            update(s.copyWith(comicDirection: d)),
                       ),
                   ],
                 ),
                 const SizedBox(height: LrSpacing.xs),
-                Text(ComicSpreadLabels.directionHint[s.comicDirection]!, style: text.bodySmall),
-                const SizedBox(height: LrSpacing.s),
+                Text(ComicSpreadLabels.directionHint[s.comicDirection]!,
+                    style: text.bodySmall),
+                const SizedBox(height: LrSpacing.xs),
                 // 第十九轮：宽幅页（横幅 / 跨页彩图）独占一跨。只在双页模式生效，
                 // 单页模式每页本来就独占，开关仍保留偏好但不产生视觉差异。
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
                   dense: true,
-                  title: Text(context.t('comicWideSoloTitle'), style: text.bodyMedium),
+                  title: Text(context.t('comicWideSoloTitle'),
+                      style: text.bodyMedium),
                   subtitle: Text(
                     s.comicSpreadMode == ComicSpreadMode.single
                         ? context.t('comicWideSoloSingleNote')
@@ -231,22 +242,26 @@ class ReaderStyleSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(context.t('comicSpineGutterTitle'), style: text.labelLarge),
+                      Text(context.t('comicSpineGutterTitle'),
+                          style: text.labelLarge),
                       const SizedBox(height: 4),
-                      Text(context.t('comicSpineGutterNote'), style: text.bodySmall),
+                      Text(context.t('comicSpineGutterNote'),
+                          style: text.bodySmall),
                       // 第二十一轮：渐暗强度模型化说明。档位按槽宽自动选、
                       // 目标色按背景亮度反推，仍然是固定规则不是用户设置。
-                      const SizedBox(height: LrSpacing.s),
-                      Text(context.t('comicSpineShadeTitle'), style: text.labelLarge),
+                      const SizedBox(height: LrSpacing.xs),
+                      Text(context.t('comicSpineShadeTitle'),
+                          style: text.labelLarge),
                       const SizedBox(height: 4),
-                      Text(context.t('comicSpineShadeNote'), style: text.bodySmall),
+                      Text(context.t('comicSpineShadeNote'),
+                          style: text.bodySmall),
                     ],
                   ),
                 ),
                 const SizedBox(height: LrSpacing.xs),
-                Text(context.t('comicSpreadStaticNote'), style: text.labelSmall),
+                Text(context.t('comicSpreadStaticNote'),
+                    style: text.labelSmall),
               ],
-
               _SectionTitle(context.t('uiReadAloud2')),
               _SliderRow(
                 label: context.t('uiRate'),
@@ -269,24 +284,27 @@ class ReaderStyleSheet extends StatelessWidget {
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 dense: true,
-                title: Text(context.t('uiTtsReadAloud'), style: text.titleMedium),
-                subtitle: Text(context.t('uiSentenceQueueAutoNextChapter'), style: text.bodySmall),
+                title:
+                    Text(context.t('uiTtsReadAloud'), style: text.titleMedium),
+                subtitle: Text(context.t('uiSentenceQueueAutoNextChapter'),
+                    style: text.bodySmall),
                 value: state.settings.tts,
                 onChanged: state.setTts,
               ),
-
               _SectionTitle(context.t('uiReadingAidsPlatformCapability')),
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 dense: true,
-                title: Text(context.t('uiKeepScreenOn'), style: text.titleMedium),
+                title:
+                    Text(context.t('uiKeepScreenOn'), style: text.titleMedium),
                 value: s.keepScreenOn,
                 onChanged: (bool v) => update(s.copyWith(keepScreenOn: v)),
               ),
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 dense: true,
-                title: Text(context.t('uiVolumeKeyPaging'), style: text.titleMedium),
+                title: Text(context.t('uiVolumeKeyPaging'),
+                    style: text.titleMedium),
                 value: s.volumeKeyTurnPage,
                 onChanged: (bool v) => update(s.copyWith(volumeKeyTurnPage: v)),
               ),
@@ -357,7 +375,10 @@ class _SliderRow extends StatelessWidget {
             onChanged: onChanged,
           ),
         ),
-        SizedBox(width: 56, child: Text(display, textAlign: TextAlign.right, style: text.labelSmall)),
+        SizedBox(
+            width: 56,
+            child: Text(display,
+                textAlign: TextAlign.right, style: text.labelSmall)),
       ],
     );
   }
@@ -382,19 +403,22 @@ class _BackgroundChip extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: 74,
-        padding: const EdgeInsets.symmetric(vertical: LrSpacing.s),
+        padding: const EdgeInsets.symmetric(vertical: LrSpacing.xs),
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(LrRadius.card),
           border: Border.all(
-            color: selected ? Theme.of(context).colorScheme.primary : Colors.transparent,
+            color: selected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.transparent,
             width: 2,
           ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(selected ? Icons.check_circle : Icons.circle_outlined, size: 16, color: on),
+            Icon(selected ? Icons.check_circle : Icons.circle_outlined,
+                size: 16, color: on),
             const SizedBox(height: 3),
             Text(
               ReaderStyle.backgroundLabels[background]!,

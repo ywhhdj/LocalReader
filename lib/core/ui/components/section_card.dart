@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../common/design_tokens.dart';
-import 'glass.dart';
+import 'glass/Nav.dart';
 
 /// 带编辑式小标题的玻璃分区卡：小字距 + 细分隔线 + 内容插槽。
 class SectionCard extends StatelessWidget {
@@ -23,11 +23,10 @@ class SectionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Text(title,
-              style: text.labelLarge?.copyWith(letterSpacing: 1.4)),
-          const SizedBox(height: LrSpacing.s),
+          Text(title, style: text.labelLarge?.copyWith(letterSpacing: 1.4)),
+          const SizedBox(height: LrSpacing.xs),
           Divider(color: Theme.of(context).dividerTheme.color, height: 1),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           GlassPanel(child: child),
         ],
       ),
@@ -61,7 +60,7 @@ class EmptyStateCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Text(title, style: text.titleMedium),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Text(body, style: text.bodySmall),
             if (actionLabel != null && onAction != null) ...<Widget>[
               const SizedBox(height: LrSpacing.m),

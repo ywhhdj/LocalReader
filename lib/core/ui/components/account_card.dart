@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../common/design_tokens.dart';
-import 'glass.dart';
+import 'glass/Nav.dart';
 
 /// 参考图顶部账户卡：左侧证件图标、居中的大号账号、积分 / 等级 / 同步状态、右箭头。
 /// 数值全部由调用方传入，组件自己不读 AppState。

@@ -4,7 +4,7 @@ import '../../../assembly/app_scope.dart';
 import '../../../core/model/stats/excerpt_capture.dart';
 import '../../../core/model/stats/reading_stats.dart';
 import '../../../core/common/design_tokens.dart';
-import '../../../core/ui/components/glass.dart';
+import '../../../core/ui/components/glass/Nav.dart';
 import '../../../l10n/lr_localizations.dart';
 
 /// 编辑摘录的批注与划线色。
@@ -59,7 +59,8 @@ class _ExcerptEditSheetState extends State<ExcerptEditSheet> {
         LrSpacing.l + MediaQuery.of(context).viewInsets.bottom,
       ),
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+        constraints:
+            BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -74,29 +75,33 @@ class _ExcerptEditSheetState extends State<ExcerptEditSheet> {
                   color: HighlightPalette.lineTint(_color),
                   borderRadius: BorderRadius.circular(LrRadius.card),
                 ),
-                child: Text(widget.excerpt.text, style: text.bodyLarge?.copyWith(height: 1.7)),
+                child: Text(widget.excerpt.text,
+                    style: text.bodyLarge?.copyWith(height: 1.7)),
               ),
-              const SizedBox(height: LrSpacing.s),
-              Text('《${widget.excerpt.bookTitle}》· ${widget.excerpt.chapterTitle}',
+              const SizedBox(height: LrSpacing.xs),
+              Text(
+                  '《${widget.excerpt.bookTitle}》· ${widget.excerpt.chapterTitle}',
                   style: text.labelSmall),
-
               const SizedBox(height: LrSpacing.m),
               Text(context.t('uiHighlightColor'), style: text.labelSmall),
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               Wrap(
-                spacing: LrSpacing.s,
-                runSpacing: LrSpacing.s,
+                spacing: LrSpacing.xs,
+                runSpacing: LrSpacing.xs,
                 children: <Widget>[
                   for (final HighlightColor c in HighlightColor.values)
                     GestureDetector(
                       onTap: () => setState(() => _color = c),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: LrSpacing.m, vertical: LrSpacing.s),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: LrSpacing.m, vertical: LrSpacing.xs),
                         decoration: BoxDecoration(
                           color: HighlightPalette.lineTint(c),
                           borderRadius: BorderRadius.circular(LrRadius.pill),
                           border: Border.all(
-                            color: _color == c ? HighlightPalette.spine(c) : Colors.transparent,
+                            color: _color == c
+                                ? HighlightPalette.spine(c)
+                                : Colors.transparent,
                             width: 2,
                           ),
                         ),
@@ -109,14 +114,14 @@ class _ExcerptEditSheetState extends State<ExcerptEditSheet> {
                               color: HighlightPalette.spine(c),
                             ),
                             const SizedBox(width: LrSpacing.xs),
-                            Text(HighlightPalette.labels[c]!, style: text.labelLarge),
+                            Text(HighlightPalette.labels[c]!,
+                                style: text.labelLarge),
                           ],
                         ),
                       ),
                     ),
                 ],
               ),
-
               const SizedBox(height: LrSpacing.m),
               TextField(
                 controller: _note,
@@ -126,12 +131,12 @@ class _ExcerptEditSheetState extends State<ExcerptEditSheet> {
                   labelText: context.t('uiNote'),
                   hintText: context.t('uiClearTheFieldToRemoveTheNote'),
                   alignLabelWithHint: true,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(LrRadius.card)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(LrRadius.card)),
                 ),
               ),
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               Text(context.t('excerptLocalNote'), style: text.labelSmall),
-
               const SizedBox(height: LrSpacing.m),
               Align(
                 alignment: Alignment.centerRight,

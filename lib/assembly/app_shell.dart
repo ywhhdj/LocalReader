@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import '../feature/shelf/mine_page.dart';
 import '../feature/shelf/shelf_page.dart';
 import '../l10n/lr_localizations.dart';
-import '../core/ui/components/glass.dart';
+import '../core/ui/components/glass/Nav.dart';
 import 'app_navigation.dart';
+import 'tab_pages.dart';
 
-/// 三 tab 外壳（第二十九轮）：发现 / 书架 / 我的。
-/// 统计、书签、设置、关于、赞助与反馈不再占底栏，改成「我的」里点选才打开。
-/// 用 IndexedStack 保活，避免切换时 3D 书架透视状态被重建。
+/// 四 tab 外壳（E23）：轻小说文库 / 收藏 / 书架 / 我的。
+/// 「发现」WenkuPage 退役；统计、书签、设置、关于、赞助仍从「我的」进入。
+/// IndexedStack 保活，避免切换时立体书架的抽出状态被重建。
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -23,11 +24,15 @@ class _AppShellState extends State<AppShell> {
         GlassNavItem(
             icon: Icons.explore_outlined,
             activeIcon: Icons.explore,
-            label: lrText('uiDiscover')),
+            label: lrText('uiWenkuLibrary')),
         GlassNavItem(
             icon: Icons.auto_stories_outlined,
             activeIcon: Icons.auto_stories,
             label: lrText('uiShelf')),
+        GlassNavItem(
+            icon: Icons.favorite_border,
+            activeIcon: Icons.favorite,
+            label: lrText('uiFavorites')),
         GlassNavItem(
             icon: Icons.person_outline,
             activeIcon: Icons.person,
@@ -38,7 +43,8 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final AppNavigation nav = AppNavigationScope.of(context);
     final List<Widget> pages = <Widget>[
-    //   DiscoverPage(onImport: nav.onImport),
+      buildWenkuLibraryPage(context),
+      buildFavoritesPage(context),
       ShelfPage(
         onOpenBook: nav.onOpenBook,
         onOpenSearch: nav.onOpenSearch,

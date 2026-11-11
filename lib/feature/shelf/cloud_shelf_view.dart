@@ -3,31 +3,36 @@ import 'package:flutter/material.dart';
 import '../../assembly/app_scope.dart';
 import '../../core/model/library_scope.dart';
 import '../../core/common/design_tokens.dart';
-import '../../core/ui/components/glass.dart';
+import '../../core/ui/components/glass/Nav.dart';
 import '../../core/ui/components/wenku8_detail_sheet.dart';
+import '../../core/ui/components/book/book_cover_card.dart';
 import '../../core/model/wenku/wenku8_compliance.dart';
 import '../../core/model/wenku/wenku8_models.dart';
 import '../../core/model/wenku/wenku8_registry.dart';
 import '../../domain/repositories/wenku8_source.dart';
 import '../../l10n/lr_localizations.dart';
 
-/// 书架页「云端来源」子视图（第二十二轮）。
-///
-/// 用户要求书架页有「本地 / 云端（云端来源）」导航；云端这一侧先列**来源**，
-/// 再进该来源的目录。来源固定为 Wenku8 与本地导入两项，**不提供添加书源**。
-///
-/// 状态口径：`pureLocal` master switch 锁定时连演示数据源都不读，页面显示
-/// 解锁卡；开启后走 `AppState.refreshWenku8()`，状态机覆盖
-/// rateLimited / unavailable / upstreamChanged 三种第三方常态。
-/// 列表出口一律过 `Wenku8Compliance.withoutWithdrawn()`，下架内容不展示。
+/// 书架页「云端」子视图
 class CloudShelfView extends StatefulWidget {
-  const CloudShelfView({super.key, this.onImport, this.categoryId = 'all'});
+  const CloudShelfView({
+    super.key,
+    this.onImport,
+    this.categoryId = 'all',
+    this.gridColumns = 2,
+    this.onGoCollect,
+  });
 
   /// 「本地导入」来源的向导入口，由书架页透传（app 层注入）。
   final VoidCallback? onImport;
 
   /// 云端分类 id 由书架页工具条传入；组件不自己拼请求 URL。
   final String categoryId;
+
+  /// 宫格列数由书架页布局按钮传入（列表 / 两栏 / 三栏共用同一份云端数据）。
+  final int gridColumns;
+
+  /// 空态「去收藏」：由 app 层注入，页面不自己拼路由。
+  final VoidCallback? onGoCollect;
 
   @override
   State<CloudShelfView> createState() => _CloudShelfViewState();
@@ -52,85 +57,18 @@ class _CloudShelfViewState extends State<CloudShelfView> {
         Wenku8Registry.byId(_sourceId) ?? Wenku8Registry.sources.first;
     final Wenku8Listing? listing = state.wenku8Listing;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-          LrSpacing.l, LrSpacing.s, LrSpacing.l, 140),
-      children: <Widget>[
-        Text(context.t('wenkuCloudTitle'), style: text.headlineMedium),
-        const SizedBox(height: LrSpacing.xs),
-        Text(context.t('wenkuCloudSubtitle'), style: text.bodyMedium),
-        const SizedBox(height: LrSpacing.m),
-
-        // 来源导航：固定两项，没有「添加书源」按钮。
-        Text(context.t('wenkuSourceNavTitle'), style: text.labelSmall),
-        const SizedBox(height: LrSpacing.xs),
-        Wrap(
-          spacing: LrSpacing.s,
-          children: <Widget>[
-            for (final BookSource s in Wenku8Registry.sources)
-              ChoiceChip(
-                avatar: Icon(
-                  s.isOnline ? Icons.cloud_outlined : Icons.folder_open_outlined,
-                  size: 16,
-                ),
-                label: Text(s.title, style: text.labelLarge),
-                selected: s.id == _sourceId,
-                onSelected: (bool _) => setState(() => _sourceId = s.id),
-              ),
-          ],
-        ),
-        const SizedBox(height: LrSpacing.s),
-        GlassPanel(
-          padding: const EdgeInsets.all(LrSpacing.m),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(source.title, style: text.titleMedium),
-              const SizedBox(height: 4),
-              Text(source.subtitle, style: text.bodySmall),
-              const SizedBox(height: LrSpacing.s),
-              Text(source.note, style: text.labelSmall),
-            ],
-          ),
-        ),
-        const SizedBox(height: LrSpacing.m),
-        Text(context.t('wenkuCustomSourceNote'), style: text.labelSmall),
-        const SizedBox(height: LrSpacing.l),
-
-        if (!source.isOnline) ...<Widget>[
-          _localImportCard(context, text, state),
-        ] else if (locked) ...<Widget>[
-          _lockedCard(context, text, state),
-        ] else ...<Widget>[
-          _statusCard(context, text, state),
-          const SizedBox(height: LrSpacing.m),
-          _feedChips(context, text, state),
-          const SizedBox(height: LrSpacing.s),
-          _searchField(context, text, state),
-          const SizedBox(height: LrSpacing.m),
-          if (listing == null || !listing.hasBooks)
-            _emptyCard(context, text)
-          else
-            WenkuBookList(
-              books: _visibleBooks(context, listing.books),
-              isAdded: state.isWenku8BookAdded,
-              onOpen: (Wenku8Book b) => _openDetail(context, state, b),
-            ),
-        ],
-        const SizedBox(height: LrSpacing.l),
-        _complianceCard(context, text),
-      ],
-    );
+    return ListView();
   }
 
-  Widget _localImportCard(BuildContext context, TextTheme text, AppState state) =>
+  Widget _localImportCard(
+          BuildContext context, TextTheme text, AppState state) =>
       GlassPanel(
         padding: const EdgeInsets.all(LrSpacing.m),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(lrText('wenkuLocalSourceNote'), style: text.bodySmall),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Text(lrText('cloudChannelsTitle'), style: text.titleMedium),
             const SizedBox(height: 4),
             Text(lrText('cloudChannelsNote'), style: text.labelSmall),
@@ -140,8 +78,8 @@ class _CloudShelfViewState extends State<CloudShelfView> {
               child: OutlinedButton.icon(
                 onPressed: widget.onImport,
                 icon: const Icon(Icons.file_download_outlined, size: 17),
-                label: Text(lrText('importWizardEntry'),
-                    style: text.labelLarge),
+                label:
+                    Text(lrText('importWizardEntry'), style: text.labelLarge),
               ),
             ),
           ],
@@ -154,18 +92,17 @@ class _CloudShelfViewState extends State<CloudShelfView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Icon(Icons.lock_outline, size: 30,
-                color: Theme.of(context).colorScheme.primary),
+            Icon(Icons.lock_outline,
+                size: 30, color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: LrSpacing.m),
             Text(lrText('wenkuLockedTitle'), style: text.headlineMedium),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Text(lrText('wenkuLockedBody'), style: text.bodySmall),
             const SizedBox(height: LrSpacing.m),
             FilledButton.icon(
               onPressed: state.enableOnlineDirectory,
               icon: const Icon(Icons.cloud_outlined, size: 18),
-              label: Text(lrText('wenkuUnlockButton'),
-                  style: text.labelLarge),
+              label: Text(lrText('wenkuUnlockButton'), style: text.labelLarge),
             ),
           ],
         ),
@@ -184,7 +121,7 @@ class _CloudShelfViewState extends State<CloudShelfView> {
             size: 20,
             color: Theme.of(context).colorScheme.primary,
           ),
-          const SizedBox(width: LrSpacing.s),
+          const SizedBox(width: LrSpacing.xs),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,13 +144,14 @@ class _CloudShelfViewState extends State<CloudShelfView> {
 
   Widget _feedChips(BuildContext context, TextTheme text, AppState state) =>
       Wrap(
-        spacing: LrSpacing.s,
+        spacing: LrSpacing.xs,
         runSpacing: LrSpacing.xs,
         children: <Widget>[
           for (final Wenku8FeedKind f in Wenku8FeedKind.values)
             if (f != Wenku8FeedKind.search)
               ChoiceChip(
-                label: Text(Wenku8FeedLabels.labels[f]!, style: text.labelLarge),
+                label:
+                    Text(Wenku8FeedLabels.labels[f]!, style: text.labelLarge),
                 selected: state.wenku8Query.feed == f,
                 onSelected: (bool _) => state.setWenku8Feed(f),
               ),
@@ -228,7 +166,7 @@ class _CloudShelfViewState extends State<CloudShelfView> {
         child: Row(
           children: <Widget>[
             Icon(Icons.search, size: 18, color: text.bodySmall?.color),
-            const SizedBox(width: LrSpacing.s),
+            const SizedBox(width: LrSpacing.xs),
             Expanded(
               child: TextField(
                 controller: _search,
@@ -254,17 +192,25 @@ class _CloudShelfViewState extends State<CloudShelfView> {
         ),
       );
 
-  Widget _emptyCard(BuildContext context, TextTheme text) => GlassPanel(
+  Widget _emptyCard(
+          BuildContext context, TextTheme text, VoidCallback? onGoCollect) =>
+      GlassPanel(
         padding: const EdgeInsets.all(LrSpacing.l),
         child: Column(
           children: <Widget>[
-            Icon(Icons.inbox_outlined, size: 34,
-                color: Theme.of(context).colorScheme.primary),
+            Icon(Icons.inbox_outlined,
+                size: 34, color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: LrSpacing.m),
             Text(lrText('wenkuEmptyTitle'), style: text.titleMedium),
-            const SizedBox(height: LrSpacing.s),
-            Text(lrText('wenkuEmptyBody'), style: text.bodySmall,
-                textAlign: TextAlign.center),
+            const SizedBox(height: LrSpacing.xs),
+            Text(lrText('wenkuEmptyBody'),
+                style: text.bodySmall, textAlign: TextAlign.center),
+            const SizedBox(height: LrSpacing.m),
+            FilledButton.icon(
+              onPressed: onGoCollect,
+              icon: const Icon(Icons.favorite_border, size: 18),
+              label: Text(lrText('uiGoCollect')),
+            ),
           ],
         ),
       );
@@ -275,7 +221,7 @@ class _CloudShelfViewState extends State<CloudShelfView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(lrText('wenkuOnlySources'), style: text.labelSmall),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             ...Wenku8Compliance.rules.map<Widget>(
               (String rule) => Padding(
                 padding: const EdgeInsets.only(bottom: 4),
@@ -295,7 +241,9 @@ class _CloudShelfViewState extends State<CloudShelfView> {
       }
     }
     if (label.isEmpty) return books;
-    return books.where((Wenku8Book b) => b.tags.any((String t) => t.contains(label))).toList();
+    return books
+        .where((Wenku8Book b) => b.tags.any((String t) => t.contains(label)))
+        .toList();
   }
 
   Future<void> _openDetail(
@@ -311,9 +259,8 @@ class _CloudShelfViewState extends State<CloudShelfView> {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(ok
-                ? context.t('wenkuAddedNote')
-                : context.t('wenkuBookAdded')),
+            content: Text(
+                ok ? context.t('wenkuAddedNote') : context.t('wenkuBookAdded')),
           ),
         );
       },
@@ -321,87 +268,47 @@ class _CloudShelfViewState extends State<CloudShelfView> {
   }
 }
 
-/// 云端书单：第三十轮改成懒加载，长榜单不一次性构造全部卡片。
-class WenkuBookList extends StatelessWidget {
-  const WenkuBookList({
+/// 云端书单 v2：**图片 + 描述封面卡宫格**，不是线性列表、更不是立体书架。
+/// 三档列数共用同一份 List<Wenku8Book>；空态由调用方的 _emptyCard 负责。
+class CloudBookGrid extends StatelessWidget {
+  const CloudBookGrid({
     super.key,
     required this.books,
     required this.isAdded,
     required this.onOpen,
+    this.columns = 2,
   });
 
   final List<Wenku8Book> books;
   final bool Function(String id) isAdded;
   final ValueChanged<Wenku8Book> onOpen;
+  final int columns;
 
   @override
-  Widget build(BuildContext context) => ListView.builder(
+  Widget build(BuildContext context) => GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns < 1 ? 1 : (columns > 3 ? 3 : columns),
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 0.62,
+        ),
         itemCount: books.length,
-        itemBuilder: (BuildContext context, int i) => _WenkuBookCard(
-          book: books[i],
-          added: isAdded(books[i].id),
-          onTap: () => onOpen(books[i]),
-        ),
+        itemBuilder: (BuildContext context, int i) {
+          final Wenku8Book b = books[i];
+          return BookCoverCard(
+            book: CoverBook(
+              id: b.id,
+              title: b.title,
+              author: b.author,
+              coverColor: b.coverColor,
+              type: CoverBookType.novel,
+              subtitle: '云端 · ${b.volumeCount} 卷',
+              badgeAdded: isAdded(b.id),
+            ),
+            onClick: () => onOpen(b),
+          );
+        },
       );
-}
-
-class _WenkuBookCard extends StatelessWidget {
-  const _WenkuBookCard({
-    required this.book,
-    required this.added,
-    required this.onTap,
-  });
-
-  final Wenku8Book book;
-  final bool added;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final TextTheme text = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: LrSpacing.s),
-      child: GlassPanel(
-        padding: const EdgeInsets.all(LrSpacing.m),
-        child: InkWell(
-          onTap: onTap,
-          child: Row(
-            children: <Widget>[
-              Container(
-                width: 40,
-                height: 56,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  gradient: LinearGradient(
-                    colors: <Color>[
-                      book.coverColor,
-                      Color.lerp(book.coverColor, Colors.black, 0.3)!,
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: LrSpacing.m),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(book.title, style: text.titleMedium),
-                    const SizedBox(height: 2),
-                    Text(context.tArgs('uiVolumes', <Object?>[book.author, book.volumeCount]),
-                        style: text.bodySmall),
-                    const SizedBox(height: 2),
-                    Text(book.latestChapter, style: text.labelSmall),
-                  ],
-                ),
-              ),
-              Icon(added ? Icons.check_circle_outline : Icons.chevron_right,
-                  size: 18),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

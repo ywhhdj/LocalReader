@@ -6,7 +6,7 @@ import '../../assembly/route_args.dart';
 import '../../assembly/app_scope.dart';
 import '../../core/common/design_tokens.dart';
 import '../../core/ui/theme/glass_theme.dart';
-import '../../core/ui/components/glass.dart';
+import '../../core/ui/components/glass/Nav.dart';
 import '../../l10n/lr_localizations.dart';
 
 /// 搜索结果页：独立的 /search 路由，结果按分组切片展示。
@@ -50,8 +50,9 @@ class _SearchPageState extends State<SearchPage> {
     final AppState state = AppScope.of(context);
     final TextTheme text = Theme.of(context).textTheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final SeasonPalette palette = Theme.of(context).extension<LrSeasonTheme>()?.palette ??
-        SeasonPalette.all[isDark ? SeasonStyle.winter : SeasonStyle.paper]!;
+    final SeasonPalette palette =
+        Theme.of(context).extension<LrSeasonTheme>()?.palette ??
+            SeasonPalette.all[isDark ? SeasonStyle.winter : SeasonStyle.paper]!;
 
     final int total = state.books.cached.length;
     final List<BookSummary> results = state.library(query: _query, sort: _sort);
@@ -80,24 +81,30 @@ class _SearchPageState extends State<SearchPage> {
             end: Alignment.bottomCenter,
             colors: isDark
                 ? <Color>[const Color(0xFF15171C), const Color(0xFF1D2027)]
-                : <Color>[palette.seed, Color.lerp(palette.seed, Colors.white, 0.5)!],
+                : <Color>[
+                    palette.seed,
+                    Color.lerp(palette.seed, Colors.white, 0.5)!
+                  ],
           ),
         ),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.s, LrSpacing.l, LrSpacing.xxl),
+          padding: const EdgeInsets.fromLTRB(
+              LrSpacing.l, LrSpacing.xs, LrSpacing.l, LrSpacing.xxl),
           children: <Widget>[
             GlassPanel(
               borderRadius: LrRadius.pill,
-              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.m, vertical: LrSpacing.xs),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: LrSpacing.m, vertical: LrSpacing.xs),
               child: Row(
                 children: <Widget>[
                   Icon(Icons.search, size: 19, color: text.bodySmall?.color),
-                  const SizedBox(width: LrSpacing.s),
+                  const SizedBox(width: LrSpacing.xs),
                   Expanded(
                     child: TextField(
                       controller: _controller,
                       autofocus: widget.initialQuery.isEmpty,
-                      onChanged: (String v) => setState(() => _query = v.trim()),
+                      onChanged: (String v) =>
+                          setState(() => _query = v.trim()),
                       decoration: InputDecoration(
                         isCollapsed: true,
                         border: InputBorder.none,
@@ -117,7 +124,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
             const SizedBox(height: LrSpacing.m),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               children: <Widget>[
                 for (final LibrarySort s in LibrarySort.values)
                   _SortChip(
@@ -129,11 +136,15 @@ class _SearchPageState extends State<SearchPage> {
             ),
             const SizedBox(height: LrSpacing.m),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s),
+              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.xs),
               child: Row(
                 children: <Widget>[
                   Text(
-                    _query.isEmpty ? context.tArgs('uiAllBooks3', <Object?>[results.length]) : context.tArgs('uiFoundBooks', <Object?>[results.length, _query]),
+                    _query.isEmpty
+                        ? context
+                            .tArgs('uiAllBooks3', <Object?>[results.length])
+                        : context.tArgs(
+                            'uiFoundBooks', <Object?>[results.length, _query]),
                     style: text.labelSmall,
                   ),
                   const Spacer(),
@@ -141,8 +152,7 @@ class _SearchPageState extends State<SearchPage> {
                 ],
               ),
             ),
-            const SizedBox(height: LrSpacing.s),
-
+            const SizedBox(height: LrSpacing.xs),
             if (empty != LibraryEmptyKind.none)
               _EmptyState(
                 kind: empty,
@@ -152,21 +162,25 @@ class _SearchPageState extends State<SearchPage> {
               )
             else
               ...groups.entries
-                  .where((MapEntry<String, List<BookSummary>> e) => e.value.isNotEmpty)
-                  .map<Widget>((MapEntry<String, List<BookSummary>> e) => _GroupSection(
-                        shelf: e.key,
-                        books: e.value,
-                        onOpenBook: widget.onOpenBook,
-                      )),
-
+                  .where((MapEntry<String, List<BookSummary>> e) =>
+                      e.value.isNotEmpty)
+                  .map<Widget>(
+                      (MapEntry<String, List<BookSummary>> e) => _GroupSection(
+                            shelf: e.key,
+                            books: e.value,
+                            onOpenBook: widget.onOpenBook,
+                          )),
             const SizedBox(height: LrSpacing.l),
             GlassPanel(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Icon(Icons.lock_outline, size: 15, color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(width: LrSpacing.s),
-                  Expanded(child: Text(context.t('localOnlyNote'), style: text.bodySmall)),
+                  Icon(Icons.lock_outline,
+                      size: 15, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: LrSpacing.xs),
+                  Expanded(
+                      child: Text(context.t('localOnlyNote'),
+                          style: text.bodySmall)),
                 ],
               ),
             ),
@@ -183,7 +197,8 @@ class _SearchPageState extends State<SearchPage> {
 }
 
 class _SortChip extends StatelessWidget {
-  const _SortChip({required this.label, required this.selected, required this.onTap});
+  const _SortChip(
+      {required this.label, required this.selected, required this.onTap});
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -194,11 +209,17 @@ class _SortChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: LrSpacing.m, vertical: LrSpacing.s),
+        padding: const EdgeInsets.symmetric(
+            horizontal: LrSpacing.m, vertical: LrSpacing.xs),
         decoration: BoxDecoration(
-          color: selected ? scheme.primary.withOpacity(0.14) : Colors.white.withOpacity(0.18),
+          color: selected
+              ? scheme.primary.withValues(alpha: 0.14)
+              : Colors.white.withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(LrRadius.pill),
-          border: Border.all(color: selected ? scheme.primary.withOpacity(0.5) : Colors.white.withOpacity(0.3)),
+          border: Border.all(
+              color: selected
+                  ? scheme.primary.withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.3)),
         ),
         child: Text(
           label,
@@ -232,20 +253,23 @@ class _GroupSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s),
+            padding: const EdgeInsets.symmetric(horizontal: LrSpacing.xs),
             child: Row(
               children: <Widget>[
                 Text(shelf, style: text.titleLarge),
-                const SizedBox(width: LrSpacing.s),
-                Text(context.tArgs('uiBooks2', <Object?>[books.length]), style: text.labelSmall),
-                const SizedBox(width: LrSpacing.s),
-                Expanded(child: Divider(color: Theme.of(context).dividerTheme.color)),
+                const SizedBox(width: LrSpacing.xs),
+                Text(context.tArgs('uiBooks2', <Object?>[books.length]),
+                    style: text.labelSmall),
+                const SizedBox(width: LrSpacing.xs),
+                Expanded(
+                    child:
+                        Divider(color: Theme.of(context).dividerTheme.color)),
               ],
             ),
           ),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           ...books.map<Widget>((BookSummary b) => Padding(
-                padding: const EdgeInsets.only(bottom: LrSpacing.s),
+                padding: const EdgeInsets.only(bottom: LrSpacing.xs),
                 child: _ResultTile(book: b, onTap: () => onOpenBook(b)),
               )),
         ],
@@ -266,7 +290,8 @@ class _ResultTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: GlassPanel(
-        padding: const EdgeInsets.symmetric(horizontal: LrSpacing.m, vertical: LrSpacing.m),
+        padding: const EdgeInsets.symmetric(
+            horizontal: LrSpacing.m, vertical: LrSpacing.m),
         child: Row(
           children: <Widget>[
             // 细书脊色条：与 3D 书架用同一份封面色，编辑后可立即看到
@@ -278,7 +303,10 @@ class _ResultTile extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: <Color>[book.spineColor, Color.lerp(book.spineColor, Colors.black, 0.3)!],
+                  colors: <Color>[
+                    book.spineColor,
+                    Color.lerp(book.spineColor, Colors.black, 0.3)!
+                  ],
                 ),
               ),
             ),
@@ -287,7 +315,10 @@ class _ResultTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(book.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleMedium),
+                  Text(book.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: text.titleMedium),
                   const SizedBox(height: 2),
                   Text(
                     context.tArgs('uiBookMetaLine', <Object?>[
@@ -295,7 +326,8 @@ class _ResultTile extends StatelessWidget {
                       book.format,
                       book.volumeOrder == 0
                           ? ''
-                          : lrTextArgs('uiVolumes2', <Object?>[book.volumeOrder]),
+                          : lrTextArgs(
+                              'uiVolumes2', <Object?>[book.volumeOrder]),
                     ]),
                     style: text.labelSmall,
                   ),
@@ -304,14 +336,16 @@ class _ResultTile extends StatelessWidget {
             ),
             if (book.progress > 0)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s, vertical: LrSpacing.xs),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: LrSpacing.xs, vertical: LrSpacing.xs),
                 decoration: BoxDecoration(
-                  color: scheme.primary.withOpacity(0.12),
+                  color: scheme.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(LrRadius.pill),
                 ),
-                child: Text('${(book.progress * 100).round()}%', style: text.labelSmall),
+                child: Text('${(book.progress * 100).round()}%',
+                    style: text.labelSmall),
               ),
-            const SizedBox(width: LrSpacing.s),
+            const SizedBox(width: LrSpacing.xs),
             const Icon(Icons.chevron_right, size: 18),
           ],
         ),
@@ -340,25 +374,31 @@ class _EmptyState extends StatelessWidget {
     final TextTheme text = Theme.of(context).textTheme;
     final bool noLibrary = kind == LibraryEmptyKind.noLibrary;
     return GlassPanel(
-      padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.xl, LrSpacing.l, LrSpacing.xl),
+      padding: const EdgeInsets.fromLTRB(
+          LrSpacing.l, LrSpacing.xl, LrSpacing.l, LrSpacing.xl),
       child: Column(
         children: <Widget>[
           Icon(
             noLibrary ? Icons.auto_stories_outlined : Icons.search_off_outlined,
             size: 42,
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
           ),
           const SizedBox(height: LrSpacing.m),
           Text(
-            noLibrary ? context.t('emptyLibraryTitle') : context.t('noResultTitle'),
+            noLibrary
+                ? context.t('emptyLibraryTitle')
+                : context.t('noResultTitle'),
             style: text.headlineMedium,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           Text(
             noLibrary
                 ? context.t('emptyLibraryBody')
-                : (query.isEmpty ? context.t('noResultBody') : context.tArgs('uiCurrentN1', <Object?>[context.t('noResultBody'), query])),
+                : (query.isEmpty
+                    ? context.t('noResultBody')
+                    : context.tArgs('uiCurrentN1',
+                        <Object?>[context.t('noResultBody'), query])),
             style: text.bodySmall,
             textAlign: TextAlign.center,
           ),
@@ -375,8 +415,9 @@ class _EmptyState extends StatelessWidget {
               icon: const Icon(Icons.backspace_outlined, size: 18),
               label: Text(context.t('uiClearKeyword')),
             ),
-          const SizedBox(height: LrSpacing.s),
-          Text(context.t('demoDataNote'), style: text.labelSmall, textAlign: TextAlign.center),
+          const SizedBox(height: LrSpacing.xs),
+          Text(context.t('demoDataNote'),
+              style: text.labelSmall, textAlign: TextAlign.center),
         ],
       ),
     );

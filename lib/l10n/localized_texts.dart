@@ -110,7 +110,7 @@ class LocalizedLegalTexts {
     Locale('en'),
   ];
 
-  static const Map<Locale, LegalTextBundle> bundles = <Locale, LegalTextBundle>{
+  static final Map<Locale, LegalTextBundle> bundles = <Locale, LegalTextBundle>{
     Locale('zh'): kLegalTextsZh,
     Locale('en'): kLegalTextsEn,
   };

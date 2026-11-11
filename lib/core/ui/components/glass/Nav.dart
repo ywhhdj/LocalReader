@@ -3,9 +3,9 @@ import 'dart:ui';
 import 'package:Local_reader/core/model/performance_prefs.dart';
 import 'package:flutter/material.dart';
 
-import '../../common/design_tokens.dart';
-import '../theme/glass_theme.dart';
-import '../theme/performance_scope.dart';
+import '../../../common/design_tokens.dart';
+import '../../theme/glass_theme.dart';
+import '../../theme/performance_scope.dart';
 
 @immutable
 class GlassNavItem {
@@ -13,7 +13,8 @@ class GlassNavItem {
   final IconData activeIcon;
   final String label;
 
-  const GlassNavItem({required this.icon, required this.activeIcon, required this.label});
+  const GlassNavItem(
+      {required this.icon, required this.activeIcon, required this.label});
 }
 
 /// 乳玻璃容器：模糊 + 半透明渐变 + 1px 高光描边 + 柔和外阴影。
@@ -35,13 +36,16 @@ class GlassPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final SeasonPalette season = Theme.of(context).extension<LrSeasonTheme>()?.palette ??
-        SeasonPalette.all[isDark ? SeasonStyle.winter : SeasonStyle.paper]!;
-    // 第三十轮：最低档直接跳过 BackdropFilter，GPU 模糊是整页最贵的一笔。
+    final SeasonPalette season =
+        Theme.of(context).extension<LrSeasonTheme>()?.palette ??
+            SeasonPalette.all[isDark ? SeasonStyle.winter : SeasonStyle.paper]!;
     final PerformanceBudget budget = PerformanceScope.of(context);
     final List<Color> gradientColors = tint ??
         (isDark
-            ? <Color>[Colors.white.withOpacity(0.10), Colors.white.withOpacity(0.04)]
+            ? <Color>[
+                Colors.white.withValues(alpha: 0.10),
+                Colors.white.withValues(alpha: 0.04)
+              ]
             : season.glassTint);
     final Widget panel = Container(
       padding: padding,
@@ -54,14 +58,14 @@ class GlassPanel extends StatelessWidget {
         ),
         border: budget.useHighlightBorder
             ? Border.all(
-                color: Colors.white.withOpacity(isDark ? 0.14 : 0.55),
+                color: Colors.white.withValues(alpha: isDark ? 0.14 : 0.55),
                 width: 1,
               )
             : null,
         boxShadow: budget.useShadows
             ? <BoxShadow>[
                 BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.35 : 0.08),
+                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
                   blurRadius: 28,
                   offset: const Offset(0, 12),
                 ),
@@ -83,7 +87,7 @@ class GlassPanel extends StatelessWidget {
   }
 }
 
-/// 玻璃胶囊底栏：选中态用衬线小标签 + 圆点，不使用 Material 默认 NavigationBar。
+/// 加粗衬线标签 + 底部指示点表达
 class GlassNavBar extends StatelessWidget {
   const GlassNavBar({
     super.key,
@@ -99,10 +103,12 @@ class GlassNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      minimum: const EdgeInsets.fromLTRB(LrSpacing.m, 0, LrSpacing.m, LrSpacing.m),
+      minimum: const EdgeInsets.fromLTRB(
+          LrSpacing.xs, 0, LrSpacing.xs, LrSpacing.xs),
       child: GlassPanel(
         borderRadius: LrRadius.pill,
-        padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s, vertical: LrSpacing.s),
+        padding: const EdgeInsets.symmetric(
+            horizontal: LrSpacing.xs, vertical: LrSpacing.xs),
         child: Row(
           children: List<Widget>.generate(items.length, (int i) {
             return Expanded(
@@ -120,7 +126,8 @@ class GlassNavBar extends StatelessWidget {
 }
 
 class _NavItem extends StatelessWidget {
-  const _NavItem({required this.item, required this.selected, required this.onTap});
+  const _NavItem(
+      {required this.item, required this.selected, required this.onTap});
 
   final GlassNavItem item;
   final bool selected;
@@ -129,19 +136,17 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme scheme = Theme.of(context).colorScheme;
-    final Color fg = selected ? scheme.primary : Theme.of(context).textTheme.bodySmall?.color ?? scheme.onSurfaceVariant;
+    final Color fg = selected
+        ? scheme.primary
+        : Theme.of(context).textTheme.bodySmall?.color ??
+            scheme.onSurfaceVariant;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(vertical: LrSpacing.s),
-        decoration: BoxDecoration(
-          color: selected ? scheme.primary.withOpacity(0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(LrRadius.pill),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: LrSpacing.xs, vertical: LrSpacing.xs),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -153,7 +158,11 @@ class _NavItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontFamily: 'Noto Serif SC',
-                fontFamilyFallback: const <String>['Songti SC', 'SimSun', 'serif'],
+                fontFamilyFallback: const <String>[
+                  'Songti SC',
+                  'SimSun',
+                  'serif'
+                ],
                 fontSize: 10.5,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: fg,
@@ -162,6 +171,7 @@ class _NavItem extends StatelessWidget {
             const SizedBox(height: 3),
             AnimatedContainer(
               duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
               width: selected ? 12 : 0,
               height: 2.5,
               decoration: BoxDecoration(

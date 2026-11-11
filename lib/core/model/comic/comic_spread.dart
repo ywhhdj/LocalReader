@@ -29,7 +29,8 @@ class ComicSpreadLabels {
     ComicSpreadMode.auto: '自动',
   };
 
-  static const Map<ComicSpreadMode, String> modeHint = <ComicSpreadMode, String>{
+  static const Map<ComicSpreadMode, String> modeHint =
+      <ComicSpreadMode, String>{
     ComicSpreadMode.single: '一次一页，不产生补白槽',
     ComicSpreadMode.double: '封面独占一跨，之后每两页一跨；奇数页补白并明示',
     ComicSpreadMode.auto: '横屏自动双页、竖屏自动单页，按页面宽高比判定',
@@ -99,8 +100,7 @@ class ComicSpread {
     );
   }
 
-  bool get blankOnLeft =>
-      isBlankSlot && direction == ComicReadingDirection.rtl;
+  bool get blankOnLeft => isBlankSlot && direction == ComicReadingDirection.rtl;
   bool get blankOnRight =>
       isBlankSlot && direction == ComicReadingDirection.ltr;
 
@@ -171,8 +171,7 @@ class ComicSpreadLayout {
       spreads.isNotEmpty && spreads.first.isCover && doublePage;
 
   /// 宽幅独占跨数量，供阅读器状态栏说明。
-  int get wideSpreadCount =>
-      spreads.where((ComicSpread s) => s.isWide).length;
+  int get wideSpreadCount => spreads.where((ComicSpread s) => s.isWide).length;
 
   ComicSpread at(int spreadIndex) {
     if (isEmpty) {
@@ -217,7 +216,8 @@ class ComicSpreadLayout {
   /// 初始视觉索引：RTL 从最后一格起（那里放的是第 0 跨 = 封面）。
   int get initialViewIndex => isRtl ? spreadCount - 1 : 0;
 
-  ComicSpread spreadAtViewIndex(int viewIndex) => at(spreadForViewIndex(viewIndex));
+  ComicSpread spreadAtViewIndex(int viewIndex) =>
+      at(spreadForViewIndex(viewIndex));
 
   /// 「前进到下一跨」在 PageView 索引上的步进：RTL 为 -1。
   int get forwardStep => isRtl ? -1 : 1;
@@ -248,7 +248,7 @@ class ComicSpreadLayout {
 
 /// 双页跨页的**书脊留白**度量（第二十轮）。
 ///
-/// 第十五轮把两页并排时，中间只有一条固定的 `SizedBox(width: LrSpacing.s)`，
+/// 第十五轮把两页并排时，中间只有一条固定的 `SizedBox(width: LrSpacing.xs)`，
 /// 既没有装订感，宽屏上又显得过窄。本层把「留白宽度 / 内侧渐暗 / 跨间留白」
 /// 收口成纯 Dart 计算，视图只取数值，不自己写 magic number。
 ///
@@ -298,12 +298,16 @@ class ComicSpreadGutter {
     if (slotWidth <= 0) return 0;
     final double bySlot = slotWidth * innerShadeRatio;
     final double byGutter = width(slotWidth) * innerShadeToGutterRatio;
-    return (bySlot < byGutter ? bySlot : byGutter).clamp(0, slotWidth / 2).toDouble();
+    return (bySlot < byGutter ? bySlot : byGutter)
+        .clamp(0, slotWidth / 2)
+        .toDouble();
   }
 
   static double outerPadding(double fullPageWidth) {
     if (fullPageWidth <= 0) return minOuterPx;
-    return (fullPageWidth * outerRatio).clamp(minOuterPx, maxOuterPx).toDouble();
+    return (fullPageWidth * outerRatio)
+        .clamp(minOuterPx, maxOuterPx)
+        .toDouble();
   }
 
   /// 供状态栏说明：当前布局里有多少跨会有书脊。
@@ -344,7 +348,8 @@ class ComicSpreadGutter {
   /// 按槽宽自动选档：窄屏（手机单页半宽）含蓄、宽屏（平板 / 折叠屏）加强。
   /// 阈值随 `width()` 的上下限走，不另造一套 magic number。
   static ComicSpineShadeStrength strengthFor(double slotWidth) {
-    if (slotWidth <= 0 || slotWidth < 300) return ComicSpineShadeStrength.subtle;
+    if (slotWidth <= 0 || slotWidth < 300)
+      return ComicSpineShadeStrength.subtle;
     if (slotWidth >= 700) return ComicSpineShadeStrength.strong;
     return ComicSpineShadeStrength.normal;
   }
@@ -423,7 +428,8 @@ class ComicSpreadResolver {
   /// 宽高比阈值：宽 >= 高 × 1.15 视为横屏。留出余量，避免折叠屏近似正方时抖动。
   static const double landscapeThreshold = 1.15;
 
-  static bool isLandscape(Size pageSize, {double threshold = landscapeThreshold}) {
+  static bool isLandscape(Size pageSize,
+      {double threshold = landscapeThreshold}) {
     if (pageSize.height <= 0 || pageSize.width <= 0) return false;
     return pageSize.width >= pageSize.height * threshold;
   }

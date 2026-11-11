@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../assembly/app_scope.dart';
 import '../../../core/common/design_tokens.dart';
-import '../../../core/ui/components/glass.dart';
+import '../../../core/ui/components/glass/Nav.dart';
 import '../../../l10n/localized_texts.dart';
 import '../../../l10n/lr_localizations.dart';
 
@@ -70,9 +70,11 @@ class _LocalizedTextsSheetState extends State<LocalizedTextsSheet> {
                   ButtonSegment<AppLanguage?>(
                       value: null, label: Text(context.t('uiFollowSystem'))),
                   ButtonSegment<AppLanguage?>(
-                      value: AppLanguage.zhCN, label: Text(context.t('uiPhrase008'))),
+                      value: AppLanguage.zhCN,
+                      label: Text(context.t('uiPhrase008'))),
                   ButtonSegment<AppLanguage?>(
-                      value: AppLanguage.en, label: Text(context.t('uiEnglish'))),
+                      value: AppLanguage.en,
+                      label: Text(context.t('uiEnglish'))),
                 ],
                 selected: <AppLanguage?>{state.settings.appLanguage},
                 onSelectionChanged: (Set<AppLanguage?> v) {
@@ -89,7 +91,8 @@ class _LocalizedTextsSheetState extends State<LocalizedTextsSheet> {
               Row(
                 children: <Widget>[
                   Expanded(
-                    child: Text(context.t('localizationTitle'), style: text.headlineMedium),
+                    child: Text(context.t('localizationTitle'),
+                        style: text.headlineMedium),
                   ),
                   Text(
                     context.t('localizationDefaultNote'),
@@ -97,20 +100,23 @@ class _LocalizedTextsSheetState extends State<LocalizedTextsSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               Text(
-                context.tArgs('uiKeysLists', <Object?>[LocalizedLegalTexts.keyCount, LocalizedLegalTexts.listCount]) +
-                context.tArgs('uiArbStats', <Object?>[
-                  LocalizedLegalTexts.placeholderKeyCount,
-                  LocalizedLegalTexts.reviewKeyCount,
-                ]),
+                context.tArgs('uiKeysLists', <Object?>[
+                      LocalizedLegalTexts.keyCount,
+                      LocalizedLegalTexts.listCount
+                    ]) +
+                    context.tArgs('uiArbStats', <Object?>[
+                      LocalizedLegalTexts.placeholderKeyCount,
+                      LocalizedLegalTexts.reviewKeyCount,
+                    ]),
                 style: text.labelSmall,
               ),
               const SizedBox(height: LrSpacing.m),
 
               // 语言切换只作用于预览
               Wrap(
-                spacing: LrSpacing.s,
+                spacing: LrSpacing.xs,
                 children: <Widget>[
                   for (final AppLanguage l in AppLanguage.values)
                     ChoiceChip(
@@ -128,34 +134,51 @@ class _LocalizedTextsSheetState extends State<LocalizedTextsSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(context.tArgs('uiCoverageCheck', <Object?>[_preview.label]), style: text.titleMedium),
-                    const SizedBox(height: LrSpacing.s),
                     Text(
-                      context.tArgs('uiItems', <Object?>[missing.length, extra.length]) +
-                      context.tArgs('uiAboutParagraphsItems', <Object?>[bundle.list('aboutParagraphs').length]) +
-                      context.tArgs('uiPhrase013', <Object?>[LocalizedLegalTexts.paragraphsAligned() ? lrText('uiAligned') : lrText('uiMisaligned')]),
+                        context.tArgs(
+                            'uiCoverageCheck', <Object?>[_preview.label]),
+                        style: text.titleMedium),
+                    const SizedBox(height: LrSpacing.xs),
+                    Text(
+                      context.tArgs('uiItems',
+                              <Object?>[missing.length, extra.length]) +
+                          context.tArgs('uiAboutParagraphsItems', <Object?>[
+                            bundle.list('aboutParagraphs').length
+                          ]) +
+                          context.tArgs('uiPhrase013', <Object?>[
+                            LocalizedLegalTexts.paragraphsAligned()
+                                ? lrText('uiAligned')
+                                : lrText('uiMisaligned')
+                          ]),
                       style: text.bodySmall,
                     ),
                     if (missing.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.only(top: LrSpacing.s),
-                        child: Text(context.tArgs('uiPhrase001', <Object?>[missing.join('、')]), style: text.labelSmall),
+                        padding: const EdgeInsets.only(top: LrSpacing.xs),
+                        child: Text(
+                            context.tArgs(
+                                'uiPhrase001', <Object?>[missing.join('、')]),
+                            style: text.labelSmall),
                       ),
                     if (extra.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.only(top: LrSpacing.s),
-                        child: Text(context.tArgs('uiPhrase000', <Object?>[extra.join('、')]), style: text.labelSmall),
+                        padding: const EdgeInsets.only(top: LrSpacing.xs),
+                        child: Text(
+                            context.tArgs(
+                                'uiPhrase000', <Object?>[extra.join('、')]),
+                            style: text.labelSmall),
                       ),
                   ],
                 ),
               ),
               const SizedBox(height: LrSpacing.m),
 
-              Text(context.t('localizationPreviewTitle'), style: text.titleMedium),
-              const SizedBox(height: LrSpacing.s),
+              Text(context.t('localizationPreviewTitle'),
+                  style: text.titleMedium),
+              const SizedBox(height: LrSpacing.xs),
               ..._previewKeys.map<Widget>(
                 (String key) => Padding(
-                  padding: const EdgeInsets.only(bottom: LrSpacing.s),
+                  padding: const EdgeInsets.only(bottom: LrSpacing.xs),
                   child: GlassPanel(
                     padding: const EdgeInsets.all(LrSpacing.m),
                     child: Column(
@@ -170,7 +193,7 @@ class _LocalizedTextsSheetState extends State<LocalizedTextsSheet> {
                 ),
               ),
 
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               Text(context.t('localizationStaticNote'), style: text.bodySmall),
               const SizedBox(height: LrSpacing.xs),
               Text(context.t('demoDataNote'), style: text.labelSmall),

@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../core/model/reader_style.dart';
+import '../../../core/model/reader_style.dart';
 
-/// 翻页视图：平移 / 仿真（伪 3D 绕书脊）/ 无动画，对应原项目三档设置。
-///
-/// 静态交付说明：slide 与 none 的行为差异是真实可审查的（滚动物理 + 点击翻页）；
-/// simulation 是结构完整的近似实现，绕 Y 轴透视与书脊阴影的系数需要真机调参，
-/// 故标 TODO(静态冻结)，不声称视觉已还原。
+/// 翻页视图：平移 / 仿真（伪 3D 绕书脊）/ 无动画
 class PageTurnView extends StatelessWidget {
   const PageTurnView({
     super.key,

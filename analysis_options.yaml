@@ -9,3 +9,4 @@ analyzer:
     - .idea/**
     - .dart_tool/**
     - ohos/**
+    - tool/**

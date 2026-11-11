@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../assembly/app_scope.dart';
 import '../../../core/model/feedback_draft.dart';
 import '../../../core/common/design_tokens.dart';
-import '../../../core/ui/components/glass.dart';
+import '../../../core/ui/components/glass/Nav.dart';
 import '../../../l10n/lr_localizations.dart';
 
 /// 问题反馈面板
@@ -15,7 +15,8 @@ class FeedbackSheet extends StatefulWidget {
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         builder: (BuildContext ctx) => Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
           child: const FeedbackSheet(),
         ),
       );
@@ -83,21 +84,28 @@ class _FeedbackSheetState extends State<FeedbackSheet> {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: <Widget>[
-                  _field(context.t('uiAppVersion'), _version, context.t('uiEG1001'), text),
-                  _field(context.t('uiDevice'), _device, context.t('uiEGPixel8'), text),
-                  _field(context.t('uiOsVersion'), _os, context.t('uiEGAndroid15'), text),
-                  _field(context.t('uiStepsToReproduce'), _steps, '1. … 2. …', text, maxLines: 3),
-                  _field(context.t('uiAdditionalNotesOptional'), _details, context.t('uiOtherObservations'), text,
+                  _field(context.t('uiAppVersion'), _version,
+                      context.t('uiEG1001'), text),
+                  _field(context.t('uiDevice'), _device,
+                      context.t('uiEGPixel8'), text),
+                  _field(context.t('uiOsVersion'), _os,
+                      context.t('uiEGAndroid15'), text),
+                  _field(context.t('uiStepsToReproduce'), _steps, '1. … 2. …',
+                      text,
+                      maxLines: 3),
+                  _field(context.t('uiAdditionalNotesOptional'), _details,
+                      context.t('uiOtherObservations'), text,
                       maxLines: 2),
-                  const SizedBox(height: LrSpacing.s),
+                  const SizedBox(height: LrSpacing.xs),
                   if (!_draft.isComplete)
                     Text(
                       '${context.t('feedbackMissing')}${_draft.missingFields.join('、')}',
                       style: text.labelSmall,
                     ),
                   const SizedBox(height: LrSpacing.m),
-                  Text(context.t('feedbackPreviewTitle'), style: text.titleMedium),
-                  const SizedBox(height: LrSpacing.s),
+                  Text(context.t('feedbackPreviewTitle'),
+                      style: text.titleMedium),
+                  const SizedBox(height: LrSpacing.xs),
                   GlassPanel(
                     padding: const EdgeInsets.all(LrSpacing.m),
                     child: SelectableText(
@@ -105,14 +113,19 @@ class _FeedbackSheetState extends State<FeedbackSheet> {
                       style: text.bodySmall,
                     ),
                   ),
-                  const SizedBox(height: LrSpacing.s),
+                  const SizedBox(height: LrSpacing.xs),
                   Text(context.t('wenkuNoCredentials'), style: text.labelSmall),
                   const SizedBox(height: LrSpacing.xs),
                   Text(context.t('feedbackStaticNote'), style: text.labelSmall),
-                  const SizedBox(height: LrSpacing.s),
+                  const SizedBox(height: LrSpacing.xs),
                   Text(
-                    context.tArgs('uiCurrentContents', <Object?>[context.t('freeStatement')]) +
-                    context.tArgs('uiPhrase003', <Object?>[state.onlineEnabled ? lrText('uiEnabled') : lrText('uiDisabled')]),
+                    context.tArgs('uiCurrentContents',
+                            <Object?>[context.t('freeStatement')]) +
+                        context.tArgs('uiPhrase003', <Object?>[
+                          state.onlineEnabled
+                              ? lrText('uiEnabled')
+                              : lrText('uiDisabled')
+                        ]),
                     style: text.labelSmall,
                   ),
                 ],
@@ -128,7 +141,7 @@ class _FeedbackSheetState extends State<FeedbackSheet> {
           TextTheme text,
           {int maxLines = 1}) =>
       Padding(
-        padding: const EdgeInsets.only(bottom: LrSpacing.s),
+        padding: const EdgeInsets.only(bottom: LrSpacing.xs),
         child: TextField(
           controller: controller,
           maxLines: maxLines,

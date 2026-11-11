@@ -114,12 +114,6 @@ class AppState extends ChangeNotifier {
   int get importedCount => _importedBooks.length;
 
   // ---------------------------------------------------------------- Wenku8 在线目录
-  //
-  // 第二十二轮「接入」：把在线目录从「默认关闭的说明页」升级成完整链路——
-  // 榜单 / 搜索 → 详情 → 卷章目录 → 加入本地书库，状态机与合规过滤齐备。
-  // `pureLocal` master switch 仍是唯一裁决点：锁定态连演示源都不读、零请求；
-  // 用户显式开启后才走 `wenku8.listing()`。这既满足「Wenku8 要接入」，
-  // 也不推翻前二十一轮钉死的「关闭态全应用零网络请求」。
 
   Wenku8Status _wenku8Status = Wenku8Status.lockedByPureLocal;
   Wenku8Query _wenku8Query = const Wenku8Query();

@@ -6,7 +6,7 @@ import '../../core/model/book_document.dart';
 import '../../assembly/app_scope.dart';
 import '../../core/common/design_tokens.dart';
 import '../../core/ui/theme/glass_theme.dart';
-import '../../core/ui/components/glass.dart';
+import '../../core/ui/components/glass/Nav.dart';
 import '../../l10n/lr_localizations.dart';
 
 /// 章节目录：只负责「选中哪一章」，把序号 pop 出去。
@@ -36,8 +36,9 @@ class _TocPageState extends State<TocPage> {
     final BookDocument document = DemoDocumentFactory.from(book);
     final TextTheme text = Theme.of(context).textTheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final SeasonPalette palette = Theme.of(context).extension<LrSeasonTheme>()?.palette ??
-        SeasonPalette.all[isDark ? SeasonStyle.winter : SeasonStyle.paper]!;
+    final SeasonPalette palette =
+        Theme.of(context).extension<LrSeasonTheme>()?.palette ??
+            SeasonPalette.all[isDark ? SeasonStyle.winter : SeasonStyle.paper]!;
 
     final List<MapEntry<int, Chapter>> visible = _filtered(document.chapters);
 
@@ -56,22 +57,28 @@ class _TocPageState extends State<TocPage> {
             end: Alignment.bottomCenter,
             colors: isDark
                 ? <Color>[const Color(0xFF15171C), const Color(0xFF1D2027)]
-                : <Color>[palette.seed, Color.lerp(palette.seed, Colors.white, 0.5)!],
+                : <Color>[
+                    palette.seed,
+                    Color.lerp(palette.seed, Colors.white, 0.5)!
+                  ],
           ),
         ),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.s, LrSpacing.l, LrSpacing.xxl),
+          padding: const EdgeInsets.fromLTRB(
+              LrSpacing.l, LrSpacing.xs, LrSpacing.l, LrSpacing.xxl),
           children: <Widget>[
             GlassPanel(
               borderRadius: LrRadius.pill,
-              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.m, vertical: LrSpacing.xs),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: LrSpacing.m, vertical: LrSpacing.xs),
               child: Row(
                 children: <Widget>[
                   Icon(Icons.search, size: 19, color: text.bodySmall?.color),
-                  const SizedBox(width: LrSpacing.s),
+                  const SizedBox(width: LrSpacing.xs),
                   Expanded(
                     child: TextField(
-                      onChanged: (String v) => setState(() => _query = v.trim()),
+                      onChanged: (String v) =>
+                          setState(() => _query = v.trim()),
                       decoration: InputDecoration(
                         isCollapsed: true,
                         border: InputBorder.none,
@@ -91,28 +98,37 @@ class _TocPageState extends State<TocPage> {
             ),
             const SizedBox(height: LrSpacing.m),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s),
+              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.xs),
               child: Row(
                 children: <Widget>[
                   Text(
-                    context.tArgs('uiTotalChapters2', <Object?>[document.chapters.length]) +
-                    context.tArgs('uiPhrase012', <Object?>[book.volumeOrder == 0 ? '' : lrTextArgs('uiVolumePrefixN', <Object?>[book.volumeOrder])]),
+                    context.tArgs('uiTotalChapters2',
+                            <Object?>[document.chapters.length]) +
+                        context.tArgs('uiPhrase012', <Object?>[
+                          book.volumeOrder == 0
+                              ? ''
+                              : lrTextArgs('uiVolumePrefixN',
+                                  <Object?>[book.volumeOrder])
+                        ]),
                     style: text.labelSmall,
                   ),
                   const Spacer(),
-                  Text(context.t('uiTapAChapterToJump'), style: text.labelSmall),
+                  Text(context.t('uiTapAChapterToJump'),
+                      style: text.labelSmall),
                 ],
               ),
             ),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             if (visible.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: LrSpacing.xl),
-                child: Center(child: Text(context.t('uiNoMatchingChapters'), style: text.bodyMedium)),
+                child: Center(
+                    child: Text(context.t('uiNoMatchingChapters'),
+                        style: text.bodyMedium)),
               )
             else
               ...visible.map<Widget>((MapEntry<int, Chapter> e) => Padding(
-                    padding: const EdgeInsets.only(bottom: LrSpacing.s),
+                    padding: const EdgeInsets.only(bottom: LrSpacing.xs),
                     child: _TocTile(
                       chapter: e.value,
                       index: e.key,
@@ -124,7 +140,7 @@ class _TocPageState extends State<TocPage> {
             GlassPanel(
               child: Text(
                 context.t('uiContentsBodyTextBookdocumentChapters') +
-                context.t('uiCurrentSampleDataTocentryChapters'),
+                    context.t('uiCurrentSampleDataTocentryChapters'),
                 style: text.bodySmall,
               ),
             ),
@@ -136,7 +152,8 @@ class _TocPageState extends State<TocPage> {
 
   List<MapEntry<int, Chapter>> _filtered(List<Chapter> chapters) {
     final List<MapEntry<int, Chapter>> indexed = <MapEntry<int, Chapter>>[
-      for (int i = 0; i < chapters.length; i++) MapEntry<int, Chapter>(i, chapters[i]),
+      for (int i = 0; i < chapters.length; i++)
+        MapEntry<int, Chapter>(i, chapters[i]),
     ];
     if (_query.isEmpty) return indexed;
     return indexed
@@ -166,17 +183,24 @@ class _TocTile extends StatelessWidget {
       onTap: onTap,
       child: GlassPanel(
         borderRadius: LrRadius.card,
-        padding: const EdgeInsets.symmetric(horizontal: LrSpacing.m, vertical: LrSpacing.m),
+        padding: const EdgeInsets.symmetric(
+            horizontal: LrSpacing.m, vertical: LrSpacing.m),
         child: Row(
           children: <Widget>[
             Text(
               '${index + 1}'.padLeft(2, '0'),
               style: TextStyle(
                 fontFamily: 'Noto Serif SC',
-                fontFamilyFallback: const <String>['Songti SC', 'SimSun', 'serif'],
+                fontFamilyFallback: const <String>[
+                  'Songti SC',
+                  'SimSun',
+                  'serif'
+                ],
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: isCurrent ? scheme.primary : scheme.onSurface.withOpacity(0.35),
+                color: isCurrent
+                    ? scheme.primary
+                    : scheme.onSurface.withValues(alpha: 0.35),
               ),
             ),
             const SizedBox(width: LrSpacing.m),
@@ -192,18 +216,23 @@ class _TocTile extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(context.tArgs('uiItemscontentBodyText', <Object?>[chapter.blocks.length]), style: text.labelSmall),
+                  Text(
+                      context.tArgs('uiItemscontentBodyText',
+                          <Object?>[chapter.blocks.length]),
+                      style: text.labelSmall),
                 ],
               ),
             ),
             if (isCurrent)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s, vertical: LrSpacing.xs),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: LrSpacing.xs, vertical: LrSpacing.xs),
                 decoration: BoxDecoration(
-                  color: scheme.primary.withOpacity(0.12),
+                  color: scheme.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(LrRadius.pill),
                 ),
-                child: Text(context.t('uiCurrentlyReading'), style: text.labelSmall?.copyWith(color: scheme.primary)),
+                child: Text(context.t('uiCurrentlyReading'),
+                    style: text.labelSmall?.copyWith(color: scheme.primary)),
               ),
             const SizedBox(width: LrSpacing.xs),
             const Icon(Icons.chevron_right, size: 18),

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../model/tts_prefs.dart';
+import '../../../core/model/tts_prefs.dart';
 import '../../../l10n/lr_localizations.dart';
-import '../../common/design_tokens.dart';
-import 'glass.dart';
+import '../../../core/common/design_tokens.dart';
+import '../../../core/ui/components/glass/Nav.dart';
 
-/// 听读设置面板（第三十轮，参考用户给出的项目页实现，Flutter 重写）。
+/// 听读设置面板
 /// 语速 / 音调写回 `ReaderStyle`；音色、发声人、自动下章是面板状态，
 /// 由调用方决定是否持久化——组件不读 AppState、不构造路由。
 class TtsSettingsPanel extends StatelessWidget {
@@ -63,7 +63,7 @@ class TtsSettingsPanel extends StatelessWidget {
           Row(
             children: <Widget>[
               Icon(Icons.tune_outlined, size: 19, color: fg),
-              const SizedBox(width: LrSpacing.s),
+              const SizedBox(width: LrSpacing.xs),
               Expanded(
                   child: Text(context.t('readerTtsSettings'),
                       style: text.titleMedium?.copyWith(color: fg))),
@@ -73,7 +73,7 @@ class TtsSettingsPanel extends StatelessWidget {
                   icon: Icon(Icons.close, size: 18, color: fg)),
             ],
           ),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           Text(context.t('readerTtsTimbre'),
               style: text.labelLarge?.copyWith(color: fg)),
           const SizedBox(height: LrSpacing.xs),
@@ -95,7 +95,8 @@ class TtsSettingsPanel extends StatelessWidget {
           ),
           const SizedBox(height: LrSpacing.xs),
           Text(context.t('readerTtsTimbreNote'),
-              style: text.labelSmall?.copyWith(color: fg.withOpacity(0.7))),
+              style:
+                  text.labelSmall?.copyWith(color: fg.withValues(alpha: 0.7))),
           const SizedBox(height: LrSpacing.m),
           _LabeledSlider(
               label: context.t('readerTtsRate'),
@@ -119,7 +120,7 @@ class TtsSettingsPanel extends StatelessWidget {
             title: Text(context.t('readerTtsAutoNext'),
                 style: text.labelLarge?.copyWith(color: fg)),
           ),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           Row(
             children: <Widget>[
               Text(context.t('readerTtsVoice'),
@@ -134,7 +135,8 @@ class TtsSettingsPanel extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: LrSpacing.xs),
               child: Text(context.t('readerTtsNoVoice'),
-                  style: text.labelSmall?.copyWith(color: fg.withOpacity(0.7))),
+                  style: text.labelSmall
+                      ?.copyWith(color: fg.withValues(alpha: 0.7))),
             )
           else
             SizedBox(
@@ -158,9 +160,10 @@ class TtsSettingsPanel extends StatelessWidget {
                 },
               ),
             ),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           Text(context.t('readerTtsStaticNote'),
-              style: text.labelSmall?.copyWith(color: fg.withOpacity(0.6))),
+              style:
+                  text.labelSmall?.copyWith(color: fg.withValues(alpha: 0.6))),
         ],
       ),
     );
@@ -262,7 +265,8 @@ class TtsSettingsSheet {
         backgroundColor: Colors.transparent,
         isScrollControlled: true,
         builder: (BuildContext ctx) => Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
           child: TtsSettingsPanel(
             rate: rate,
             pitch: pitch,

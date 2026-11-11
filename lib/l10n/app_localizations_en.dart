@@ -3178,4 +3178,265 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get uiClose => 'Close';
+
+  @override
+  String get uiWenkuLibrary => 'Light Novel Library';
+
+  @override
+  String get uiRecentReads => 'Recent Reads';
+
+  @override
+  String get uiMyFavorites => 'My Favorites';
+
+  @override
+  String get uiLoginWenkuAccount => 'Sign in to Wenku8';
+
+  @override
+  String get uiLoginToSyncCloud => 'Sign in to sync your cloud shelf';
+
+  @override
+  String get uiAccountName => 'Wenku8 account';
+
+  @override
+  String get uiSyncStatus => 'Sync status';
+
+  @override
+  String get uiSwitchToOnlineToLogin => 'Switch to online mode to sign in';
+
+  @override
+  String get uiGoCollect => 'Go collect';
+
+  @override
+  String get uiCloudEmpty => 'No cloud books yet';
+
+  @override
+  String get uiRankingDaily => 'Daily';
+
+  @override
+  String get uiRankingWeekly => 'Weekly';
+
+  @override
+  String get uiRankingMonthly => 'Monthly';
+
+  @override
+  String get uiRankingAll => 'All-time';
+
+  @override
+  String get uiRecommendedForYou => 'Recommended for you';
+
+  @override
+  String get uiStatsOverview => 'Overview';
+
+  @override
+  String get uiStatsCharts => 'Charts';
+
+  @override
+  String get uiStatsBooks => 'Books';
+
+  @override
+  String get uiStatsMarks => 'Marks';
+
+  @override
+  String get uiStatsTouch => 'Touch';
+
+  @override
+  String get uiSettingsAppearance => 'Appearance';
+
+  @override
+  String get uiSettingsPerformance => 'Performance';
+
+  @override
+  String get uiSettingsWidgets => 'Widgets';
+
+  @override
+  String get uiSettingsDataStorage => 'Data & Storage';
+
+  @override
+  String get uiCacheManagement => 'Cache management';
+
+  @override
+  String get uiBackup => 'Backup';
+
+  @override
+  String get uiTheme => 'Theme';
+
+  @override
+  String get uiThemeFollowSystem => 'Follow system';
+
+  @override
+  String get uiThemeDark => 'Dark';
+
+  @override
+  String get uiThemeLight => 'Light';
+
+  @override
+  String get uiLanguage => 'Language';
+
+  @override
+  String get uiLangFollowSystem => 'Follow system';
+
+  @override
+  String get uiLangZh => 'Simplified Chinese';
+
+  @override
+  String get uiLangEn => 'English';
+
+  @override
+  String get uiTtsEngine => 'Voice interface';
+
+  @override
+  String get uiTtsSystem => 'System TTS';
+
+  @override
+  String get uiTtsOpenAi => 'OpenAI-compatible';
+
+  @override
+  String get uiTtsSsml => 'SSML';
+
+  @override
+  String get uiSearchByTitle => 'Title';
+
+  @override
+  String get uiSearchByAuthor => 'Author';
+
+  @override
+  String get uiSearchByTag => 'Tag';
+
+  @override
+  String get uiNovel => 'Novel';
+
+  @override
+  String get uiComic => 'Comic';
+
+  @override
+  String get uiGridList => 'List';
+
+  @override
+  String get uiGridTwoColumns => 'Two columns';
+
+  @override
+  String get uiGridThreeColumns => 'Three columns';
+
+  @override
+  String get uiRecentLimit => 'Recent reads limit';
+
+  @override
+  String get uiImportBooks => 'Import books';
+
+  @override
+  String get uiImportSettings => 'Import settings';
+
+  @override
+  String get uiTxtEncoding => 'TXT encoding';
+
+  @override
+  String get uiEncAuto => 'Auto';
+
+  @override
+  String get uiEncUtf8 => 'UTF-8';
+
+  @override
+  String get uiEncGbk => 'GBK';
+
+  @override
+  String get uiEncBig5 => 'Big5';
+
+  @override
+  String get uiEncUtf16 => 'UTF-16';
+
+  @override
+  String get uiEncGb18030 => 'GB18030';
+
+  @override
+  String get uiTxtTocDetection => 'TXT contents detection';
+
+  @override
+  String get uiTocAuto => 'Auto detect';
+
+  @override
+  String get uiTocCustom => 'Custom rules';
+
+  @override
+  String get uiChapterRegex => 'Chapter regex';
+
+  @override
+  String get uiVolumeRegex => 'Volume regex';
+
+  @override
+  String get uiRulePreview => 'Rule match preview';
+
+  @override
+  String get uiUntitledPolicy => 'Untitled passages';
+
+  @override
+  String get uiFillChapterName => 'Fill chapter name';
+
+  @override
+  String get uiMarkBodyFragment => 'Mark as body fragment';
+
+  @override
+  String get uiScanLocalFolder => 'Scan local folder';
+
+  @override
+  String get uiScanFormat => 'Scan formats';
+
+  @override
+  String get uiFormatAll => 'All formats';
+
+  @override
+  String get uiFormatAllShort => 'All';
+
+  @override
+  String get uiScanScope => 'Scan scope';
+
+  @override
+  String get uiScopeSaf => 'Authorized folder';
+
+  @override
+  String get uiScopeFolder => 'Chosen folder';
+
+  @override
+  String get uiScopeAllStorage => 'All files access';
+
+  @override
+  String get uiScopeLastUsed => 'Last used';
+
+  @override
+  String get uiMergeBooks => 'Merge books';
+
+  @override
+  String get uiSearchFiles => 'Search books / files / paths';
+
+  @override
+  String get uiFileName => 'File name';
+
+  @override
+  String get uiFileFormat => 'Format';
+
+  @override
+  String get uiFilePath => 'Path';
+
+  @override
+  String get uiVolumeGroup => 'Merged';
+
+  @override
+  String get uiVolumeCount => 'volumes';
+
+  @override
+  String get uiSelectToImport => 'Select files to import';
+
+  @override
+  String get uiImportSelected => 'Import selected';
+
+  @override
+  String get uiOriginalStructure => 'Keep folder structure';
+
+  @override
+  String get uiStartScan => 'Start scan';
+
+  @override
+  String get uiScanning => 'Scanning…';
+
+  @override
+  String get uiLoadMore => 'Load more';
 }

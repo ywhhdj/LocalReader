@@ -9,14 +9,10 @@ import '../../../core/model/stats/stats_date.dart';
 import '../../../core/common/design_tokens.dart';
 import '../../../core/ui/theme/glass_theme.dart';
 import '../../../core/ui/theme/season_scheme.dart';
-import '../../../core/ui/components/glass.dart';
+import '../../../core/ui/components/glass/Nav.dart';
 import '../../../l10n/lr_localizations.dart';
 
 /// 纪念物册：**完整视图**，一次列出全部命中的纪念物，而不是统计页卡片里的一枚。
-///
-/// 与摘录管理页同一套纪律：列表每次 build 从 `AppState.keepsakes` 重取，
-/// 筛选 / 排序 / 分组 / 计数全部交给 `KeepsakeQuery`；页面不缓存、不自己写 `where`。
-/// 类型筛选是页面局部 state，不写回 `AppSettings`，重启不持久化。
 class KeepsakeLibraryPage extends StatefulWidget {
   const KeepsakeLibraryPage({
     super.key,
@@ -83,8 +79,11 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
     final AppState state = AppScope.of(context);
     final TextTheme text = Theme.of(context).textTheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final SeasonPalette palette = Theme.of(context).extension<LrSeasonTheme>()?.palette ??
-        SeasonSchemes.resolve(state.season.value, isDark ? Brightness.dark : Brightness.light);
+    final SeasonPalette palette = Theme.of(context)
+            .extension<LrSeasonTheme>()
+            ?.palette ??
+        SeasonSchemes.resolve(
+            state.season.value, isDark ? Brightness.dark : Brightness.light);
 
     // 唯一数据源：不缓存，阅读器新增摘录后本页同一次 build 即可见。
     final List<Keepsake> all = state.keepsakes;
@@ -100,7 +99,8 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
     final String? effectiveMonth = filter.monthKey;
 
     // 分面计数：只去掉类型条件，月份与关键词仍生效。
-    final List<KeepsakeKindOption> kinds = KeepsakeQuery.kindOptions(all, filter: filter);
+    final List<KeepsakeKindOption> kinds =
+        KeepsakeQuery.kindOptions(all, filter: filter);
     final KeepsakeSummary summary = KeepsakeQuery.summarize(all);
     final List<Keepsake> results = KeepsakeQuery.apply(
       keepsakes: all,
@@ -110,9 +110,8 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
     final Map<String, List<Keepsake>> groups =
         KeepsakeQuery.group(results, by: _group);
 
-    final int kindTotalCount = filter.kind == null
-        ? 0
-        : KeepsakeQuery.countForKind(all, filter.kind!);
+    final int kindTotalCount =
+        filter.kind == null ? 0 : KeepsakeQuery.countForKind(all, filter.kind!);
     final int dayTotalCount = filter.dateKey == null
         ? 0
         : KeepsakeQuery.countForDay(all, filter.dateKey!);
@@ -154,20 +153,28 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: isDark
-                ? <Color>[palette.seed, Color.lerp(palette.seed, Colors.black, 0.35)!]
-                : <Color>[palette.seed, Color.lerp(palette.seed, Colors.white, 0.5)!],
+                ? <Color>[
+                    palette.seed,
+                    Color.lerp(palette.seed, Colors.black, 0.35)!
+                  ]
+                : <Color>[
+                    palette.seed,
+                    Color.lerp(palette.seed, Colors.white, 0.5)!
+                  ],
           ),
         ),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.s, LrSpacing.l, LrSpacing.xxl),
+          padding: const EdgeInsets.fromLTRB(
+              LrSpacing.l, LrSpacing.xs, LrSpacing.l, LrSpacing.xxl),
           children: <Widget>[
             GlassPanel(
               borderRadius: LrRadius.pill,
-              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.m, vertical: LrSpacing.xs),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: LrSpacing.m, vertical: LrSpacing.xs),
               child: Row(
                 children: <Widget>[
                   Icon(Icons.search, size: 19, color: text.bodySmall?.color),
-                  const SizedBox(width: LrSpacing.s),
+                  const SizedBox(width: LrSpacing.xs),
                   Expanded(
                     child: TextField(
                       controller: _controller,
@@ -191,29 +198,33 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
                 ],
               ),
             ),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s),
-              child: Text(context.t('keepsakeFilterHint'), style: text.labelSmall),
+              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.xs),
+              child:
+                  Text(context.t('keepsakeFilterHint'), style: text.labelSmall),
             ),
             const SizedBox(height: LrSpacing.m),
 
             Text(context.t('uiType'), style: text.labelSmall),
             const SizedBox(height: LrSpacing.xs),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               runSpacing: LrSpacing.xs,
               children: <Widget>[
                 ChoiceChip(
-                  label: Text(context.t('keepsakeAllKinds'), style: text.labelLarge),
+                  label: Text(context.t('keepsakeAllKinds'),
+                      style: text.labelLarge),
                   selected: filter.kind == null,
                   onSelected: (bool _) => _setKind(null),
                 ),
                 for (final KeepsakeKindOption o in kinds)
                   ChoiceChip(
-                    label: Text('${o.label} · ${o.count}', style: text.labelLarge),
+                    label:
+                        Text('${o.label} · ${o.count}', style: text.labelLarge),
                     selected: filter.kind == o.kind,
-                    onSelected: o.count == 0 ? null : (bool _) => _setKind(o.kind),
+                    onSelected:
+                        o.count == 0 ? null : (bool _) => _setKind(o.kind),
                   ),
               ],
             ),
@@ -222,11 +233,12 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
             Text(context.t('uiMonth'), style: text.labelSmall),
             const SizedBox(height: LrSpacing.xs),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               runSpacing: LrSpacing.xs,
               children: <Widget>[
                 ChoiceChip(
-                  label: Text(context.t('calendarAllMonths'), style: text.labelLarge),
+                  label: Text(context.t('calendarAllMonths'),
+                      style: text.labelLarge),
                   selected: effectiveMonth == null,
                   onSelected: (bool _) => _setMonth(null),
                 ),
@@ -245,7 +257,7 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
             Text(context.t('keepsakeDateRangeTitle'), style: text.labelSmall),
             const SizedBox(height: LrSpacing.xs),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               runSpacing: LrSpacing.xs,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: <Widget>[
@@ -257,8 +269,7 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
                 ActionChip(
                   label: Text(context.t('keepsakeDateRangeThisMonth'),
                       style: text.labelLarge),
-                  onPressed: () =>
-                      _setRange(thisMonth.from, thisMonth.to),
+                  onPressed: () => _setRange(thisMonth.from, thisMonth.to),
                 ),
                 if (last7From != null)
                   ActionChip(
@@ -308,9 +319,9 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
                 child: Text(_rangeError!, style: text.labelSmall),
               ),
             if (filter.isRangeScoped) ...<Widget>[
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               Wrap(
-                spacing: LrSpacing.s,
+                spacing: LrSpacing.xs,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: <Widget>[
                   InputChip(
@@ -331,9 +342,9 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
             // 第二十轮：按天深链的可见 chip。清除后回到整月，
             // 不把 dateKey 变成看不见的「幽灵筛选条件」。
             if (filter.dateKey != null) ...<Widget>[
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               Wrap(
-                spacing: LrSpacing.s,
+                spacing: LrSpacing.xs,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: <Widget>[
                   InputChip(
@@ -341,13 +352,14 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
                     onDeleted: () => _setDate(null),
                     deleteIcon: const Icon(Icons.close, size: 16),
                   ),
-                  Text(context.t('keepsakeDayFilterNote'), style: text.labelSmall),
+                  Text(context.t('keepsakeDayFilterNote'),
+                      style: text.labelSmall),
                 ],
               ),
             ],
             // 纪念物册 → 日历：当前月份若合法，可一键回到整月日历。
             if (widget.onOpenCalendarMonth != null) ...<Widget>[
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton.icon(
@@ -371,25 +383,27 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
             Text(context.t('uiSort'), style: text.labelSmall),
             const SizedBox(height: LrSpacing.xs),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               children: <Widget>[
                 for (final KeepsakeSort s in KeepsakeSort.values)
                   ChoiceChip(
-                    label: Text(KeepsakeQuery.sortLabels[s]!, style: text.labelLarge),
+                    label: Text(KeepsakeQuery.sortLabels[s]!,
+                        style: text.labelLarge),
                     selected: _sort == s,
                     onSelected: (bool _) => setState(() => _sort = s),
                   ),
               ],
             ),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
             Text(context.t('uiGroup'), style: text.labelSmall),
             const SizedBox(height: LrSpacing.xs),
             Wrap(
-              spacing: LrSpacing.s,
+              spacing: LrSpacing.xs,
               children: <Widget>[
                 for (final KeepsakeGroup g in KeepsakeGroup.values)
                   ChoiceChip(
-                    label: Text(KeepsakeQuery.groupLabels[g]!, style: text.labelLarge),
+                    label: Text(KeepsakeQuery.groupLabels[g]!,
+                        style: text.labelLarge),
                     selected: _group == g,
                     onSelected: (bool _) => setState(() => _group = g),
                   ),
@@ -398,25 +412,27 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
             const SizedBox(height: LrSpacing.m),
 
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s),
+              padding: const EdgeInsets.symmetric(horizontal: LrSpacing.xs),
               child: Text(
-                context.tArgs('uiTotalKeepsakesItems', <Object?>[summary.total, summary.monthCount]) +
-                context.tArgs('uiKeepsakesKeepsakes', <Object?>[summary.userExcerptCount, results.length]),
+                context.tArgs('uiTotalKeepsakesItems',
+                        <Object?>[summary.total, summary.monthCount]) +
+                    context.tArgs('uiKeepsakesKeepsakes',
+                        <Object?>[summary.userExcerptCount, results.length]),
                 style: text.labelSmall,
               ),
             ),
-            const SizedBox(height: LrSpacing.s),
+            const SizedBox(height: LrSpacing.xs),
 
             if (empty != KeepsakeEmptyKind.none)
               _EmptyState(kind: empty, filter: filter, onReset: _resetFilter)
             else
               ...groups.entries.map<Widget>(
                 (MapEntry<String, List<Keepsake>> e) => _Section(
-                      title: e.key,
-                      items: e.value,
-                      palette: palette,
-                      onOpenCalendarDay: widget.onOpenCalendarMonth,
-                    ),
+                  title: e.key,
+                  items: e.value,
+                  palette: palette,
+                  onOpenCalendarDay: widget.onOpenCalendarMonth,
+                ),
               ),
 
             const SizedBox(height: LrSpacing.l),
@@ -424,10 +440,12 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(context.t('keepsakeFilterStaticNote'), style: text.bodySmall),
-                  const SizedBox(height: LrSpacing.s),
-                  Text(context.t('keepsakeWidgetKindNote'), style: text.bodySmall),
-                  const SizedBox(height: LrSpacing.s),
+                  Text(context.t('keepsakeFilterStaticNote'),
+                      style: text.bodySmall),
+                  const SizedBox(height: LrSpacing.xs),
+                  Text(context.t('keepsakeWidgetKindNote'),
+                      style: text.bodySmall),
+                  const SizedBox(height: LrSpacing.xs),
                   Text(context.t('demoDataNote'), style: text.labelSmall),
                 ],
               ),
@@ -457,8 +475,7 @@ class _KeepsakeLibraryPageState extends State<KeepsakeLibraryPage> {
   void _setDate(String? dateKey) => setState(
         () => _filter = dateKey == null
             ? _activeFilter.copyWith(clearDate: true, clearRange: true)
-            : _activeFilter.copyWith(
-                dateKey: dateKey, clearRange: true),
+            : _activeFilter.copyWith(dateKey: dateKey, clearRange: true),
       );
 
   /// 第二十一轮：设置范围时清掉单日 / 月份，避免归一化把它们悄悄改回去，
@@ -532,13 +549,15 @@ class _Section extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: LrSpacing.s),
-            child: Text(context.tArgs('uiKeepsakes3', <Object?>[title, items.length]), style: text.titleSmall),
+            padding: const EdgeInsets.symmetric(horizontal: LrSpacing.xs),
+            child: Text(
+                context.tArgs('uiKeepsakes3', <Object?>[title, items.length]),
+                style: text.titleSmall),
           ),
           const SizedBox(height: LrSpacing.xs),
           for (final Keepsake k in items)
             Padding(
-              padding: const EdgeInsets.only(bottom: LrSpacing.s),
+              padding: const EdgeInsets.only(bottom: LrSpacing.xs),
               child: _KeepsakeTile(
                 keepsake: k,
                 palette: palette,
@@ -573,7 +592,7 @@ class _KeepsakeTile extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: palette.accent.withOpacity(0.16),
+              color: palette.accent.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(LrRadius.card),
             ),
             child: Icon(KeepsakeKindLabels.icons[keepsake.kind],
@@ -587,10 +606,10 @@ class _KeepsakeTile extends StatelessWidget {
                 Row(
                   children: <Widget>[
                     Text(keepsake.kindLabel, style: text.labelLarge),
-                    const SizedBox(width: LrSpacing.s),
+                    const SizedBox(width: LrSpacing.xs),
                     Text(dateLabelOf(keepsake.date), style: text.labelSmall),
                     if (keepsake.fromUserExcerpt) ...<Widget>[
-                      const SizedBox(width: LrSpacing.s),
+                      const SizedBox(width: LrSpacing.xs),
                       Text(context.t('uiYours2'), style: text.labelSmall),
                     ],
                   ],
@@ -670,7 +689,8 @@ class _EmptyState extends StatelessWidget {
                     ? context.t('keepsakeRangeEmptyBody')
                     : context.t('keepsakeNoResultBody'))));
     return GlassPanel(
-      padding: const EdgeInsets.fromLTRB(LrSpacing.l, LrSpacing.xl, LrSpacing.l, LrSpacing.xl),
+      padding: const EdgeInsets.fromLTRB(
+          LrSpacing.l, LrSpacing.xl, LrSpacing.l, LrSpacing.xl),
       child: Column(
         children: <Widget>[
           Icon(
@@ -678,11 +698,11 @@ class _EmptyState extends StatelessWidget {
                 ? Icons.auto_awesome_outlined
                 : Icons.filter_alt_off_outlined,
             size: 40,
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
           ),
           const SizedBox(height: LrSpacing.m),
           Text(title, style: text.headlineMedium, textAlign: TextAlign.center),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           Text(body, style: text.bodySmall, textAlign: TextAlign.center),
           if (!noKeepsakes && !filter.isEmpty) ...<Widget>[
             const SizedBox(height: LrSpacing.l),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../domain/repositories/book_repository.dart';
-import '../../../l10n/lr_localizations.dart';
-import '../../common/design_tokens.dart';
-import 'glass.dart';
+import '../../domain/repositories/book_repository.dart';
+import '../../l10n/lr_localizations.dart';
+import '../../core/common/design_tokens.dart';
+import '../../core/ui/components/glass/Nav.dart';
 
 /// 第三十轮：详情页拆成一组可复用组件，页面只做拼装。
 /// 参考图的结构是「圆角返回 / 居中标题 / 右上来源动作 → 封面 + 书名 +
@@ -52,7 +52,8 @@ class DetailTopBar extends StatelessWidget implements PreferredSizeWidget {
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                 PopupMenuItem<String>(
-                    value: 'delete', child: Text(context.t('detailDeleteBook'))),
+                    value: 'delete',
+                    child: Text(context.t('detailDeleteBook'))),
                 PopupMenuItem<String>(
                     value: 'reset',
                     child: Text(context.t('detailResetProgress'))),
@@ -93,9 +94,9 @@ class DetailCoverInfo extends StatelessWidget {
               Text(book.title,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: text.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w700, height: 1.25)),
-              const SizedBox(height: LrSpacing.s),
+                  style: text.headlineMedium
+                      ?.copyWith(fontWeight: FontWeight.w700, height: 1.25)),
+              const SizedBox(height: LrSpacing.xs),
               InkWell(
                 onTap: onAuthorTap,
                 child: Row(
@@ -107,7 +108,8 @@ class DetailCoverInfo extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: LrSpacing.m),
-              Text('${context.t('detailStatusOngoing')}  ·  ${context.t('detailCached')}',
+              Text(
+                  '${context.t('detailStatusOngoing')}  ·  ${context.t('detailCached')}',
                   style: text.bodyMedium),
               const SizedBox(height: LrSpacing.xs),
               Text('${context.t('detailUpdatedOn')} 2026-11-07',
@@ -115,12 +117,15 @@ class DetailCoverInfo extends StatelessWidget {
               const SizedBox(height: LrSpacing.m),
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: LrSpacing.s, vertical: LrSpacing.xs),
+                    horizontal: LrSpacing.xs, vertical: LrSpacing.xs),
                 color: const Color(0xFF17181C),
-                child: Text(isCloud ? 'WK-01973' : 'LB-${book.id.hashCode.abs() % 10000}',
+                child: Text(
+                    isCloud
+                        ? 'WK-01973'
+                        : 'LB-${book.id.hashCode.abs() % 10000}',
                     style: text.labelMedium?.copyWith(color: Colors.white)),
               ),
-              const SizedBox(height: LrSpacing.s),
+              const SizedBox(height: LrSpacing.xs),
               InkWell(
                 onTap: onRetryCache,
                 child: Text(context.t('detailCacheFailed'),
@@ -148,7 +153,7 @@ class _DetailCover extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
           boxShadow: <BoxShadow>[
             BoxShadow(
-                color: Colors.black.withOpacity(0.22),
+                color: Colors.black.withValues(alpha: 0.22),
                 blurRadius: 14,
                 offset: const Offset(4, 6)),
           ],
@@ -161,7 +166,7 @@ class _DetailCover extends StatelessWidget {
             ],
           ),
         ),
-        padding: const EdgeInsets.all(LrSpacing.s),
+        padding: const EdgeInsets.all(LrSpacing.xs),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.end,
@@ -178,7 +183,7 @@ class _DetailCover extends StatelessWidget {
                 style: Theme.of(context)
                     .textTheme
                     .labelSmall
-                    ?.copyWith(color: Colors.white.withOpacity(0.85))),
+                    ?.copyWith(color: Colors.white.withValues(alpha: 0.85))),
           ],
         ),
       );
@@ -192,17 +197,20 @@ class DetailTagRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Wrap(
-        spacing: LrSpacing.s,
-        runSpacing: LrSpacing.s,
+        spacing: LrSpacing.xs,
+        runSpacing: LrSpacing.xs,
         children: <Widget>[
           for (final String tag in tags)
             Container(
               padding: const EdgeInsets.symmetric(
-                  horizontal: LrSpacing.m, vertical: LrSpacing.s),
+                  horizontal: LrSpacing.m, vertical: LrSpacing.xs),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(LrRadius.card / 2),
                 border: Border.all(
-                    color: Theme.of(context).colorScheme.outline.withOpacity(0.45)),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outline
+                        .withValues(alpha: 0.45)),
               ),
               child: Text(tag, style: Theme.of(context).textTheme.bodyMedium),
             ),
@@ -241,10 +249,10 @@ class DetailProgressCard extends StatelessWidget {
               value: progress.clamp(0.0, 1.0),
               minHeight: 5,
               backgroundColor:
-                  Theme.of(context).colorScheme.primary.withOpacity(0.14),
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.14),
             ),
           ),
-          const SizedBox(height: LrSpacing.s),
+          const SizedBox(height: LrSpacing.xs),
           Align(
             alignment: Alignment.centerRight,
             child: Text('${context.t('detailChapterPercent')} $percent%',
@@ -280,12 +288,15 @@ class _DetailSynopsisState extends State<DetailSynopsis> {
         Row(
           children: <Widget>[
             Text(context.t('detailSynopsisIndex'), style: text.labelSmall),
-            const SizedBox(width: LrSpacing.s),
+            const SizedBox(width: LrSpacing.xs),
             Expanded(
                 child: Divider(
                     color: Theme.of(context).colorScheme.outline, height: 1)),
             const SizedBox(width: 2),
-            Container(width: 4, height: 4, color: Theme.of(context).colorScheme.onSurface),
+            Container(
+                width: 4,
+                height: 4,
+                color: Theme.of(context).colorScheme.onSurface),
           ],
         ),
         const SizedBox(height: LrSpacing.m),
@@ -301,10 +312,16 @@ class _DetailSynopsisState extends State<DetailSynopsis> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text(_expanded ? context.t('detailCollapse') : context.t('detailExpandAll'),
+              Text(
+                  _expanded
+                      ? context.t('detailCollapse')
+                      : context.t('detailExpandAll'),
                   style: text.titleMedium),
               const SizedBox(width: LrSpacing.xs),
-              Icon(_expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+              Icon(
+                  _expanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
                   size: 20),
             ],
           ),
@@ -336,7 +353,7 @@ class DetailActionBar extends StatelessWidget {
   Widget build(BuildContext context) => GlassPanel(
         borderRadius: LrRadius.pill,
         padding: const EdgeInsets.symmetric(
-            horizontal: LrSpacing.s, vertical: LrSpacing.s),
+            horizontal: LrSpacing.xs, vertical: LrSpacing.xs),
         child: Row(
           children: <Widget>[
             Expanded(
@@ -351,9 +368,10 @@ class DetailActionBar extends StatelessWidget {
             Expanded(
               child: TextButton.icon(
                 onPressed: onSecondary,
-                icon: Icon(isCloud
-                    ? Icons.comment_outlined
-                    : Icons.dashboard_customize_outlined,
+                icon: Icon(
+                    isCloud
+                        ? Icons.comment_outlined
+                        : Icons.dashboard_customize_outlined,
                     size: 19),
                 label: Text(isCloud
                     ? context.t('detailComments')
@@ -395,7 +413,7 @@ class DetailExcerptEntry extends StatelessWidget {
         children: <Widget>[
           Icon(Icons.format_quote_outlined,
               size: 20, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: LrSpacing.s),
+          const SizedBox(width: LrSpacing.xs),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,8 +444,8 @@ class DetailMetaEditorSheet extends StatefulWidget {
   final BookSummary book;
 
   /// 由页面注入：core/ui 组件不读 AppScope，依赖方向保持向下。
-  final void Function(String title, String author, Color spineColor,
-      int volumeOrder) onSave;
+  final void Function(
+      String title, String author, Color spineColor, int volumeOrder) onSave;
 
   @override
   State<DetailMetaEditorSheet> createState() => _DetailMetaEditorSheetState();
@@ -495,8 +513,9 @@ class _DetailMetaEditorSheetState extends State<DetailMetaEditorSheet> {
               ],
               onChanged: (int? v) => setState(() => _volume = v ?? 0),
             ),
-            const SizedBox(height: LrSpacing.s),
-            Text(context.t('uiStaticDemoSaveSampleData'), style: text.bodySmall),
+            const SizedBox(height: LrSpacing.xs),
+            Text(context.t('uiStaticDemoSaveSampleData'),
+                style: text.bodySmall),
             const SizedBox(height: LrSpacing.m),
             Row(
               children: <Widget>[
@@ -504,14 +523,15 @@ class _DetailMetaEditorSheetState extends State<DetailMetaEditorSheet> {
                     child: TextButton(
                         onPressed: () => Navigator.pop(context),
                         child: Text(context.t('uiCancel')))),
-                const SizedBox(width: LrSpacing.s),
+                const SizedBox(width: LrSpacing.xs),
                 Expanded(
                   flex: 2,
                   child: FilledButton(
                     onPressed: () {
                       final String title = _title.text.trim();
                       if (title.isEmpty) return;
-                      widget.onSave(title, _author.text.trim(), _color, _volume);
+                      widget.onSave(
+                          title, _author.text.trim(), _color, _volume);
                       Navigator.pop(context);
                     },
                     child: Text(context.t('uiSave')),
