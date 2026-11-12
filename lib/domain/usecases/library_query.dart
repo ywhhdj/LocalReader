@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import '../repositories/book_repository.dart';
 
 /// 书库排序口径。卷序优先：已分卷的书排在「未分卷」之前，同卷内按书名自然排序。
-enum LibrarySort { volume, title, progress }
+/// `recent`：最近观看过的书排前面（按最后打开时间倒序），没看过的回退卷序，
+/// 它是 AppState.library 的默认口径，书架 / 搜索 / 收藏因此永远同一份顺序。
+enum LibrarySort { recent, volume, title, progress }
 
 /// 空状态分类：让「书库为空」与「没有匹配的书」给出不同引导，
 /// 而不是一律显示「暂无数据」。对齐原项目「无权限时导入对话框明确提示当前状态」。
@@ -16,6 +18,7 @@ class LibraryQuery {
   const LibraryQuery._();
 
   static const Map<LibrarySort, String> sortLabels = <LibrarySort, String>{
+    LibrarySort.recent: '最近观看',
     LibrarySort.volume: '按卷序',
     LibrarySort.title: '按书名',
     LibrarySort.progress: '按进度',
@@ -125,6 +128,7 @@ class LibraryQuery {
     LibrarySort sort = LibrarySort.volume,
     bool favoritesOnly = false,
     Set<String> favoriteIds = const <String>{},
+    Map<String, DateTime>? lastReadAt,
   }) {
     final List<BookSummary> filtered = <BookSummary>[
       for (final BookSummary b in books)
@@ -132,12 +136,32 @@ class LibraryQuery {
             (!favoritesOnly || favoriteIds.contains(b.id)) &&
             matches(b, query)) b,
     ];
-    filtered.sort((BookSummary a, BookSummary b) => _compare(a, b, sort));
+    filtered.sort(
+        (BookSummary a, BookSummary b) => _compare(a, b, sort, lastReadAt));
     return List<BookSummary>.unmodifiable(filtered);
   }
 
-  static int _compare(BookSummary a, BookSummary b, LibrarySort sort) {
+  static int _compare(
+    BookSummary a,
+    BookSummary b,
+    LibrarySort sort,
+    Map<String, DateTime>? lastReadAt,
+  ) {
     switch (sort) {
+      case LibrarySort.recent:
+        // 最近观看优先：两侧都有记录按时间倒序；只有一侧有记录则该侧在前。
+        // 都没记录时回退卷序，因此「没点开过任何书」时结果与旧版完全一致。
+        final DateTime? ta = lastReadAt?[a.id];
+        final DateTime? tb = lastReadAt?[b.id];
+        if (ta != null && tb != null) {
+          final int byTime = tb.compareTo(ta);
+          if (byTime != 0) return byTime;
+        } else if (ta != null) {
+          return -1;
+        } else if (tb != null) {
+          return 1;
+        }
+        return _compare(a, b, LibrarySort.volume, lastReadAt);
       case LibrarySort.volume:
         // 0 = 未分卷，排最后；同卷按书名自然排序，最后用 id 保证稳定。
         final int av = a.volumeOrder == 0 ? 1 << 30 : a.volumeOrder;

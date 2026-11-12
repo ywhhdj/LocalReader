@@ -3,15 +3,6 @@ import 'package:flutter/material.dart';
 import '../../common/design_tokens.dart';
 
 /// 五种季节手账的**明暗对照表**。
-///
-/// 参考仓库声明「five visual styles including seasonal journals」，
-/// 且「small / medium / large sizes support light and dark mode」。
-/// 之前只有一套浅色 SeasonPalette，深色模式靠 ColorScheme.fromSeed 反推，
-/// 结果是「切到冬寂 + 系统深色」和「切到春樱 + 系统深色」几乎长得一样——
-/// 五种视觉样式在深色下丢失了辨识度。
-///
-/// 现在每种季节都有独立的 dark 变体：深底、提亮的 accent、压暗的木纹与玻璃 tint。
-/// 组件结构完全不变，只换色板（延续第四轮钉死的决策）。
 @immutable
 class SeasonScheme {
   const SeasonScheme({required this.light, required this.dark});

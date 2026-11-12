@@ -10,6 +10,8 @@ import '../feature/profile/pages/feature_matrix_page.dart';
 import '../feature/profile/pages/mine_section_page.dart';
 import '../feature/profile/stats/stats_page.dart';
 import 'app_navigation.dart';
+import 'app_scope.dart';
+import 'import_route_hosts.dart';
 import '../feature/profile/stats/keepsake_library_page.dart';
 import '../feature/profile/stats/calendar_month_page.dart';
 import '../feature/shelf/import_flow_page.dart';
@@ -101,9 +103,7 @@ class AppRoutes {
         if (settings.arguments is ImportSettingsArgs || settings.arguments == null) {
           return MaterialPageRoute<void>(
             settings: settings,
-            builder: (BuildContext ctx) => ImportSettingsPage(
-              state: const ImportSettingsPageState(),
-              onChanged: (_) {},
+            builder: (BuildContext ctx) => ImportSettingsHost(
               onBack: () => Navigator.of(ctx).pop(),
             ),
           );
@@ -114,9 +114,7 @@ class AppRoutes {
         if (settings.arguments is ScanFolderArgs || settings.arguments == null) {
           return MaterialPageRoute<void>(
             settings: settings,
-            builder: (BuildContext ctx) => ScanFolderPage(
-              state: const ScanFolderPageState(),
-              onSpecChanged: (_) {},
+            builder: (BuildContext ctx) => ScanFolderHost(
               onScan: () => Navigator.of(ctx).pushNamed<void>(
                 AppRoutes.mergeBooks,
                 arguments: const MergeBooksArgs(batchId: 'pending'),
@@ -131,13 +129,7 @@ class AppRoutes {
         if (settings.arguments is MergeBooksArgs || settings.arguments == null) {
           return MaterialPageRoute<void>(
             settings: settings,
-            builder: (BuildContext ctx) => MergeBooksPage(
-              state: const MergePageState(),
-              onQuery: (_) {},
-              onFormat: (_) {},
-              onToggle: (_) {},
-              onLoadMore: () {},
-              onImportSelected: () {},
+            builder: (BuildContext ctx) => MergeBooksHost(
               onBack: () => Navigator.of(ctx).pop(),
             ),
           );
@@ -149,27 +141,31 @@ class AppRoutes {
         if (args is DetailArgs) {
           return MaterialPageRoute<void>(
             settings: settings,
-            builder: (BuildContext context) => BookDetailPage(
-              book: args.book,
-              onOpenReader: (BookSummary b, int chapter) {
-                Navigator.of(context).pushNamed<void>(
-                  reader,
-                  arguments: ReaderArgs(book: b, chapterIndex: chapter),
-                );
-              },
-              onOpenToc: (BookSummary b, int current) =>
-                  Navigator.of(context).pushNamed<int>(
-                toc,
-                arguments: TocArgs(book: b, currentChapter: current),
-              ),
-              // 详情 → 摘录：与收藏 / 统计入口复用同一条 /excerpts 路由与强类型参数。
-              onOpenBookExcerpts: (String bookId) {
-                Navigator.of(context).pushNamed<void>(
-                  excerpts,
-                  arguments: ExcerptLibraryArgs.forBook(bookId),
-                );
-              },
-            ),
+            builder: (BuildContext context) {
+              // 无论从书架 / 搜索 / 收藏 / 文库哪一入口进来，都登记最近观看。
+              AppScope.of(context).markAsRead(args.book.id);
+              return BookDetailPage(
+                book: args.book,
+                onOpenReader: (BookSummary b, int chapter) {
+                  Navigator.of(context).pushNamed<void>(
+                    reader,
+                    arguments: ReaderArgs(book: b, chapterIndex: chapter),
+                  );
+                },
+                onOpenToc: (BookSummary b, int current) =>
+                    Navigator.of(context).pushNamed<int>(
+                  toc,
+                  arguments: TocArgs(book: b, currentChapter: current),
+                ),
+                // 详情 → 摘录：与收藏 / 统计入口复用同一条 /excerpts 路由。
+                onOpenBookExcerpts: (String bookId) {
+                  Navigator.of(context).pushNamed<void>(
+                    excerpts,
+                    arguments: ExcerptLibraryArgs.forBook(bookId),
+                  );
+                },
+              );
+            },
           );
         }
         return _fallback(settings, '打开详情页需要 DetailArgs 参数');
@@ -190,15 +186,18 @@ class AppRoutes {
         if (args is ReaderArgs) {
           return MaterialPageRoute<void>(
             settings: settings,
-            builder: (BuildContext context) => ReaderPage(
-              book: args.book,
-              chapterIndex: args.chapterIndex,
-              onOpenToc: (BookSummary b, int current) =>
-                  Navigator.of(context).pushNamed<int>(
-                toc,
-                arguments: TocArgs(book: b, currentChapter: current),
-              ),
-            ),
+            builder: (BuildContext context) {
+              AppScope.of(context).markAsRead(args.book.id);
+              return ReaderPage(
+                book: args.book,
+                chapterIndex: args.chapterIndex,
+                onOpenToc: (BookSummary b, int current) =>
+                    Navigator.of(context).pushNamed<int>(
+                  toc,
+                  arguments: TocArgs(book: b, currentChapter: current),
+                ),
+              );
+            },
           );
         }
         return _fallback(settings, '打开阅读器需要 ReaderArgs 参数');

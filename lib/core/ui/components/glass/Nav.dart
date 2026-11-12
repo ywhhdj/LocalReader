@@ -35,6 +35,7 @@ class GlassPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme scheme = Theme.of(context).colorScheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final SeasonPalette season =
         Theme.of(context).extension<LrSeasonTheme>()?.palette ??
@@ -43,8 +44,8 @@ class GlassPanel extends StatelessWidget {
     final List<Color> gradientColors = tint ??
         (isDark
             ? <Color>[
-                Colors.white.withValues(alpha: 0.10),
-                Colors.white.withValues(alpha: 0.04)
+                scheme.onSurface.withValues(alpha: 0.10),
+                scheme.onSurface.withValues(alpha: 0.04)
               ]
             : season.glassTint);
     final Widget panel = Container(

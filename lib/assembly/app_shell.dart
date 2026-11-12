@@ -26,13 +26,13 @@ class _AppShellState extends State<AppShell> {
             activeIcon: Icons.explore,
             label: lrText('uiWenkuLibrary')),
         GlassNavItem(
-            icon: Icons.auto_stories_outlined,
-            activeIcon: Icons.auto_stories,
-            label: lrText('uiShelf')),
-        GlassNavItem(
             icon: Icons.favorite_border,
             activeIcon: Icons.favorite,
             label: lrText('uiFavorites')),
+        GlassNavItem(
+            icon: Icons.auto_stories_outlined,
+            activeIcon: Icons.auto_stories,
+            label: lrText('uiShelf')),
         GlassNavItem(
             icon: Icons.person_outline,
             activeIcon: Icons.person,
@@ -61,13 +61,28 @@ class _AppShellState extends State<AppShell> {
       ),
     ];
 
-    return Scaffold(
-      extendBody: true,
-      body: IndexedStack(index: _index, children: pages),
-      bottomNavigationBar: GlassNavBar(
-        items: _items,
-        currentIndex: _index,
-        onTap: (int i) => setState(() => _index = i),
+    final ColorScheme scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: <Color>[
+            scheme.surface,
+            scheme.surfaceVariant.withValues(alpha: 0.55),
+          ],
+        ),
+      ),
+      child: Scaffold(
+        // 底层渐变由 AppShell 提供；这里保持透明，四个 tab 共用同一张背景。
+        backgroundColor: Colors.transparent,
+        extendBody: true,
+        body: IndexedStack(index: _index, children: pages),
+        bottomNavigationBar: GlassNavBar(
+          items: _items,
+          currentIndex: _index,
+          onTap: (int i) => setState(() => _index = i),
+        ),
       ),
     );
   }

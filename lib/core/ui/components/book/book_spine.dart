@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../common/design_tokens.dart';
 
 /// 立体书架上的单本书：透视倾角 + 书脊渐变高光 + 书页侧边 + 层板投影 + 阅读进度。
-/// 参考仓库的「three-dimensional bookshelf」，这里用纯 Flutter Transform 重实现。
 class BookSpine extends StatelessWidget {
   const BookSpine({
     super.key,
@@ -28,10 +27,13 @@ class BookSpine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color ink = isDark
-        ? Colors.white.withValues(alpha: 0.92)
-        : Colors.white.withValues(alpha: 0.96);
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme scheme = theme.colorScheme;
+    final bool isDark = theme.brightness == Brightness.dark;
+    final Color ink = scheme.onSurface;
+    final Color spineBase = isDark
+        ? spineColor
+        : Color.lerp(spineColor, scheme.surface, 0.55)!;
 
     return GestureDetector(
       onTap: onTap,
@@ -69,9 +71,9 @@ class BookSpine extends StatelessWidget {
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                       colors: <Color>[
-                        spineColor.withValues(alpha: 0.72),
-                        spineColor,
-                        Color.lerp(spineColor, Colors.black, 0.28)!,
+                        spineBase.withValues(alpha: 0.72),
+                        spineBase,
+                        Color.lerp(spineBase, Colors.black, 0.28)!,
                       ],
                       stops: const <double>[0, 0.28, 1],
                     ),
@@ -112,7 +114,7 @@ class BookSpine extends StatelessWidget {
                       // 烫金细线
                       Container(
                           height: 1,
-                          color: Colors.white.withValues(alpha: 0.45)),
+                          color: ink.withValues(alpha: 0.45)),
                       const SizedBox(height: 6),
                       Text(
                         author,
@@ -128,10 +130,9 @@ class BookSpine extends StatelessWidget {
                           child: LinearProgressIndicator(
                             value: progress.clamp(0.0, 1.0),
                             minHeight: 2.5,
-                            backgroundColor:
-                                Colors.white.withValues(alpha: 0.22),
+                            backgroundColor: ink.withValues(alpha: 0.22),
                             valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white.withValues(alpha: 0.9)),
+                                ink.withValues(alpha: 0.9)),
                           ),
                         ),
                       ],

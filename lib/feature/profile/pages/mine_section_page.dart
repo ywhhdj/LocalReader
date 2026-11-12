@@ -51,13 +51,19 @@ class MineSectionPage extends StatelessWidget {
 
   Widget _body(BuildContext context) {
     if (args.section == MineSection.stats) {
-      return statsBuilder?.call(context) ?? const SizedBox.shrink();
+      return statsBuilder?.call(context) ?? _fallback(context);
     }
     if (args.section == MineSection.bookmarks) return const BookmarksPage();
     if (args.section == MineSection.settings) {
-      return settingsBuilder?.call(context) ?? const SizedBox.shrink();
+      return settingsBuilder?.call(context) ?? _fallback(context);
     }
     if (args.section == MineSection.about) return const AboutPage();
     return const SupportPage();
   }
+
+  /// 路由没注入 builder 时也不留白屏：给一句明确提示，文字仍随主题变化。
+  Widget _fallback(BuildContext context) => Center(
+        child: Text('页面内容暂不可用',
+            style: Theme.of(context).textTheme.bodyMedium),
+      );
 }

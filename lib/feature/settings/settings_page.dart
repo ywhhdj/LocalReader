@@ -6,6 +6,7 @@ import '../../assembly/app_services.dart';
 import '../../domain/usecases/import_session.dart';
 import '../../domain/usecases/favorite_routes.dart';
 import '../../core/model/profile_summary.dart';
+import '../../core/model/app_settings.dart' show AppThemeMode;
 import '../../assembly/app_scope.dart';
 import '../../core/model/performance_prefs.dart';
 import '../../core/model/wenku/wenku8_registry.dart';
@@ -100,6 +101,30 @@ class SettingsPage extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('主题明暗（浅色 / 暗色）',
+                      style: Theme.of(context).textTheme.labelLarge),
+                ),
+                const SizedBox(height: LrSpacing.xs),
+                _SegmentRow<AppThemeMode>(
+                  values: AppThemeMode.values,
+                  selected: state.settings.themeMode,
+                  labelOf: (AppThemeMode m) {
+                    switch (m) {
+                      case AppThemeMode.system:
+                        return '跟随系统';
+                      case AppThemeMode.light:
+                        return '浅色';
+                      case AppThemeMode.dark:
+                        return '深色';
+                    }
+                  },
+                  onSelected: (AppThemeMode m) => state.updateSettings(
+                    state.settings.copyWith(themeMode: m),
+                  ),
+                ),
+                const SizedBox(height: LrSpacing.m),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.text_format_outlined),

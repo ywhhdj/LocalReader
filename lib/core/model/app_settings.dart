@@ -6,6 +6,10 @@ import 'comic/comic_toc.dart';
 import 'reader_style.dart';
 import 'performance_prefs.dart';
 
+/// 主题明暗模式。放在 core 纯模型层，MaterialApp 只在装配层把它映射成
+/// Flutter 的 ThemeMode；页面不直接依赖 material 的枚举。
+enum AppThemeMode { system, light, dark }
+
 /// 全应用设置。默认口径对齐 LocalReader 原定位：纯本地、无联网、无广告。
 ///
 /// 关键约束：`pureLocal` 是 **master switch**。为 true 时，无论其它字段怎么设置，
@@ -29,6 +33,7 @@ class AppSettings {
     this.reader = const ReaderStyle(),
     this.performance = const PerformancePrefs(),
     this.appLanguage,
+    this.themeMode = AppThemeMode.system,
   });
 
   final bool pureLocal;
@@ -48,6 +53,10 @@ class AppSettings {
   /// 跟随系统时系统若非中/英，官方 supportedLocales 回退到列表首项 zh-CN。
   final AppLanguage? appLanguage;
 
+  /// 明暗主题（第三十一轮）：默认跟随系统；用户可在设置页强制浅色 / 深色。
+  /// 所有页面文字都取 Theme.textTheme / colorScheme，切换这里即全端生效。
+  final AppThemeMode themeMode;
+
   AppSettings copyWith({
     bool? pureLocal,
     bool? onlineDirectory,
@@ -57,6 +66,7 @@ class AppSettings {
     ReaderStyle? reader,
     PerformancePrefs? performance,
     AppLanguage? appLanguage,
+    AppThemeMode? themeMode,
     bool clearAppLanguage = false,
   }) =>
       AppSettings(
@@ -72,6 +82,7 @@ class AppSettings {
         appLanguage: clearAppLanguage
             ? null
             : (appLanguage ?? this.appLanguage),
+        themeMode: themeMode ?? this.themeMode,
       );
 
   /// 唯一真相：纯本地清零联网项；关闭界面动效时锁死翻页动效；
@@ -118,6 +129,7 @@ class AppSettings {
         'reader': reader.toMap(),
         'performance': performance.toMap(),
         'appLanguage': appLanguage?.name ?? '',
+        'themeMode': themeMode.name,
       };
 
   static AppSettings fromMap(Map<String, Object?> m) {
@@ -140,6 +152,16 @@ class AppSettings {
       return fallback;
     }
 
+    AppThemeMode savedThemeMode() {
+      final Object? v = m['themeMode'];
+      if (v is String) {
+        for (final AppThemeMode mode in AppThemeMode.values) {
+          if (mode.name == v) return mode;
+        }
+      }
+      return AppThemeMode.system;
+    }
+
     final Object? rawPerformance = m['performance'];
     final PerformancePrefs performance = rawPerformance is Map
         ? PerformancePrefs.fromMap(Map<String, Object?>.from(rawPerformance))
@@ -154,6 +176,7 @@ class AppSettings {
       reader: reader,
       performance: performance,
       appLanguage: savedLanguage(null),
+      themeMode: savedThemeMode(),
     ).normalized();
   }
 
@@ -169,12 +192,13 @@ class AppSettings {
       other.tts == tts &&
       other.reader == reader &&
       other.performance == performance &&
-      other.appLanguage == appLanguage;
+      other.appLanguage == appLanguage &&
+      other.themeMode == themeMode;
 
   @override
   int get hashCode => Object.hash(
       pureLocal, onlineDirectory, webdav, motion, tts, reader, performance,
-      appLanguage);
+      appLanguage, themeMode);
 }
 
 /// 持久化抽象。静态交付模式下只有内存实现；

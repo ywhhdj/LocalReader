@@ -191,7 +191,9 @@ class _StepHeader extends StatelessWidget {
                       : Theme.of(context).dividerTheme.color,
                   child: Text('${i + 1}',
                       style: text.labelSmall?.copyWith(
-                        color: i <= session.stepIndex ? Colors.white : null,
+                        color: i <= session.stepIndex
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.onSurface,
                       )),
                 ),
                 const SizedBox(height: LrSpacing.xs),

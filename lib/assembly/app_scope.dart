@@ -6,8 +6,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../core/model/webdav_backup.dart';
+import '../core/model/book_identity.dart';
+import '../core/model/navigation_spec.dart' show BookKind;
 import '../domain/repositories/book_repository.dart';
 import '../domain/usecases/library_query.dart';
+import '../domain/usecases/cloud_book_projection.dart';
 import '../core/model/shelf_prefs.dart';
 import '../domain/usecases/favorite_routes.dart';
 import '../domain/usecases/import_session.dart';
@@ -109,6 +112,19 @@ class AppState extends ChangeNotifier {
   /// 导入向导写入的书籍。演示仓储 `_sample` 是只读 const，
   /// 所以新书只追加到这一层内存列表，不修改演示数据。
   final List<BookSummary> _importedBooks = <BookSummary>[];
+
+  /// 最近观看：打开详情 / 阅读器时写入，书架与搜索的默认排序按它倒序。
+  /// 是「显示时优先将最近观看放前面」的唯一数据源，页面不自己维护影子列表。
+  final Map<String, DateTime> _lastReadAt = <String, DateTime>{};
+
+  /// 从书架移出的演示书（演示仓储只读，用移除集合表达，不假装有数据库删除）。
+  final Set<String> _removedIds = <String>{};
+
+  /// 进度重置等写操作落在覆盖层，演示仓储保持 const 不可变。
+  final Map<String, double> _progressOverrides = <String, double>{};
+
+  /// 云端书籍评论：详情页「评论」入口的真实写入目标。
+  final Map<String, List<String>> _comments = <String, List<String>>{};
 
   List<BookSummary> get importedBooks => List<BookSummary>.unmodifiable(_importedBooks);
   int get importedCount => _importedBooks.length;
@@ -233,18 +249,33 @@ class AppState extends ChangeNotifier {
   /// 书库唯一出口：演示书籍 + 导入书籍，都先套用元数据覆盖层。
   /// 书架 / 搜索 / 统计 / 冲突比对必须走这里，避免「导入完书架还是 11 册」。
   List<BookSummary> _allBooks() => <BookSummary>[
-        for (final BookSummary b in books.cached) effective(b),
-        for (final BookSummary b in _importedBooks) effective(b),
+        for (final BookSummary b in books.cached)
+          if (!_removedIds.contains(b.id)) effective(b),
+        for (final BookSummary b in _importedBooks)
+          if (!_removedIds.contains(b.id)) effective(b),
       ];
 
-  List<BookSummary> get allBooks => List<BookSummary>.unmodifiable(_allBooks());
+  /// 对外统一顺序：最近观看优先，没看过的回退卷序。
+  List<BookSummary> get allBooks => LibraryQuery.apply(
+        books: _allBooks(),
+        sort: LibrarySort.recent,
+        lastReadAt: _lastReadAt,
+      );
 
   /// 按 id 找书：演示仓储 + 导入书籍。收藏列表用它，导入的书也能跳转。
   BookSummary? resolveBook(String id) {
+    if (_removedIds.contains(id)) return null;
     final BookSummary? demo = books.byId(id);
     if (demo != null) return effective(demo);
     for (final BookSummary b in _importedBooks) {
       if (b.id == id) return effective(b);
+    }
+    // 云端详情可能由展示编号 WK-xxx 打开，补一次内部 id 反查。
+    if (BookIdentity.isCloudId(id)) {
+      final String raw = BookIdentity.rawId(id);
+      for (final BookSummary b in _importedBooks) {
+        if (BookIdentity.rawId(b.id) == raw) return effective(b);
+      }
     }
     return null;
   }
@@ -476,12 +507,14 @@ class AppState extends ChangeNotifier {
   /// 页面统一用这个方法取展示数据，保证书架 / 详情 / 目录 / 阅读器看到同一份编辑结果。
   BookSummary effective(BookSummary book) {
     final BookOverride? o = _overrides[book.id];
-    if (o == null) return book;
+    final double? progress = _progressOverrides[book.id];
+    if (o == null && progress == null) return book;
     return book.copyWith(
-      title: o.title,
-      author: o.author,
-      spineColor: o.spineColor,
-      volumeOrder: o.volumeOrder,
+      title: o?.title,
+      author: o?.author,
+      spineColor: o?.spineColor,
+      volumeOrder: o?.volumeOrder,
+      progress: progress,
     );
   }
 
@@ -493,7 +526,7 @@ class AppState extends ChangeNotifier {
   List<BookSummary> library({
     String query = '',
     String? shelf,
-    LibrarySort sort = LibrarySort.volume,
+    LibrarySort sort = LibrarySort.recent,
     bool favoritesOnly = false,
   }) =>
       LibraryQuery.apply(
@@ -503,7 +536,62 @@ class AppState extends ChangeNotifier {
         sort: sort,
         favoritesOnly: favoritesOnly,
         favoriteIds: favoriteIds,
+        lastReadAt: _lastReadAt,
       );
+
+  // ---------------------------------------------------------------- 最近观看 / 书籍操作
+
+  /// 打开详情 / 阅读器时调用：下一次 build 书架就把它排到最前。
+  /// 同一次会话里重复打开同一本只刷新时间，不产生额外条目。
+  void markAsRead(String bookId) {
+    if (bookId.isEmpty || _removedIds.contains(bookId)) return;
+    _lastReadAt[bookId] = DateTime.now();
+    notifyListeners();
+  }
+
+  DateTime? lastReadAt(String bookId) => _lastReadAt[bookId];
+
+  /// 详情页「移出书架」：导入 / 云端书直接删，演示书登记移除集合。
+  /// 同步清掉收藏与最近观看，避免卡片消失后收藏页还留着幽灵入口。
+  bool removeBook(String bookId) {
+    bool changed = false;
+    final int before = _importedBooks.length;
+    _importedBooks.removeWhere((BookSummary b) => b.id == bookId);
+    changed = _importedBooks.length != before;
+    if (!changed) changed = _removedIds.add(bookId);
+    if (!changed) return false;
+    _favorites.removeWhere((FavoriteEntry e) => e.bookId == bookId);
+    _lastReadAt.remove(bookId);
+    _progressOverrides.remove(bookId);
+    _comments.remove(bookId);
+    notifyListeners();
+    return true;
+  }
+
+  /// 详情页「重置进度」：写覆盖层，不修改 const 演示数据。
+  void resetProgress(String bookId) {
+    if (bookId.isEmpty) return;
+    _progressOverrides[bookId] = 0;
+    notifyListeners();
+  }
+
+  /// 详情页「加入书架 / 缓存到本地」：云端书复用既有合规校验，
+  /// 只登记元数据壳，不下载正文；本地书则切换收藏。
+  bool addCloudBookToLibrary(BookSummary book) {
+    if (!BookIdentity.isCloudId(book.id)) return toggleFavorite(book.id);
+    return addWenku8BookToLibrary(cloudBookOf(book));
+  }
+
+  List<String> commentsFor(String bookId) =>
+      List<String>.unmodifiable(_comments[bookId] ?? const <String>[]);
+
+  bool addComment(String bookId, String text) {
+    final String trimmed = text.trim();
+    if (trimmed.isEmpty) return false;
+    _comments.putIfAbsent(bookId, () => <String>[]).add(trimmed);
+    notifyListeners();
+    return true;
+  }
 
   Map<String, int> shelfCounts() => LibraryQuery.shelfCounts(_allBooks());
 
@@ -556,6 +644,8 @@ class AppState extends ChangeNotifier {
   BackupSnapshot _backup = const BackupSnapshot();
   BilingualPrefs _bilingual = const BilingualPrefs();
   StatsViewKind _statsView = StatsViewKind.overview;
+  /// 收藏页「小说 / 漫画」切换是真实状态，不再点完没反应。
+  BookKind _favoritesKind = BookKind.novel;
   StatsPeriod _statsPeriod = const StatsPeriod();
   ReportLayout _reportLayout = ReportLayout.classic;
 
@@ -568,6 +658,7 @@ class AppState extends ChangeNotifier {
   BackupSnapshot get backup => _backup;
   BilingualPrefs get bilingual => _bilingual;
   StatsViewKind get statsView => _statsView;
+  BookKind get favoritesKind => _favoritesKind;
   StatsPeriod get statsPeriod => _statsPeriod;
   ReportLayout get reportLayout => _reportLayout;
 
@@ -633,6 +724,12 @@ class AppState extends ChangeNotifier {
   void updateStatsView(StatsViewKind next) {
     if (next == _statsView) return;
     _statsView = next;
+    notifyListeners();
+  }
+
+  void setFavoritesKind(BookKind next) {
+    if (next == _favoritesKind) return;
+    _favoritesKind = next;
     notifyListeners();
   }
 

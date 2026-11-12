@@ -1,3 +1,4 @@
+import 'package:Local_reader/core/ui/components/menu_entry_card.dart';
 import 'package:flutter/material.dart';
 
 import '../../common/design_tokens.dart';
@@ -23,38 +24,15 @@ class AccountCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextTheme text = Theme.of(context).textTheme;
-    final ColorScheme scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: LrSpacing.l),
       child: GlassPanel(
-        padding: const EdgeInsets.all(LrSpacing.l),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(LrRadius.panel),
-          onTap: onTap,
-          child: Row(
-            children: <Widget>[
-              Icon(Icons.contact_page_outlined, size: 48, color: scheme.onSurface),
-              const SizedBox(width: LrSpacing.m),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(accountLabel, style: text.displaySmall),
-                    const SizedBox(height: LrSpacing.xs),
-                    Text('$pointsLabel  ·  $levelLabel', style: text.bodyMedium),
-                    const SizedBox(height: LrSpacing.xs),
-                    Text(statusLabel, style: text.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant)),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right, size: 22, color: scheme.onSurfaceVariant),
-            ],
-          ),
-        ),
-      ),
+          padding: const EdgeInsets.all(LrSpacing.l),
+          child: MenuEntryCard(
+              icon: Icons.contact_page_outlined,
+              title: accountLabel,
+              onTap: onTap,
+              subtitle: "$pointsLabel  ·  $levelLabel\n$statusLabel")),
     );
   }
 }

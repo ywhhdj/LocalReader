@@ -34,8 +34,6 @@ class LocalReaderApp extends StatefulWidget {
 }
 
 class _LocalReaderAppState extends State<LocalReaderApp> {
-  // 第二十三轮解锁：Wenku8 默认注入真实数据源；纯本地锁定态仍零请求。
-  // 第二十九轮：云端缓存由同一装配层产生，设置页 / 关于页读同一实例。
   late final Wenku8Source _wenku8Source = Wenku8Bootstrap.build();
 
   late final AppState _state = AppState(
@@ -74,6 +72,18 @@ class _LocalReaderAppState extends State<LocalReaderApp> {
     ));
   }
 
+  /// core 模型不依赖 Flutter：明暗枚举在这里唯一一次映射成 ThemeMode。
+  static ThemeMode _resolveThemeMode(AppThemeMode mode) {
+    switch (mode) {
+      case AppThemeMode.system:
+        return ThemeMode.system;
+      case AppThemeMode.light:
+        return ThemeMode.light;
+      case AppThemeMode.dark:
+        return ThemeMode.dark;
+    }
+  }
+
   AppNavigation _navigation(BuildContext context) {
     void openStats() => Navigator.of(context).pushNamed<void>(
           AppRoutes.stats,
@@ -98,6 +108,8 @@ class _LocalReaderAppState extends State<LocalReaderApp> {
 
     return AppNavigation(
       onOpenBook: (BookSummary book) {
+        // 最近观看优先：书架 / 搜索 / 收藏下一次 build 就把它排到最前。
+        _state.markAsRead(book.id);
         Navigator.of(context).pushNamed<void>(
           AppRoutes.detail,
           arguments: DetailArgs(book: book),
@@ -145,6 +157,7 @@ class _LocalReaderAppState extends State<LocalReaderApp> {
       onOpenAbout: openAbout,
       onOpenSupport: openSupport,
       onResume: (BookSummary book, int chapter) {
+        _state.markAsRead(book.id);
         Navigator.of(context).pushNamed<void>(
           AppRoutes.reader,
           arguments: ReaderArgs(book: book, chapterIndex: chapter),
@@ -220,7 +233,11 @@ class _LocalReaderAppState extends State<LocalReaderApp> {
                 supportedLocales: LrLocalizations.supportedLocales,
                 theme: GlassTheme.light(_state.season.value),
                 darkTheme: GlassTheme.dark(_state.season.value),
-                themeMode: ThemeMode.system,
+                themeMode: _resolveThemeMode(_state.settings.themeMode),
+                // 所有路由（含 push 出来的详情 / 搜索 / 我的子页）共用一张主题底色，
+                // 页面里的透明 Scaffold 不再露出黑底或空白。
+                builder: (BuildContext context, Widget? child) =>
+                    _AppBackground(child: child),
                 onGenerateRoute: AppRoutes.onGenerateRoute,
                 home: shell,
               ),
@@ -228,6 +245,32 @@ class _LocalReaderAppState extends State<LocalReaderApp> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 全局主题底色：随 ThemeMode 与季节色板一起重建，浅色 / 暗色都有明确背景。
+/// 四 tab 的透明 Scaffold、独立路由页、弹窗背后共用这一张渐变。
+class _AppBackground extends StatelessWidget {
+  const _AppBackground({this.child});
+
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: <Color>[
+            scheme.surface,
+            Color.lerp(scheme.surface, scheme.surfaceVariant, 0.55)!,
+          ],
+        ),
+      ),
+      child: child ?? const SizedBox.shrink(),
     );
   }
 }

@@ -7,10 +7,14 @@ import '../../assembly/app_scope.dart';
 import '../../core/common/design_tokens.dart';
 import '../../core/ui/theme/glass_theme.dart';
 import '../../core/ui/components/glass/Nav.dart';
+import '../../core/model/book_identity.dart';
+import '../../core/ui/components/book/book_cover_card.dart';
 import '../../l10n/lr_localizations.dart';
+import 'shelf_page.dart' show coverBookOf;
 
-/// 搜索结果页：独立的 /search 路由，结果按分组切片展示。
-/// 排序、关键词、空状态分类全部走 core 的 LibraryQuery，页面不自己写筛选逻辑。
+/// 搜索结果页：独立的 /search 路由，结果与书架列表共用 BookCoverCard。
+/// 默认「最近观看优先」，排序、关键词、空状态分类全部走 core 的 LibraryQuery，
+/// 页面不自己写筛选逻辑。
 class SearchPage extends StatefulWidget {
   const SearchPage({
     super.key,
@@ -30,7 +34,8 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   late final TextEditingController _controller;
   late String _query;
-  LibrarySort _sort = LibrarySort.volume;
+  // 与书架一致：最近观看优先，切换排序芯片才改变口径。
+  LibrarySort _sort = LibrarySort.recent;
 
   @override
   void initState() {
@@ -61,11 +66,6 @@ class _SearchPageState extends State<SearchPage> {
       matched: results.length,
       query: _query,
     );
-    final Map<String, List<BookSummary>> groups = LibraryQuery.groupByShelf(
-      results,
-      shelfOrder: DemoBookRepository.shelfTitles,
-    );
-
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF15171C) : palette.seed,
       appBar: AppBar(
@@ -89,10 +89,10 @@ class _SearchPageState extends State<SearchPage> {
         ),
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
-              LrSpacing.l, LrSpacing.xs, LrSpacing.l, LrSpacing.xxl),
+              LrSpacing.xs, LrSpacing.xs, LrSpacing.xs, LrSpacing.xs),
           children: <Widget>[
             GlassPanel(
-              borderRadius: LrRadius.pill,
+              borderRadius: LrRadius.spine,
               padding: const EdgeInsets.symmetric(
                   horizontal: LrSpacing.m, vertical: LrSpacing.xs),
               child: Row(
@@ -117,7 +117,8 @@ class _SearchPageState extends State<SearchPage> {
                   if (_query.isNotEmpty)
                     GestureDetector(
                       onTap: _clear,
-                      child: const Icon(Icons.close, size: 17),
+                      child: Icon(Icons.close,
+                          size: 17, color: text.bodySmall?.color),
                     ),
                 ],
               ),
@@ -161,15 +162,11 @@ class _SearchPageState extends State<SearchPage> {
                 onClear: _clear,
               )
             else
-              ...groups.entries
-                  .where((MapEntry<String, List<BookSummary>> e) =>
-                      e.value.isNotEmpty)
-                  .map<Widget>(
-                      (MapEntry<String, List<BookSummary>> e) => _GroupSection(
-                            shelf: e.key,
-                            books: e.value,
-                            onOpenBook: widget.onOpenBook,
-                          )),
+              _ResultList(
+                books: results,
+                onOpenBook: widget.onOpenBook,
+                onMore: (BookSummary b) => _showBookActions(context, b),
+              ),
             const SizedBox(height: LrSpacing.l),
             GlassPanel(
               child: Row(
@@ -194,6 +191,48 @@ class _SearchPageState extends State<SearchPage> {
     _controller.clear();
     setState(() => _query = '');
   }
+
+  /// 列表卡片「…」：查看详情 / 收藏都落到真实动作，不留静默点击。
+  void _showBookActions(BuildContext context, BookSummary book) {
+    final AppState state = AppScope.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (BuildContext ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(LrSpacing.m),
+              child: Text(
+                '《${book.title}》 · ${BookIdentity.displayId(book.id)}',
+                style: Theme.of(ctx).textTheme.titleMedium,
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('查看详情'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                widget.onOpenBook(book);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.bookmark_add_outlined),
+              title: Text(state.isFavorite(book.id) ? '取消收藏' : '加入收藏'),
+              onTap: () {
+                final bool added = state.toggleFavorite(book.id);
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(added ? '已加入收藏' : '已取消收藏')),
+                );
+              },
+            ),
+            const SizedBox(height: LrSpacing.s),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _SortChip extends StatelessWidget {
@@ -214,12 +253,12 @@ class _SortChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? scheme.primary.withValues(alpha: 0.14)
-              : Colors.white.withValues(alpha: 0.18),
+              : scheme.surface.withValues(alpha: 0.55),
           borderRadius: BorderRadius.circular(LrRadius.pill),
           border: Border.all(
               color: selected
                   ? scheme.primary.withValues(alpha: 0.5)
-                  : Colors.white.withValues(alpha: 0.3)),
+                  : scheme.outlineVariant.withValues(alpha: 0.5)),
         ),
         child: Text(
           label,
@@ -233,125 +272,34 @@ class _SortChip extends StatelessWidget {
   }
 }
 
-class _GroupSection extends StatelessWidget {
-  const _GroupSection({
-    required this.shelf,
+/// 搜索结果：与书架列表共用 BookCoverCard 的列表形态，
+/// 展示编号、来源角标、章节进度与「…」菜单；顺序直接沿用 state.library 的
+/// 最近观看优先，不再按分组打散。
+class _ResultList extends StatelessWidget {
+  const _ResultList({
     required this.books,
     required this.onOpenBook,
+    required this.onMore,
   });
 
-  final String shelf;
   final List<BookSummary> books;
   final OpenBookDetail onOpenBook;
+  final ValueChanged<BookSummary> onMore;
 
   @override
-  Widget build(BuildContext context) {
-    final TextTheme text = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: LrSpacing.l),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: LrSpacing.xs),
-            child: Row(
-              children: <Widget>[
-                Text(shelf, style: text.titleLarge),
-                const SizedBox(width: LrSpacing.xs),
-                Text(context.tArgs('uiBooks2', <Object?>[books.length]),
-                    style: text.labelSmall),
-                const SizedBox(width: LrSpacing.xs),
-                Expanded(
-                    child:
-                        Divider(color: Theme.of(context).dividerTheme.color)),
-              ],
+          for (final BookSummary b in books)
+            BookCoverCard(
+              book: coverBookOf(b),
+              display: CoverDisplay.list,
+              onClick: () => onOpenBook(b),
+              onMore: () => onMore(b),
+              onLongPress: () => onMore(b),
             ),
-          ),
-          const SizedBox(height: LrSpacing.xs),
-          ...books.map<Widget>((BookSummary b) => Padding(
-                padding: const EdgeInsets.only(bottom: LrSpacing.xs),
-                child: _ResultTile(book: b, onTap: () => onOpenBook(b)),
-              )),
         ],
-      ),
-    );
-  }
-}
-
-class _ResultTile extends StatelessWidget {
-  const _ResultTile({required this.book, required this.onTap});
-  final BookSummary book;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final TextTheme text = Theme.of(context).textTheme;
-    final ColorScheme scheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: GlassPanel(
-        padding: const EdgeInsets.symmetric(
-            horizontal: LrSpacing.m, vertical: LrSpacing.m),
-        child: Row(
-          children: <Widget>[
-            // 细书脊色条：与 3D 书架用同一份封面色，编辑后可立即看到
-            Container(
-              width: 6,
-              height: 44,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(LrRadius.spine),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: <Color>[
-                    book.spineColor,
-                    Color.lerp(book.spineColor, Colors.black, 0.3)!
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: LrSpacing.m),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(book.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: text.titleMedium),
-                  const SizedBox(height: 2),
-                  Text(
-                    context.tArgs('uiBookMetaLine', <Object?>[
-                      book.author,
-                      book.format,
-                      book.volumeOrder == 0
-                          ? ''
-                          : lrTextArgs(
-                              'uiVolumes2', <Object?>[book.volumeOrder]),
-                    ]),
-                    style: text.labelSmall,
-                  ),
-                ],
-              ),
-            ),
-            if (book.progress > 0)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: LrSpacing.xs, vertical: LrSpacing.xs),
-                decoration: BoxDecoration(
-                  color: scheme.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(LrRadius.pill),
-                ),
-                child: Text('${(book.progress * 100).round()}%',
-                    style: text.labelSmall),
-              ),
-            const SizedBox(width: LrSpacing.xs),
-            const Icon(Icons.chevron_right, size: 18),
-          ],
-        ),
-      ),
-    );
-  }
+      );
 }
 
 /// 空状态分类：书库为空引导导入，无匹配结果引导改关键词。

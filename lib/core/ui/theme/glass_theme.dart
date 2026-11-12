@@ -41,7 +41,8 @@ class GlassTheme {
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
-      scaffoldBackgroundColor: Colors.transparent,
+      // 主题底色：浅色 / 暗色都给出明确背景，页面里的透明 Scaffold 不再露出黑底。
+      scaffoldBackgroundColor: isDark ? const Color(0xFF15171C) : palette.seed,
       splashFactory: InkSparkle.splashFactory,
       textTheme: editorialTextTheme(
           isDark ? const Color(0xFFF2F2F4) : const Color(0xFF25231F)),

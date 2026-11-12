@@ -1,7 +1,6 @@
 import 'package:Local_reader/core/network/network_policy.dart';
 import 'package:Local_reader/assembly/route_contract.dart';
-import 'package:Local_reader/core/model/navigation_spec.dart'
-    show SearchScope, SearchOrigin;
+import 'package:Local_reader/core/model/navigation_spec.dart' show SearchScope;
 
 /// 防抖 + 取消：不在输入每个字符时打网络请求。
 class SearchQueryPolicy {

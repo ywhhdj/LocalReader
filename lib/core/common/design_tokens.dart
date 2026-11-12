@@ -11,8 +11,8 @@ class LrSpacing {
 }
 
 class LrRadius {
-  static const double card = 24;
-  static const double panel = 28;
+  static const double card = 8;
+  static const double panel = 16;
   static const double pill = 999;
   static const double spine = 5;
 }
@@ -40,7 +40,8 @@ class SeasonPalette {
     required this.glassTint,
   });
 
-  static const Map<SeasonStyle, SeasonPalette> all = <SeasonStyle, SeasonPalette>{
+  static const Map<SeasonStyle, SeasonPalette> all =
+      <SeasonStyle, SeasonPalette>{
     SeasonStyle.paper: SeasonPalette(
       label: '纸白',
       seed: Color(0xFFF4F1EA),
@@ -77,4 +78,10 @@ class SeasonPalette {
       glassTint: <Color>[Color(0xCCFFFFFF), Color(0x99E9EDF3)],
     ),
   };
+}
+
+class LrFontSize {
+  static const double samll = 11;
+  static const double noraml = 14;
+  static const double big = 16;
 }

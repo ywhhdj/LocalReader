@@ -8,8 +8,7 @@ import '../../../common/design_tokens.dart';
 import 'HeroHeader.dart';
 import '../../theme/performance_scope.dart';
 
-/// 吸顶毛玻璃容器（sliver）。
-/// 初始位于顶部时不显示背景与模糊；向下滚动时平滑过渡出毛玻璃效果。
+/// 吸顶
 class StickyGlassHeader extends StatelessWidget {
   const StickyGlassHeader({
     super.key,
@@ -94,52 +93,12 @@ class _GlassSurface extends StatelessWidget {
     final ColorScheme scheme = Theme.of(context).colorScheme;
     final PerformanceBudget budget = PerformanceScope.of(context);
 
-    // 1. 纯模糊容器：彻底去掉背景填充色，只保留底部分割线
-    final Widget surface = DecoratedBox(
-      decoration: BoxDecoration(
-        border: showBottomBorder
-            ? Border(
-                bottom: BorderSide(
-                  // 底部细线随滚动渐显
-                  color: scheme.outlineVariant.withValues(alpha: 0.30 * factor),
-                  width: 0.5,
-                ),
-              )
-            : null,
-      ),
-      child: child,
-    );
-
     // 2. 如果设备性能差，不支持 BackdropFilter，给出一个半透明底色兜底
     // （否则文字叠加在繁杂的背景上会看不清）
-    if (!blur || !budget.useBackdropFilter) {
-      return DecoratedBox(
-        decoration: BoxDecoration(
-          color: scheme.surface.withValues(alpha: 0.85 * factor),
-          border: showBottomBorder
-              ? Border(
-                  bottom: BorderSide(
-                    color:
-                        scheme.outlineVariant.withValues(alpha: 0.30 * factor),
-                    width: 0.5,
-                  ),
-                )
-              : null,
-        ),
-        child: child,
-      );
-    }
+
 
     // 3. 纯磨砂背透：只有模糊，没有底色遮挡
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: budget.blurSigma * factor,
-          sigmaY: budget.blurSigma * factor,
-        ),
-        child: surface,
-      ),
-    );
+    return child;
   }
 }
 
@@ -187,15 +146,11 @@ class PageScrollHeader extends StatelessWidget {
               children: <Widget>[
                 for (final HeaderAction a in actions)
                   CircleIconButton(
-                    tooltip: a.tooltip,
-                    icon: a.icon,
-                    iconSize: 21,
-                    onPressed: a.onTap,
-                    backgroundColor:
-                        isDark ? const Color(0xFF2C2C2E) : Colors.white,
-                    foregroundColor:
-                        isDark ? Colors.white : const Color(0xFF1C1C1E),
-                  )
+                      tooltip: a.tooltip,
+                      icon: a.icon,
+                      iconSize: 21,
+                      onPressed: a.onTap,
+                      padding: const EdgeInsets.only(left: 8))
               ],
             ),
     );
@@ -222,7 +177,7 @@ class LrPage extends StatelessWidget {
     required this.header,
     required this.slivers,
     this.pagePadding = const EdgeInsets.only(
-        left: LrSpacing.m, right: LrSpacing.m, top: LrSpacing.s),
+        left: LrSpacing.xs, right: LrSpacing.xs, top: LrSpacing.xs),
     this.horizontalPadding = 0, // 外层已留白，内部默认不再额外留白
     this.bottomInset = 120,
   })  : itemCount = slivers?.length ?? 0,
@@ -235,7 +190,7 @@ class LrPage extends StatelessWidget {
     required this.itemCount,
     required this.itemBuilder,
     this.pagePadding = const EdgeInsets.only(
-        left: LrSpacing.m, right: LrSpacing.m, top: LrSpacing.s),
+        left: LrSpacing.xs, right: LrSpacing.xs, top: LrSpacing.s),
     this.horizontalPadding = 0,
     this.bottomInset = LrSpacing.xs,
   })  : slivers = null,
@@ -271,12 +226,7 @@ class LrPage extends StatelessWidget {
     final List<Widget> body = <Widget>[
       // 顶部吸顶
       StickyGlassHeader(
-        padding: const EdgeInsets.fromLTRB(
-          LrSpacing.xs, // 因为外层已经有边距了，内部稍微缩一点
-          LrSpacing.xs,
-          LrSpacing.xs,
-          LrSpacing.m,
-        ),
+        padding: const EdgeInsets.all(LrSpacing.xs),
         child: header,
       ),
     ];

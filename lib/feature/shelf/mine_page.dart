@@ -1,6 +1,7 @@
 import 'package:Local_reader/core/ui/components/glass/Page.dart';
 import 'package:flutter/material.dart';
 
+import '../../assembly/app_navigation.dart';
 import '../../assembly/app_scope.dart';
 import '../../l10n/lr_localizations.dart';
 import '../../core/ui/components/account_card.dart';
@@ -29,6 +30,8 @@ class MinePage extends StatelessWidget {
   Widget build(BuildContext context) {
     // 账户卡上的书库数量读全局状态；页面不缓存，导入后立刻可见。
     final AppState state = AppScope.of(context);
+    // 外部回调没注入时，直接取装配层的导航契约，绝不留下「点了没反应」的入口。
+    final AppNavigation nav = AppNavigationScope.of(context);
     final int bookCount = state.books.cached.length + state.importedCount;
     return LrPage.builder(
       header: PageScrollHeader(
@@ -43,10 +46,10 @@ class MinePage extends StatelessWidget {
             pointsLabel: context.tArgs('minePoints', <Object?>[13]),
             levelLabel: context.t('mineLevel'),
             statusLabel: context.tArgs('mineSyncStatus', <Object?>[bookCount]),
-            onTap: onOpenWenku8Login ?? () {},
+            onTap: onOpenWenku8Login ?? nav.onOpenWenku8Login,
           );
         }
-        final _MineEntry entry = _entries(context)[index - 1];
+        final _MineEntry entry = _entries(context, nav)[index - 1];
         return MenuEntryCard(
           icon: entry.icon,
           title: entry.title,
@@ -57,17 +60,20 @@ class MinePage extends StatelessWidget {
     );
   }
 
-  List<_MineEntry> _entries(BuildContext context) => <_MineEntry>[
+  List<_MineEntry> _entries(BuildContext context, AppNavigation nav) =>
+      <_MineEntry>[
         _MineEntry(Icons.bar_chart_outlined, context.t('mineStatsTitle'),
-            context.t('mineStatsSubtitle'), onOpenStats ?? () {}),
+            context.t('mineStatsSubtitle'), onOpenStats ?? nav.onOpenStats),
         _MineEntry(Icons.bookmark_border, context.t('mineBookmarksTitle'),
-            context.t('mineBookmarksSubtitle'), onOpenBookmarks ?? () {}),
+            context.t('mineBookmarksSubtitle'),
+            onOpenBookmarks ?? nav.onOpenBookmarks),
         _MineEntry(Icons.settings_outlined, context.t('mineSettingsTitle'),
-            context.t('mineSettingsSubtitle'), onOpenSettings ?? () {}),
+            context.t('mineSettingsSubtitle'),
+            onOpenSettings ?? nav.onOpenSettings),
         _MineEntry(Icons.info_outline, context.t('mineAboutTitle'),
-            context.t('mineAboutSubtitle'), onOpenAbout ?? () {}),
+            context.t('mineAboutSubtitle'), onOpenAbout ?? nav.onOpenAbout),
         _MineEntry(Icons.favorite_border, context.t('mineSupportTitle'),
-            context.t('mineSupportSubtitle'), onOpenSupport ?? () {}),
+            context.t('mineSupportSubtitle'), onOpenSupport ?? nav.onOpenSupport),
       ];
 }
 

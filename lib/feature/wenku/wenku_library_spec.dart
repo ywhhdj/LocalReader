@@ -69,7 +69,6 @@ class TasteSignal {
   final DateTime? lastReadAt;
 }
 
-/// docs/03 §3.3：
 /// score = 0.45·类别匹配 + 0.25·作者匹配 + 0.20·标签匹配
 ///         + 0.10·近期热度 − 已读惩罚
 class RecommendationWeights {
@@ -94,7 +93,6 @@ class RecommendationWeights {
 }
 
 /// 推荐只来自「本地统计 + 已缓存的公开榜单」：不因推荐发新请求、
-/// 不从书名猜标签（对齐参考仓库 SEARCH.md 口径）。
 class RecommendationEngine {
   const RecommendationEngine({
     this.weights = const RecommendationWeights(),
@@ -155,7 +153,7 @@ class RecommendationEngine {
       t.categories.isEmpty && t.authors.isEmpty && t.tags.isEmpty;
 }
 
-/// 文库页状态：提示页只按「非书目」处理，不触发 offline、不推断停服
+/// 文库页状态
 class WenkuLibraryState {
   const WenkuLibraryState({
     this.sections = const <RankingSection>[],

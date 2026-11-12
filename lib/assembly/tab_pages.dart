@@ -1,23 +1,26 @@
+import 'package:Local_reader/core/ui/components/CircleIconButton.dart';
 import 'package:flutter/material.dart';
 
-import 'package:Local_reader/assembly/app_navigation.dart';
-import 'package:Local_reader/assembly/app_scope.dart';
-import 'package:Local_reader/feature/favorites/favorites_components.dart'
-    show RailItem;
-import 'package:Local_reader/core/model/navigation_spec.dart'
-    show AppDefaults, BookKind;
-import 'package:Local_reader/core/model/wenku/wenku8_models.dart' show Wenku8Book;
-import 'package:Local_reader/core/ui/components/book/book_cover_card.dart'
-    show CoverBook;
-import 'package:Local_reader/feature/favorites/favorites_page.dart'
-    show FavoritesPage;
-import 'package:Local_reader/feature/wenku/wenku_3d_shelf.dart'
-    show ShelfRoundAction, ShelfSpineBook;
-import 'package:Local_reader/feature/wenku/wenku_page.dart';
-import 'package:Local_reader/feature/wenku/wenku_library_spec.dart'
+import 'app_navigation.dart';
+import 'app_scope.dart';
+import '../core/model/book_identity.dart';
+import '../core/model/fixtures/demo_document.dart';
+import '../core/model/navigation_spec.dart' show AppDefaults, BookKind;
+import '../core/model/wenku/wenku8_models.dart' show Wenku8Book;
+import '../core/ui/components/book/book_cover_card.dart'
+    show CoverBook, CoverBookOrigin;
+import '../domain/repositories/book_repository.dart' show BookSummary;
+import '../domain/usecases/cloud_book_projection.dart';
+import '../feature/favorites/favorites_components.dart' show RailItem;
+import '../feature/favorites/favorites_page.dart' show FavoritesPage;
+import '../feature/wenku/wenku_3d_shelf.dart'
+    show  ShelfSpineBook;
+import '../feature/wenku/wenku_library_spec.dart'
     show RankKind, WenkuLibraryState, kRankingOrder;
+import '../feature/wenku/wenku_page.dart';
 
-/// 轻小说文库页
+/// 轻小说文库页：卡片、书脊、榜单、推荐全部走同一套云端投影，
+/// 点击后进入与本地书共用的 /detail 页面。
 Widget buildWenkuLibraryPage(BuildContext context) {
   final AppState state = AppScope.of(context);
   final AppNavigation nav = AppNavigationScope.of(context);
@@ -29,9 +32,11 @@ Widget buildWenkuLibraryPage(BuildContext context) {
       CoverBook(
         id: b.id,
         title: b.title,
-        author: b.author,
+        author: b.author.isEmpty ? '未知作者' : b.author,
         subtitle: b.latestChapter,
         coverColor: b.coverColor,
+        origin: CoverBookOrigin.cloud,
+        progressText: '共 ${b.volumeCount} 卷',
       ),
   ];
   final List<ShelfSpineBook> spines = <ShelfSpineBook>[
@@ -43,12 +48,25 @@ Widget buildWenkuLibraryPage(BuildContext context) {
         number: '0${i + 1}',
         code: '${i + 1}',
         sourceBadge: '云端',
+        origin: CoverBookOrigin.cloud,
         tint: source[i].coverColor,
       ),
   ];
   final Map<RankKind, List<CoverBook>> ranks = <RankKind, List<CoverBook>>{
     for (final RankKind k in kRankingOrder) k: cards,
   };
+
+  void openById(String id) {
+    final BookSummary? book = cloudSummaryFor(source, id);
+    if (book != null) {
+      nav.onOpenBook(book);
+    } else {
+      // 目录里没有这本书时仍给出明确反馈，不做「点了没反应」。
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('《$id》暂时没有可打开的目录信息')),
+      );
+    }
+  }
 
   return WenkuLibraryPage(
     state: WenkuLibraryState(
@@ -60,40 +78,39 @@ Widget buildWenkuLibraryPage(BuildContext context) {
     rankBooks: ranks,
     recommended: cards.take(8).toList(),
     onSearch: () => nav.onOpenSearch(''),
-    onOpenBook: (CoverBook b) {
-      // 详情跳转由装配层后续接 Wenku8DetailSheet；此处不构造路由。
-    },
+    onOpenBook: (CoverBook b) => openById(b.id),
     onGoCollect: () => nav.onOpenSearch(''),
     onRefresh: () => state.refreshWenku8(),
-    onExtract: (ShelfSpineBook b) {
-      // 抽出即阅读：真实跳转需 BookSummary，留待阅读器接线。
-    },
-    // 截图右上三个圆按钮下沉到书架工具条；HeaderNav 右侧仍只有搜索。
+    onExtract: (ShelfSpineBook b) => openById(b.id),
+    // 右上角三个圆按钮：历史 / 导入 / 搜索，全部接真实导航。
     topActions: <Widget>[
-      ShelfRoundAction(
+      CircleIconButton(
         icon: Icons.history,
         tooltip: '阅读历史',
-        onTap: nav.onOpenReadingHistory,
+        onPressed: nav.onOpenReadingHistory,
       ),
-      ShelfRoundAction(
+      CircleIconButton(
         icon: Icons.file_download_outlined,
         tooltip: '导入',
-        onTap: nav.onImport,
+        onPressed: nav.onImport,
       ),
-      ShelfRoundAction(
+      CircleIconButton(
         icon: Icons.search,
         tooltip: '搜索轻小说文库',
-        onTap: () => nav.onOpenSearch(''),
+        onPressed: () => nav.onOpenSearch(''),
       ),
     ],
   );
 }
 
-/// 收藏页
+/// 收藏页：分类切换写入全局状态，条目点击打开统一详情页。
 Widget buildFavoritesPage(BuildContext context) {
   final AppState state = AppScope.of(context);
+  final AppNavigation nav = AppNavigationScope.of(context);
+  final List<Wenku8Book> cloud =
+      state.wenku8Listing?.books ?? const <Wenku8Book>[];
   final List<RailItem> all = <RailItem>[
-    for (final book in state.allBooks)
+    for (final BookSummary book in state.allBooks)
       RailItem(
         id: book.id,
         title: book.title,
@@ -102,21 +119,37 @@ Widget buildFavoritesPage(BuildContext context) {
         coverColor: book.spineColor,
         progress: book.progress,
         kind: book.isComic ? BookKind.comic : BookKind.novel,
+        origin: BookIdentity.isCloudId(book.id)
+            ? CoverBookOrigin.cloud
+            : CoverBookOrigin.local,
+        progressText:
+            '${DemoDocumentFactory.resumeChapter(book) + 1}/${DemoDocumentFactory.chapterTitles.length}',
       ),
   ];
   return FavoritesPage(
-    continueReading: all.where((RailItem i) => i.progress > 0).toList(),
-    // 最近阅读只记录最近 10 条：条数由 RecentReadsPrefs.limit 裁决，页面不写死。
+    continueReading:
+        all.where((RailItem i) => i.progress > 0).toList(growable: false),
+    // 最近阅读只记录最近 N 条：条数由 AppDefaults.recentReadsLimit 裁决。
     recentReads: all,
     favorites: all,
     recentLimit: AppDefaults.recentReadsLimit,
-    kind: BookKind.novel,
-    onKindChanged: (BookKind k) {
-      // 分类切换只过滤本地投影，不重新请求；真实偏好写入待接线。
-    },
+    kind: state.favoritesKind,
+    onKindChanged: state.setFavoritesKind,
     onOpen: (RailItem i) {
-      // 详情 / 阅读器跳转由装配层后续接线。
+      final BookSummary? local = state.resolveBook(i.id);
+      if (local != null) {
+        nav.onOpenBook(local);
+        return;
+      }
+      final BookSummary? remote = cloudSummaryFor(cloud, i.id);
+      if (remote != null) {
+        nav.onOpenBook(remote);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('这本书已不在书库中')),
+        );
+      }
     },
-    onGoCollect: () => AppNavigationScope.of(context).onOpenSearch(''),
+    onGoCollect: () => nav.onOpenSearch(''),
   );
 }

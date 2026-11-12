@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/model/book_identity.dart';
 import '../../domain/repositories/book_repository.dart';
 import '../../l10n/lr_localizations.dart';
 import '../../core/common/design_tokens.dart';
@@ -109,7 +110,9 @@ class DetailCoverInfo extends StatelessWidget {
               ),
               const SizedBox(height: LrSpacing.m),
               Text(
-                  '${context.t('detailStatusOngoing')}  ·  ${context.t('detailCached')}',
+                  '${context.t('detailStatusOngoing')}  ·  '
+                  '${BookIdentity.originLabel(isCloud ? BookOrigin.cloud : BookOrigin.local)}'
+                  '  ·  ${context.t('detailCached')}',
                   style: text.bodyMedium),
               const SizedBox(height: LrSpacing.xs),
               Text('${context.t('detailUpdatedOn')} 2026-11-07',
@@ -117,13 +120,19 @@ class DetailCoverInfo extends StatelessWidget {
               const SizedBox(height: LrSpacing.m),
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: LrSpacing.xs, vertical: LrSpacing.xs),
-                color: const Color(0xFF17181C),
+                    horizontal: LrSpacing.s, vertical: LrSpacing.xs),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surfaceVariant
+                      .withValues(alpha: 0.65),
+                  borderRadius: BorderRadius.circular(6),
+                ),
                 child: Text(
-                    isCloud
-                        ? 'WK-01973'
-                        : 'LB-${book.id.hashCode.abs() % 10000}',
-                    style: text.labelMedium?.copyWith(color: Colors.white)),
+                  // 本地 LR-<bookid>，云端 WK-<bookid>；与书架列表同一裁决点。
+                  BookIdentity.displayId(book.id),
+                  style: text.labelMedium,
+                ),
               ),
               const SizedBox(height: LrSpacing.xs),
               InkWell(
@@ -146,47 +155,87 @@ class _DetailCover extends StatelessWidget {
   final BookSummary book;
 
   @override
-  Widget build(BuildContext context) => Container(
-        width: 116,
-        height: 176,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-                color: Colors.black.withValues(alpha: 0.22),
-                blurRadius: 14,
-                offset: const Offset(4, 6)),
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final bool isDark = theme.brightness == Brightness.dark;
+    final bool cloud = BookIdentity.isCloudId(book.id);
+    // 暗色主题把封面压向主题底色；封面艺术字随之取 onSurface，
+    // 浅色主题按封面亮度取黑 / 白，两种主题下都清晰可读。
+    final Color base = isDark
+        ? Color.lerp(book.spineColor, theme.colorScheme.surface, 0.28)!
+        : book.spineColor;
+    final Color foreground = isDark
+        ? theme.colorScheme.onSurface
+        : (base.computeLuminance() > 0.45
+            ? const Color(0xFF1C1C1E)
+            : Colors.white);
+    return Container(
+      width: 116,
+      height: 176,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.22),
+              blurRadius: 14,
+              offset: const Offset(4, 6)),
+        ],
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[
+            base,
+            Color.lerp(base, Colors.black, 0.35)!,
           ],
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: <Color>[
-              book.spineColor,
-              Color.lerp(book.spineColor, Colors.black, 0.35)!,
-            ],
+        ),
+      ),
+      padding: const EdgeInsets.all(LrSpacing.xs),
+      child: Stack(
+        children: <Widget>[
+          Positioned(
+            right: 0,
+            top: 0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: isDark ? theme.colorScheme.surface : Colors.white,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                BookIdentity.originLabel(
+                    cloud ? BookOrigin.cloud : BookOrigin.local),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 9,
+                ),
+              ),
+            ),
           ),
-        ),
-        padding: const EdgeInsets.all(LrSpacing.xs),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Text(book.title,
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.white, fontWeight: FontWeight.w700)),
-            const SizedBox(height: LrSpacing.xs),
-            Text(book.author,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelSmall
-                    ?.copyWith(color: Colors.white.withValues(alpha: 0.85))),
-          ],
-        ),
-      );
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(book.title,
+                    maxLines: 4,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                        color: foreground, fontWeight: FontWeight.w700)),
+                const SizedBox(height: LrSpacing.xs),
+                Text(book.author,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall
+                        ?.copyWith(color: foreground.withValues(alpha: 0.85))),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// 标签行：演示书籍的题材标签，组件只负责排版。

@@ -4,13 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../model/reader_style.dart';
 
-/// 配色来源（第二十四轮）。
-///
-/// 参考仓库 README：「Use system Monet colors, choose an accent, or extract colors
-/// from an image. Set reader-specific colors and backgrounds.」
-///
-/// 三种来源只在这里裁决，**应用配色与阅读器配色分开**：选了强调色不会把
-/// 阅读背景改掉（第六轮已定「阅读背景独立于 Material 明暗主题」）。
+/// 配色来源
 enum ColorSourceKind { systemDynamic, customAccent, fromCover }
 
 @immutable

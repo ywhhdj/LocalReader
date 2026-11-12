@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:Local_reader/core/model/book_identity.dart';
 import 'package:Local_reader/core/ui/components/book/book_cover_card.dart';
 
 /// 立体书架上的一本书（截图里的玻璃书脊）。
@@ -14,17 +15,33 @@ class ShelfSpineBook {
     this.tint = const Color(0xFF2A2F38),
     this.progress = 0,
     this.type = CoverBookType.novel,
+    this.origin = CoverBookOrigin.local,
   });
 
   final String id;
   final String title;
   final String author;
   final String number;
+
+  /// 兼容旧调用的角标文案；展示口径已由 [originLabel] 统一裁决。
   final String sourceBadge;
   final String code;
   final Color tint;
   final double progress;
   final CoverBookType type;
+
+  /// 来源：决定右上角「本地 / 云端」与展示编号前缀。
+  final CoverBookOrigin origin;
+
+  String get originLabel => BookIdentity.originLabel(
+        origin == CoverBookOrigin.cloud ? BookOrigin.cloud : BookOrigin.local,
+      );
+
+  /// 展示编号：本地 `LR-<bookid>`，云端 `WK-<bookid>`。
+  /// 与书架列表、详情页共用 BookIdentity，一处改口径全端生效。
+  String get displayId => BookIdentity.displayId(
+        origin == CoverBookOrigin.cloud ? BookIdentity.cloudId(id) : id,
+      );
 }
 
 /// 网格背景（截图里的细线 + 十字准星），自绘，不用图片资源。
@@ -65,6 +82,10 @@ class _GridPainter extends CustomPainter {
 }
 
 /// 单本斜置玻璃书脊：透视倾角 + 书页侧边 + 阴影 + 编号 / 书名 / 来源角标。
+///
+/// 所有文字、边线、图标都取 `Theme.colorScheme.onSurface` 及其透明度变体，
+/// 浅色 / 暗色切换时一起改变；浅色主题把书脊底色向主题底色混合，
+/// 保证深色文字压在彩色书脊上仍有足够对比。
 class GlassSpine extends StatelessWidget {
   const GlassSpine({
     super.key,
@@ -88,6 +109,12 @@ class GlassSpine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final ColorScheme scheme = theme.colorScheme;
+    final bool isDark = theme.brightness == Brightness.dark;
+    final Color fg = scheme.onSurface;
+    // 浅色主题把书脊调浅，暗色主题保留书目封面色：文字统一用 onSurface。
+    final Color spineBase =
+        Color.lerp(book.tint, scheme.surface, isDark ? 0.12 : 0.55)!;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedScale(
@@ -112,18 +139,18 @@ class GlassSpine extends StatelessWidget {
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
                 colors: <Color>[
-                  book.tint.withValues(alpha: 0.55),
-                  book.tint.withValues(alpha: 0.82),
-                  Color.lerp(book.tint, Colors.white, 0.12)!,
+                  spineBase.withValues(alpha: 0.72),
+                  spineBase,
+                  Color.lerp(spineBase, fg, 0.12)!,
                 ],
               ),
               border: Border.all(
-                color: Colors.white.withValues(alpha: pulledOut ? 0.32 : 0.14),
+                color: fg.withValues(alpha: pulledOut ? 0.32 : 0.14),
                 width: 1,
               ),
               boxShadow: <BoxShadow>[
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: scheme.shadow.withValues(alpha: 0.42),
                   blurRadius: pulledOut ? 24 : 12,
                   offset: const Offset(8, 10),
                 ),
@@ -139,38 +166,37 @@ class GlassSpine extends StatelessWidget {
                       if (book.number.isNotEmpty)
                         Text(book.number,
                             style: theme.textTheme.labelSmall
-                                ?.copyWith(color: Colors.white70)),
+                                ?.copyWith(color: fg.withValues(alpha: 0.72))),
                       const Spacer(),
-                      Text(book.sourceBadge,
+                      Text(book.originLabel,
                           style: theme.textTheme.labelSmall
-                              ?.copyWith(color: Colors.white70)),
+                              ?.copyWith(color: fg.withValues(alpha: 0.72))),
                     ],
                   ),
                   const SizedBox(height: 6),
                   if (book.code.isNotEmpty)
                     Text('NO. ${book.code}',
                         style: theme.textTheme.labelSmall?.copyWith(
-                            color: Colors.white54, letterSpacing: 1.4)),
+                            color: fg.withValues(alpha: 0.55),
+                            letterSpacing: 1.4)),
                   const Spacer(),
                   // 竖排观感的斜置书名（截图里书名沿书脊排布）
-                  RotatedBox(
-                    quarterTurns: 0,
-                    child: Text(
-                      book.title,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        height: 1.35,
-                      ),
+                  Text(
+                    book.title,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: fg,
+                      fontWeight: FontWeight.w600,
+                      height: 1.35,
                     ),
                   ),
                   const Spacer(),
-                  if (book.code.isNotEmpty)
-                    Text('WK-${book.code}',
-                        style: theme.textTheme.labelSmall
-                            ?.copyWith(color: Colors.white60)),
+                  Text(book.displayId,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall
+                          ?.copyWith(color: fg.withValues(alpha: 0.62))),
                   const SizedBox(height: 8),
                   if (book.progress > 0)
                     ClipRRect(
@@ -178,7 +204,7 @@ class GlassSpine extends StatelessWidget {
                       child: LinearProgressIndicator(
                         value: book.progress.clamp(0.0, 1.0).toDouble(),
                         minHeight: 3,
-                        backgroundColor: Colors.white24,
+                        backgroundColor: fg.withValues(alpha: 0.24),
                       ),
                     ),
                 ],
@@ -237,23 +263,50 @@ class _Wenku3dShelfState extends State<Wenku3dShelf> {
     if (b != null) widget.onSelectionChanged?.call(b);
   }
 
-  void _extract() {
-    final ShelfSpineBook? b = _current;
-    if (b == null) return;
-    setState(() => _pulledOut = true);
-    widget.onExtract?.call(b);
+  /// 点书脊 / 抽出箭头都走这里：一定给出可见反馈，绝不静默失效。
+  void _openAt(int index) {
+    if (widget.books.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('书架还是空的，先去文库收藏一本书吧')),
+      );
+      return;
+    }
+    final int i = index.clamp(0, widget.books.length - 1);
+    final ShelfSpineBook b = widget.books[i];
+    setState(() {
+      _selected = i;
+      _pulledOut = true;
+    });
+    final ValueChanged<ShelfSpineBook>? onExtract = widget.onExtract;
+    if (onExtract == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('《${b.title}》· ${b.displayId}')),
+      );
+      return;
+    }
+    onExtract(b);
   }
+
+  void _extract() => _openAt(_selected);
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final ColorScheme scheme = theme.colorScheme;
+    final bool isDark = theme.brightness == Brightness.dark;
+    final Color fg = scheme.onSurface;
+    // 书架卡片背景随明暗切换：浅色用浅底，暗色用深底，文字始终取 onSurface。
+    final Color background = isDark
+        ? const Color(0xFF15171C)
+        : Color.lerp(scheme.surface, Colors.white, 0.35)!;
     final ShelfSpineBook? current = _current;
     return SizedBox(
       height: widget.height,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: const Color(0xFF111318),
+          color: background,
           borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: fg.withValues(alpha: 0.08)),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(18),
@@ -261,8 +314,8 @@ class _Wenku3dShelfState extends State<Wenku3dShelf> {
             children: <Widget>[
               Positioned.fill(
                 child: CustomPaint(
-                  painter:
-                      _GridPainter(color: Colors.white.withValues(alpha: 0.06)),
+                  painter: _GridPainter(
+                      color: fg.withValues(alpha: isDark ? 0.08 : 0.10)),
                 ),
               ),
               // 左上标题区（截图：书架 / 立体书架 + 英文副题）
@@ -274,10 +327,11 @@ class _Wenku3dShelfState extends State<Wenku3dShelf> {
                   children: <Widget>[
                     Text('立体书架',
                         style: theme.textTheme.headlineSmall?.copyWith(
-                            color: Colors.white, fontWeight: FontWeight.w700)),
+                            color: fg, fontWeight: FontWeight.w700)),
                     Text('COLLECTION / REGION  ·  PERSONAL ARCHIVE',
                         style: theme.textTheme.labelSmall?.copyWith(
-                            color: Colors.white38, letterSpacing: 1.6)),
+                            color: fg.withValues(alpha: 0.45),
+                            letterSpacing: 1.6)),
                   ],
                 ),
               ),
@@ -298,7 +352,7 @@ class _Wenku3dShelfState extends State<Wenku3dShelf> {
                     ? Center(
                         child: Text('书架空空，去轻小说文库收藏吧',
                             style: theme.textTheme.bodyMedium
-                                ?.copyWith(color: Colors.white54)),
+                                ?.copyWith(color: fg.withValues(alpha: 0.62))),
                       )
                     : PageView.builder(
                         controller: PageController(viewportFraction: 0.46),
@@ -309,13 +363,7 @@ class _Wenku3dShelfState extends State<Wenku3dShelf> {
                             book: widget.books[i],
                             pulledOut: _pulledOut && i == _selected,
                             tilt: -0.22 + (i % 3) * 0.05,
-                            onTap: () {
-                              setState(() {
-                                _selected = i;
-                                _pulledOut = true;
-                              });
-                              widget.onExtract?.call(widget.books[i]);
-                            },
+                            onTap: () => _openAt(i),
                           ),
                         ),
                       ),
@@ -336,15 +384,14 @@ class _Wenku3dShelfState extends State<Wenku3dShelf> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.titleLarge?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700)),
+                                  color: fg, fontWeight: FontWeight.w700)),
                           const SizedBox(height: 4),
                           Text(
                             current == null
                                 ? '本地书籍 · 云端书单'
-                                : '${current.sourceBadge} · ${current.author.isEmpty ? '轻小说' : current.author}',
-                            style: theme.textTheme.labelMedium
-                                ?.copyWith(color: Colors.white54),
+                                : '${current.originLabel} · ${current.author.isEmpty ? '轻小说' : current.author}',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                                color: fg.withValues(alpha: 0.58)),
                           ),
                         ],
                       ),
@@ -352,7 +399,7 @@ class _Wenku3dShelfState extends State<Wenku3dShelf> {
                     IconButton(
                       onPressed: _extract,
                       tooltip: '抽出阅读',
-                      icon: const Icon(Icons.north_east, color: Colors.white),
+                      icon: Icon(Icons.north_east, color: fg),
                     ),
                   ],
                 ),
@@ -363,39 +410,4 @@ class _Wenku3dShelfState extends State<Wenku3dShelf> {
       ),
     );
   }
-}
-
-/// 截图里的圆形工具按钮（历史 / 导入 / 搜索）；只做外观，回调由页面给。
-class ShelfRoundAction extends StatelessWidget {
-  const ShelfRoundAction({
-    super.key,
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(left: 8),
-        child: Material(
-          color: Colors.white.withValues(alpha: 0.10),
-          shape: const CircleBorder(),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: onTap,
-            child: SizedBox(
-              width: 52,
-              height: 52,
-              child: Tooltip(
-                message: tooltip,
-                child: Icon(icon, color: Colors.white, size: 22),
-              ),
-            ),
-          ),
-        ),
-      );
 }

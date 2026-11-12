@@ -4,6 +4,7 @@ import 'package:Local_reader/core/ui/components/book/book_cover_card.dart';
 import 'package:Local_reader/core/model/navigation_spec.dart';
 
 /// 一条 rail 里的最小书目投影；映射成 CoverBook 后交给统一封面卡。
+/// 新增 origin / progressText：收藏页的书也能显示「本地 / 云端」角标与 LR-/WK- 编号。
 class RailItem {
   const RailItem({
     required this.id,
@@ -15,6 +16,8 @@ class RailItem {
     this.coverColor = const Color(0xFF39404B),
     this.progress = 0,
     this.updatedAt = 0,
+    this.origin = CoverBookOrigin.local,
+    this.progressText = '',
   });
 
   final String id;
@@ -26,6 +29,8 @@ class RailItem {
   final Color coverColor;
   final double progress;
   final int updatedAt;
+  final CoverBookOrigin origin;
+  final String progressText;
 
   CoverBook toCoverBook() => CoverBook(
         id: id,
@@ -37,12 +42,13 @@ class RailItem {
         progress: progress,
         type:
             kind == BookKind.comic ? CoverBookType.comic : CoverBookType.novel,
+        origin: origin,
+        progressText: progressText,
       );
 }
 
-
 /// 固定高度 + 横向 ListView.builder（懒加载），避免嵌进纵向视口时无界约束。
-/// 卡片统一使用 BookCoverCard：封面图 / 渐变占位 + 类型角标 + 进度条 + 书名 + 描述。
+/// 卡片统一使用 BookCoverCard：封面图 / 渐变占位 + 来源角标 + 进度条 + 书名 + 描述。
 class RailSection extends StatelessWidget {
   const RailSection({
     required this.title,
@@ -82,7 +88,7 @@ class RailSection extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           SizedBox(
-            height: 236,
+            height: 250,
             child: items.isEmpty
                 ? Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -106,12 +112,14 @@ class RailSection extends StatelessWidget {
                     itemBuilder: (BuildContext context, int i) {
                       final RailItem item = items[i];
                       return SizedBox(
-                        width: 132,
+                        width: 140,
                         child: Padding(
                           padding: const EdgeInsets.only(right: 10),
                           child: BookCoverCard(
                             book: item.toCoverBook(),
                             onClick: () => onOpen(item),
+                            onMore: () => onOpen(item),
+                            onLongPress: () => onOpen(item),
                           ),
                         ),
                       );

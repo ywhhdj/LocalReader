@@ -1,8 +1,7 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 /// 模糊档位。生产环境由 PerformanceBudget.resolve() 裁决，组件不自己解释。
+/// （注：当前 HeaderNav 已改为纯透明吸顶，此枚举保留仅为了兼容外部配置）
 enum HeaderBlurLevel { full, reduced, minimal }
 
 double blurRadiusOf(HeaderBlurLevel level) {
@@ -49,20 +48,20 @@ class HeaderNavSpec {
   final String title;
   final String? subtitle;
 
-  /// 左侧返回按钮由调用页自己注入（R13「导入书籍」页要求左返回）；
-  /// core 组件不读 Navigator、不构造路由。
+  /// 左侧返回按钮由调用页自己注入
   final Widget? leading;
 
-  /// R13「中间导入书籍」：左右都有按钮时把标题居中，避免被 actions 挤偏。
+  /// 左右都有按钮时把标题居中，避免被 actions 挤偏。
   final bool centerTitle;
   final List<HeaderNavAction> actions;
 
   /// 收藏页 / 书架页右侧的「小说 / 漫画」分类图标
   final List<Widget> categoryIcons;
 
+  /// 已弃用：吸顶时不再使用模糊
   final HeaderBlurLevel blur;
 
-  /// 默认 false = 一直置顶；true 可退回旧的「随内容滚出」行为（R2 歧义兜底）。
+  /// 默认 false = 一直置顶；true 可退回旧的「随内容滚出」行为
   final bool scrollWithContent;
   final double expandedHeight;
   final double collapsedHeight;
@@ -96,9 +95,9 @@ class HeaderNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final double sigma = blurRadiusOf(spec.blur);
+
     final Widget content = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 10),
       child: Row(
         children: <Widget>[
           if (spec.leading != null) spec.leading!,
@@ -129,29 +128,10 @@ class HeaderNav extends StatelessWidget {
       ),
     );
 
-    // 背景透明；只有导航栏这一层做「部分模糊」，且 minimal 档直接不建滤镜。
-    if (sigma <= 0) {
-      return DecoratedBox(
-        decoration: BoxDecoration(color: Colors.transparent),
-        child: SafeArea(bottom: false, child: content),
-      );
-    }
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface.withValues(alpha: 0.18),
-            border: Border(
-              bottom: BorderSide(
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
-                width: 0.6,
-              ),
-            ),
-          ),
-          child: SafeArea(bottom: false, child: content),
-        ),
-      ),
+    // 去掉模糊、背景色和底部线条，只保留完全透明的 SafeArea 内容
+    return SafeArea(
+      bottom: false,
+      child: content,
     );
   }
 }

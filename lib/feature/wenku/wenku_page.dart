@@ -1,4 +1,5 @@
-import 'package:Local_reader/core/ui/components/glass/page.dart';
+import 'package:Local_reader/core/common/design_tokens.dart';
+import 'package:Local_reader/core/ui/components/glass/Page.dart';
 import 'package:flutter/material.dart';
 
 import 'package:Local_reader/core/ui/components/book/book_cover_card.dart';
@@ -99,12 +100,7 @@ class WenkuLibraryPage extends StatelessWidget {
                 onMore: onRefresh,
                 titleOverride: '推荐喜欢',
               ),
-            ),
-            if (state.empty &&
-                rankBooks.values.every((List<CoverBook> l) => l.isEmpty))
-              SliverToBoxAdapter(
-                child: _EmptyCard(onGoCollect: onGoCollect),
-              ),
+            )
           ],
 
           // footer：底部间距改由 LrPage 的 bottomInset 统一处理，
@@ -163,12 +159,12 @@ class _RankingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.only(top: LrSpacing.xs),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: LrSpacing.xs),
             child: Row(
               children: <Widget>[
                 Text(_title, style: theme.textTheme.titleMedium),
@@ -182,7 +178,7 @@ class _RankingRow extends StatelessWidget {
             height: 232,
             child: books.isEmpty
                 ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: LrSpacing.xs),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text('暂无数据',
@@ -194,12 +190,12 @@ class _RankingRow extends StatelessWidget {
                 : ListView.builder(
                     scrollDirection: Axis.horizontal,
                     cacheExtent: 480,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: LrSpacing.xs),
                     itemCount: books.length,
                     itemBuilder: (BuildContext context, int i) => SizedBox(
                       width: 132,
                       child: Padding(
-                        padding: const EdgeInsets.only(right: 10),
+                        padding: const EdgeInsets.only(right: 4),
                         child: BookCoverCard(
                           book: books[i],
                           onClick: () => onOpen(books[i]),
@@ -242,30 +238,6 @@ class _NoticeCard extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Text(text, style: Theme.of(context).textTheme.bodySmall),
           ),
-        ),
-      );
-}
-
-class _EmptyCard extends StatelessWidget {
-  const _EmptyCard({required this.onGoCollect});
-
-  final VoidCallback onGoCollect;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: <Widget>[
-            const Icon(Icons.inbox_outlined, size: 40),
-            const SizedBox(height: 12),
-            const Text('还没有云端藏书'),
-            const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed: onGoCollect,
-              icon: const Icon(Icons.favorite_border, size: 18),
-              label: const Text('去收藏'),
-            ),
-          ],
         ),
       );
 }
