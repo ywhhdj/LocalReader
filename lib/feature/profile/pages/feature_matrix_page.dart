@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/model/webdav_backup.dart';
+import 'webdav_config_sheet.dart';
 import '../../../domain/repositories/book_repository.dart';
 import '../../../core/model/shelf_prefs.dart';
 import '../../../domain/usecases/import_review.dart';
@@ -8,6 +11,7 @@ import '../../../core/model/android_permissions.dart';
 import '../../../crash_guard.dart';
 import '../../../core/model/bilingual_prefs.dart';
 import '../../../assembly/app_scope.dart';
+import '../../../assembly/app_services.dart';
 import '../../../core/model/font_catalog.dart';
 import '../../../core/model/per_book_style.dart';
 import '../../../core/model/reader_motion.dart';
@@ -174,16 +178,11 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
           spacing: LrSpacing.xs,
           children: <Widget>[
             FilledButton.tonal(
-              onPressed: () => state.updateFontCatalog(
-                fonts.addImported(
-                    lrText('uiImportFontSourceHanSans'), <String>['otf']),
-              ),
+              onPressed: () => unawaited(_importFonts(state, fonts)),
               child: Text(lrText('uiRegisterImportedTtfOtf')),
             ),
             OutlinedButton(
-              onPressed: () => state.updateFontCatalog(
-                fonts.withState('dl-serif-sc', FontInstallState.installed),
-              ),
+              onPressed: () => unawaited(_verifyOnDemandFonts(state, fonts)),
               child: Text(lrText('uiMarkOnDemandPackInstalled')),
             ),
           ],
@@ -221,6 +220,65 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
         }),
       ],
     );
+  }
+
+  void _hint(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// 「导入 TTF / OTF」：真实拉起目录授权 → 扫字体文件 → 原生注册 → 写入字体目录。
+  /// 此前只是 addImported 一条假元数据，点了字体并没有被加载。
+  Future<void> _importFonts(AppState state, FontCatalog fonts) async {
+    try {
+      final String? root = await AppServices.of(context).saf.pickDirectory();
+      if (root == null) {
+        _hint('已取消目录选择');
+        return;
+      }
+      final List<String> paths = await AppServices.of(context)
+          .fileScan
+          .list(root, <String>['ttf', 'otf']);
+      if (paths.isEmpty) {
+        _hint('所选目录里没有 TTF / OTF 字体文件');
+        return;
+      }
+      FontCatalog next = fonts;
+      int registered = 0;
+      for (final String path in paths.take(12)) {
+        await AppServices.fonts.load(path);
+        final String name = path.split(RegExp(r'[/\\]')).last;
+        next = next.addImported(name, <String>['ttf', 'otf']);
+        registered++;
+      }
+      state.updateFontCatalog(next);
+      _hint('已从 $root 注册 $registered 个字体');
+    } catch (e) {
+      _hint('字体注册失败：$e');
+    }
+  }
+
+  /// 「标记按需包已安装」：以系统字体枚举结果裁决，不再无条件改成 installed。
+  Future<void> _verifyOnDemandFonts(
+      AppState state, FontCatalog fonts) async {
+    try {
+      final List<String> names = await AppServices.fonts.systemFonts();
+      final bool hasSerif = names.any((String n) {
+        final String s = n.toLowerCase();
+        return s.contains('serif') || s.contains('song') || n.contains('宋');
+      });
+      if (!hasSerif) {
+        _hint('系统字体里未找到衬线字体，按需包仍未安装');
+        return;
+      }
+      state.updateFontCatalog(
+        fonts.withState('dl-serif-sc', FontInstallState.installed),
+      );
+      _hint('已检测到系统衬线字体，按需包标记为已安装');
+    } catch (e) {
+      _hint('系统字体枚举失败：$e');
+    }
   }
 
   Widget _fontRoleRow(
@@ -582,25 +640,26 @@ class _FeatureMatrixPageState extends State<FeatureMatrixPage> {
           contentPadding: EdgeInsets.zero,
           title: Text(context.t('uiEnableBackup')),
           value: backup.enabled,
-          onChanged: (bool v) => state.updateBackup(backup.setEnabled(v)),
+          // 开启会自动退出纯本地模式，避免「开关开了但请求仍被拦住」。
+          onChanged: (bool v) {
+            if (v) state.enableWebdav();
+            state.updateBackup(backup.setEnabled(v));
+          },
         ),
         Wrap(
           spacing: LrSpacing.xs,
           children: <Widget>[
+            // 关闭态也不再禁用：点进去先配置服务器，再执行真实动作，
+            // 不再用 finish(ok: true) 伪造成功结果。
             for (final BackupAction a in BackupSnapshot.actions)
               OutlinedButton(
-                onPressed: !backup.enabled
-                    ? null
-                    : () => state.updateBackup(backup.dispatch(a).finish(
-                        ok: true,
-                        note:
-                            context.t('uiStaticDemoNoNetworkRequestWasMade'))),
+                onPressed: () => unawaited(WebDavSheet.open(context)),
                 child: Text(BackupSnapshot.actionLabels[a]!),
               ),
           ],
         ),
         Text(
-          context.t('uiStaticStageWebdavclient'),
+          '五个动作均走真实 WebDAV 客户端与文件导出通道；未配置服务器时会给出明确提示。',
           style: text.bodySmall,
         ),
       ],

@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 /// - **应用字体与阅读器字体分开选**。
 ///
 /// 静态阶段只维护目录与状态：不下载、不落盘、不读文件系统。
-/// 真实 `FontLoader` / 平台字体注册是 ❄️ 冻结，接入时替换 `FontCatalogInstaller`。
+/// 真实 `FontLoader` / 平台字体注册是 平台实现，接入时替换 `FontCatalogInstaller`。
 enum FontOrigin { builtIn, imported, downloadable }
 
 enum FontRole { app, reader }

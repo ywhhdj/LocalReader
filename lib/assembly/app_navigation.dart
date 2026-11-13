@@ -19,6 +19,8 @@ class AppNavigation {
     required this.onOpenLocalizedTexts,
     required this.onOpenFeatureMatrix,
     required this.onOpenWenku8Login,
+    required this.onOpenWebDav,
+    required this.onOpenImportBooks,
     required this.onOpenStats,
     required this.onOpenBookmarks,
     required this.onOpenSettings,
@@ -42,6 +44,12 @@ class AppNavigation {
   final VoidCallback onOpenLocalizedTexts;
   final VoidCallback onOpenFeatureMatrix;
   final VoidCallback onOpenWenku8Login;
+
+  /// WebDAV 配置面板（五个真实备份动作的入口）。
+  final VoidCallback onOpenWebDav;
+
+  /// R13 导入书籍流程：此前路由已注册却没有任何入口。
+  final VoidCallback onOpenImportBooks;
 
   /// 我的页五个「需选择才打开」的入口。
   final VoidCallback onOpenStats;

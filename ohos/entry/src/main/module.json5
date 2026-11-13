@@ -2,7 +2,6 @@
   "module": {
     "name": "entry",
     "type": "entry",
-    // 第二十三轮解锁：Wenku8 真实接入需要网络权限。
     // ohos Flutter 分支的 module.json5 字段以实际 DevEco 模板为准。
     "requestPermissions": [
       {

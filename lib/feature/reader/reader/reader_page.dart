@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
@@ -7,6 +8,13 @@ import '../../../core/model/fixtures/demo_document.dart';
 import '../../../core/model/pagination/page_layout.dart';
 import '../../../core/model/book_document.dart';
 import '../../../domain/repositories/render_bridge.dart';
+import '../../../data/platform/platform_bridges.dart'
+    show PlatformRenderBridge;
+import '../../../data/platform/sqlite_runtime.dart' show SqliteRuntime;
+import '../../../data/storage/sqlite_progress_store.dart'
+    show SqliteProgressStore;
+import '../../../data/platform/real_bridges.dart'
+    show PlatformTtsBridge, PlatformUnavailable;
 import '../../../domain/usecases/tts_queue.dart';
 import '../../../assembly/route_args.dart';
 import '../../../assembly/app_scope.dart';
@@ -22,6 +30,7 @@ import '../comic/comic_toc_sheet.dart';
 import '../vertical_comic_view.dart';
 import '../excerpt_capture_sheet.dart';
 import '../native_page_view.dart';
+import '../fixed_layout_view.dart';
 import 'page_turn_view.dart';
 import 'reader_style_sheet.dart';
 import '../../../l10n/lr_localizations.dart';
@@ -61,8 +70,9 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
   late final BookDocument _document;
   late final ProgressSampler _sampler;
   late final ComicPrefetchWindow _prefetch;
-  final BookRenderBridge _renderBridge =
-      UnimplementedRenderBridge(lrText('uiDemoPlatform'));
+  /// 真实栅格化：PDF / CBZ / 图片型 EPUB 由三端 RenderPlugin 提供页像素。
+  /// 通道未注册时由 PlatformRenderBridge 抛出可捕获错误，页面显示占位并提示。
+  final BookRenderBridge _renderBridge = const PlatformRenderBridge();
   final PageController _pageController = PageController();
 
   /// 漫画话集跳转指令：由目录面板选中后发，页面栈不新增阅读器。
@@ -102,7 +112,11 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
       chapterIndex: _chapterIndex,
       pageIndex: 0,
     );
-    _sampler = ProgressSampler(store: InMemoryProgressStore());
+    // 进度写入门控 executor：SQLite 未开启时暂存内存，开启后回放落库，
+    // 不再绕过开关直接 new 原生通道。
+    _sampler = ProgressSampler(
+      store: SqliteProgressStore(SqliteRuntime.instance.executor),
+    );
     _prefetch = ComicPrefetchWindow(bridge: _renderBridge);
   }
 
@@ -304,6 +318,7 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
 
   void _stopTts() {
     _ttsQueue?.pause();
+    unawaited(const PlatformTtsBridge().stop());
     setState(() {
       _ttsPlaying = false;
       _ttsQueue = null;
@@ -341,7 +356,7 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
           setState(() => _ttsPrefs = _ttsPrefs.copyWith(autoNext: v)),
       onVoice: (String v) =>
           setState(() => _ttsPrefs = _ttsPrefs.copyWith(voiceName: v)),
-      onOpenSystemTts: () => _showHint(lrText('readerTtsStaticNote')),
+      onOpenSystemTts: () => unawaited(_openSystemTts()),
     );
     if (!mounted) return;
     setState(() => _ttsQueue = null);
@@ -511,13 +526,18 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
         children: <Widget>[
           ...page.lines.map<Widget>((LaidOutLine line) {
             if (line.isImage) {
-              // TODO(静态冻结): 插图走原生解码或已导入资源，占位高度由 PageInfo 决定
-              return SizedBox(
-                height: line.height,
-                child: GlassPanel(
-                    child: Center(
-                        child: Text(lrText('uiIllustrationPlaceholder')))),
-              );
+              // 真实插图：从文档路径读取字节并交给 Image.memory 解码；
+              // 路径缺失 / 原生通道未就绪时才回退到占位卡。
+              final String? path = line.imagePath;
+              if (path == null || path.isEmpty) {
+                return SizedBox(
+                  height: line.height,
+                  child: GlassPanel(
+                      child: Center(
+                          child: Text(lrText('uiIllustrationPlaceholder')))),
+                );
+              }
+              return _ImageLine(path: path, height: line.height);
             }
 
             final LineRef ref = LineRef(
@@ -582,9 +602,9 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
   /// 摘录采集：无选区时给明确引导，不弹一个空面板。
   Future<void> _openExcerptCapture() async {
     if (_document.isComic) {
-      // 漫画页没有可重排文本行，按行点选不适用；
-      // 区域 / 字符级摘录 ❄️ 冻结，不弹一个空面板。
-      _showHint(lrText('uiPagesLinesexcerptsEpisodeListContents'));
+      // 漫画页没有可重排文本行，按行点选不适用；改为栅格化当前页后
+      // 交给原生导出，不再只弹一句「不支持」。
+      await _saveComicPage();
       return;
     }
     if (_selection.isEmpty) {
@@ -612,6 +632,44 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
     _showHint(lrText('uiSavedToExcerptCardsSeeStats'));
   }
 
+  /// 漫画「摘录」：把当前页栅格化后交给原生导出通道。
+  /// 外部纹理（textureId）不能直接拿像素，因此这里主动按目标尺寸请求一次
+  /// 编码位图；原生只回纹理时给出明确提示，不让按钮「点了没反应」。
+  Future<void> _saveComicPage() async {
+    int? handle;
+    try {
+      final Size size = MediaQuery.of(context).size;
+      handle = await _renderBridge.open(_document.id, _document.sourcePath);
+      final int count = await _renderBridge.pageCount(handle);
+      if (count <= 0) {
+        _showHint('原生渲染通道未返回页数，无法保存当前页');
+        return;
+      }
+      final int index = _pageIndex.clamp(0, count - 1).toInt();
+      final RenderedPage page = await _renderBridge.render(
+        handle,
+        index,
+        Size(size.width, size.height),
+      );
+      final Uint8List? bytes = page.imageBytes;
+      if (bytes == null) {
+        _showHint('当前页只有外部纹理、没有可导出的图片字节');
+        return;
+      }
+      await AppServices.of(context).share.saveImage(
+            bytes,
+            'comic-${_document.id}-${index + 1}.png',
+          );
+      _showHint('已保存第 ${index + 1} 页到导出目录');
+    } catch (e) {
+      _showHint('保存当前页失败：$e');
+    } finally {
+      if (handle != null) {
+        unawaited(_renderBridge.close(handle));
+      }
+    }
+  }
+
   /// 固定版式分支：只负责页描述与目标尺寸，像素交给原生。
   Widget _buildNativeBody(
       BuildContext context, Size pageSize, ReaderStyle style) {
@@ -626,51 +684,13 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
         onVisiblePage: _recordComicProgress,
       );
     }
-    // PDF / 图片型 EPUB：由 ParserRouter 打开文档取得 handle 与 pageCount（❄️ 冻结）。
-    return GlassPanel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            context.t('uiFixedLayoutPage'),
-            style: Theme.of(context)
-                .textTheme
-                .headlineMedium
-                ?.copyWith(color: style.textColor),
-          ),
-          const SizedBox(height: LrSpacing.m),
-          Text(
-            context.t('uiPdfEpubViaBookrenderbridge') +
-                context.t('uiRenderHandleIndexTargetsizePages4k') +
-                context.t('uiPagesTextureidTextureTextureid') +
-                context.t('uiPagesImageMemory') +
-                context.t('uiComicprefetchwindowPrefetchEvictSpreadsChannel'),
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: style.textColor),
-          ),
-          const SizedBox(height: LrSpacing.m),
-          Text(
-              context.tArgs('uiSize',
-                  <Object?>[pageSize.width.round(), pageSize.height.round()]),
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall
-                  ?.copyWith(color: style.subtleTextColor)),
-          const SizedBox(height: LrSpacing.m),
-          // 未接三端原生实现时显式提示，不返回空白页。
-          SizedBox(
-            height: 120,
-            child: NativePageView(
-              bridge: _renderBridge,
-              handle: 0,
-              pageIndex: 0,
-              targetSize: Size(pageSize.width, 120),
-            ),
-          ),
-        ],
-      ),
+    // PDF / 图片型 EPUB：真实 open() 取句柄与页数，逐页渲染 Texture / 位图。
+    return FixedLayoutView(
+      bridge: _renderBridge,
+      document: _document,
+      pageSize: pageSize,
+      prefetch: _prefetch,
+      onVisiblePage: _recordComicProgress,
     );
   }
 
@@ -693,15 +713,33 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
       return;
     }
     final OpenTocPage? open = widget.onOpenToc;
-    if (open == null) {
-      _showHint(lrText('uiTocNavigationIsNotWiredIntoThisPage'));
-      return;
-    }
-    final BookSummary book = AppScope.of(context).effective(widget.book);
-    final int? picked = await open(book, _chapterIndex);
+    // 没有外部目录页时也不能「点了只弹提示」：内置一份章节目录，
+    // 选中即切章，行为与外部注入的目录页完全一致。
+    final int? picked = open == null
+        ? await _showInlineToc(context)
+        : await open(
+            AppScope.of(context).effective(widget.book), _chapterIndex);
     if (picked == null || !mounted) return;
     _switchChapter(picked);
   }
+
+  Future<int?> _showInlineToc(BuildContext context) =>
+      showModalBottomSheet<int>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (BuildContext ctx) => GlassPanel(
+          padding: const EdgeInsets.symmetric(vertical: LrSpacing.m),
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: _document.chapters.length,
+            itemBuilder: (BuildContext c, int i) => ListTile(
+              title: Text(_document.chapters[i].title),
+              selected: i == _chapterIndex,
+              onTap: () => Navigator.of(c).pop(i),
+            ),
+          ),
+        ),
+      );
 
   void _switchChapter(int index, {bool resetTts = true}) {
     if (_document.isComic) {
@@ -726,6 +764,15 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
     _recordProgress(0);
   }
 
+  /// 朗读设置里的「打开系统 TTS 设置」：真实拉起系统页，不再只弹提示。
+  Future<void> _openSystemTts() async {
+    try {
+      await const PlatformTtsBridge().openSystemSettings();
+    } on PlatformUnavailable catch (_) {
+      _showHint('当前平台未接入系统 TTS 设置跳转，请在系统设置中搜索「文字转语音」');
+    }
+  }
+
   void _onTts() {
     if (_document.isComic || _document.chapters.isEmpty) {
       _showHint(lrText('uiComicsFixedLayoutsHaveNoReflowableTextReadAlou'));
@@ -735,15 +782,33 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
         ? const <ContentBlock>[]
         : _chapter.blocks;
     final List<String> sentences = SentenceQueue.splitBlocks(blocks);
-    // 静态演示里用语速反比调节每句间隔，让设置项可见地生效；
-    // 接 TtsController 后改为 setRate / setPitch 三端下发。
-    final double rate = AppScope.of(context).settings.reader.ttsRate;
-    final int pace = (120 / rate).round().clamp(30, 400).toInt();
+    final ReaderStyle style = AppScope.of(context).settings.reader;
+    final Stream<int>? sentenceDone = AppServices.of(context).sentenceDone;
+    bool warned = false;
 
     final SentenceQueue queue = _ttsQueue ??= SentenceQueue(
-      // TODO(静态冻结): 换成 TtsBridge.enqueueSentences / pause / resumeAtSentence。
+      // 每句交给三端 TTS 插件朗读；原生回报 onSentenceDone 才推进 cursor，
+      // 语速 / 音调直接下发，不再用 Future.delayed 假装有声音。
       onSpeak: (String sentence, int chapter, int index) async {
-        await Future<void>.delayed(Duration(milliseconds: pace));
+        try {
+          await const PlatformTtsBridge().speakOne(
+            sentence,
+            index,
+            sentenceDone: sentenceDone,
+            rate: style.ttsRate,
+            pitch: style.ttsPitch,
+          );
+        } on PlatformUnavailable catch (e) {
+          // 桌面 / 单测 / 未接插件：明确提示一次，再用可见节奏推进队列，
+          // 不留下「点了朗读没任何反应」。
+          if (!warned) {
+            warned = true;
+            _showHint('$e；当前以演示节奏推进队列');
+          }
+          final int pace =
+              (120 / style.ttsRate).round().clamp(30, 400).toInt();
+          await Future<void>.delayed(Duration(milliseconds: pace));
+        }
       },
       onChapterEnd: (int finished) => _onChapterFinished(finished),
     );
@@ -751,6 +816,7 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
 
     if (_ttsPlaying) {
       queue.pause();
+      unawaited(const PlatformTtsBridge().pause());
       setState(() => _ttsPlaying = false);
       _showHint(lrTextArgs(
           'uiSentencesSentences', <Object?>[queue.cursor + 1, queue.length]));
@@ -761,12 +827,14 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
       _sentenceCount = sentences.length;
       _ttsPlaying = true;
     });
+    unawaited(const PlatformTtsBridge().setRate(style.ttsRate));
+    unawaited(const PlatformTtsBridge().setPitch(style.ttsPitch));
     unawaited(queue.resume());
     _showHint(lrTextArgs('uiSentences', <Object?>[
       _chapter.title,
       queue.cursor + 1,
       _sentenceCount,
-      rate.toStringAsFixed(2)
+      style.ttsRate.toStringAsFixed(2)
     ]));
   }
 
@@ -794,5 +862,54 @@ class _ReaderPageState extends State<ReaderPage> with WidgetsBindingObserver {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+/// 小说页内插图：字节由三端文件通道提供，避免引入 dart:io 的三端差异。
+/// Future 只创建一次，滚动重建不会反复读同一张图。
+class _ImageLine extends StatefulWidget {
+  const _ImageLine({required this.path, required this.height});
+
+  final String path;
+  final double height;
+
+  @override
+  State<_ImageLine> createState() => _ImageLineState();
+}
+
+class _ImageLineState extends State<_ImageLine> {
+  late final Future<Uint8List> _bytes =
+      AppServices.files.readBytes(widget.path);
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Uint8List>(
+      future: _bytes,
+      builder: (BuildContext context, AsyncSnapshot<Uint8List> snap) {
+        if (snap.hasData) {
+          return SizedBox(
+            height: widget.height,
+            width: double.infinity,
+            child: Image.memory(
+              snap.data!,
+              fit: BoxFit.contain,
+              gaplessPlayback: true,
+            ),
+          );
+        }
+        return SizedBox(
+          height: widget.height,
+          child: GlassPanel(
+            child: Center(
+              child: Text(
+                snap.hasError ? '插图读取失败：${widget.path}' : '正在读取插图…',
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

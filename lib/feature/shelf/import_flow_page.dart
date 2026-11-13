@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../domain/usecases/import_session.dart';
 import '../../assembly/app_scope.dart';
+import '../../assembly/app_services.dart';
+import '../../data/platform/import_service.dart';
+import '../../data/platform/real_bridges.dart' show PlatformUnavailable;
 import '../../core/common/design_tokens.dart';
 import '../../core/ui/theme/glass_theme.dart';
 import '../../core/ui/theme/season_scheme.dart';
@@ -21,6 +26,11 @@ class ImportFlowPage extends StatefulWidget {
 class _ImportFlowPageState extends State<ImportFlowPage> {
   late ImportSession _session;
 
+  /// 真实扫描得到的路径；为空表示当前处于演示数据回退态。
+  List<String> _realPaths = const <String>[];
+  bool _busy = false;
+  bool _usedDemo = false;
+
   @override
   void initState() {
     super.initState();
@@ -38,11 +48,64 @@ class _ImportFlowPageState extends State<ImportFlowPage> {
   }
 
   void _next() {
+    if (_busy) return;
     if (_session.step == ImportStep.done) {
       _finish();
       return;
     }
+    // 授权 → 扫描这一步改为异步真实扫描，不再读 ImportDemoPaths。
+    if (_session.step == ImportStep.permission && _session.canAdvance) {
+      unawaited(_scanForReal());
+      return;
+    }
     _update(_session.advance(existing: _existing));
+  }
+
+  Future<void> _scanForReal() async {
+    setState(() => _busy = true);
+    try {
+      final ImportService service = AppServices.of(context).importer;
+      final ImportScanResult result = await service.scan(
+        forcePick: _session.mode == ImportPermissionMode.documentPicker,
+      );
+      final List<String> paths = await service.filterSupported(result.paths);
+      _realPaths = paths;
+      _usedDemo = false;
+      if (!mounted) return;
+      final ScanReport report = ImportScanner.scan(paths);
+      _update(_session.advance(existing: _existing).copyWith(
+        report: report,
+        conflicts: ImportScanner.conflicts(report, _existing),
+      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('已扫描 ${paths.length} 个文件 · ${result.root}'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } on PlatformUnavailable catch (e) {
+      // 平台通道未注册（桌面 / 单测 / 未接原生插件）：明确告知并回退到演示数据，
+      // 不让「下一步」变成点了没反应。
+      _usedDemo = true;
+      _realPaths = const <String>[];
+      if (!mounted) return;
+      _update(_session.advance(existing: _existing));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$e；已使用演示数据，真机接入原生插件后自动改为真实扫描'),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } catch (e) {
+      _usedDemo = true;
+      if (!mounted) return;
+      _update(_session.advance(existing: _existing));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('扫描失败：$e；已使用演示数据')),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   void _finish() {
@@ -52,6 +115,10 @@ class _ImportFlowPageState extends State<ImportFlowPage> {
     };
     final ImportCommit commit = _session.commit(existingIds: ids);
     final int added = state.applyImport(commit);
+    // 真实落库：写入 books 表，替换「只记在内存里」的静态交付口径。
+    if (!_usedDemo) {
+      unawaited(AppServices.of(context).importer.persist(commit));
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -137,7 +204,23 @@ class _ImportFlowPageState extends State<ImportFlowPage> {
           onGrant: () => _update(_session.grant()),
         );
       case ImportStep.scan:
-        return _ScanStep(session: _session);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            if (_busy) const LinearProgressIndicator(),
+            Padding(
+              padding: const EdgeInsets.only(top: 6, bottom: 10),
+              child: Text(
+                _usedDemo
+                    ? '当前为演示数据（原生文件通道未接入）；真机将自动改为真实扫描'
+                    : '真实目录扫描：${_realPaths.length} 个文件',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ),
+            _ScanStep(session: _session),
+          ],
+        );
       case ImportStep.conflicts:
         return _ConflictStep(
           session: _session,
@@ -354,13 +437,13 @@ class _PermissionStep extends StatelessWidget {
               icon: const Icon(Icons.folder_open_outlined, size: 17),
               label: Text(session.granted
                   ? context.t('uiAuthorizationConfirmed')
-                  : context.t('uiSimulateAuthorization')),
+                  : '确认授权方式'),
             ),
             const SizedBox(width: LrSpacing.m),
             Expanded(
               child: Text(
                 session.granted
-                    ? context.t('uiAuthorizationStaticDemo')
+                    ? '下一步将拉起系统目录选择器并递归扫描书籍文件'
                     : context.t('importNoGrantHint'),
                 style: text.labelSmall,
               ),
@@ -368,7 +451,10 @@ class _PermissionStep extends StatelessWidget {
           ],
         ),
         const SizedBox(height: LrSpacing.m),
-        Text(context.t('importWizardStaticNote'), style: text.labelSmall),
+        Text(
+          '授权由系统文件选择器完成并持久化；扫描结果来自真实目录，仅在本机处理。',
+          style: text.labelSmall,
+        ),
       ],
     );
   }

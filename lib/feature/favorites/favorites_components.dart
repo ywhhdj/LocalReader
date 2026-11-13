@@ -88,7 +88,9 @@ class RailSection extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           SizedBox(
-            height: 250,
+            // 130 宽封面按 0.7 比例约 186 高，再加标题 / 作者 / 进度约 76，
+            // 250 会溢出 12~15px；卡片内部另有 FittedBox 兜底。
+            height: 268,
             child: items.isEmpty
                 ? Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),

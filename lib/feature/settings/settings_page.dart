@@ -14,6 +14,7 @@ import '../../l10n/lr_localizations.dart';
 import '../../core/ui/components/section_card.dart';
 import '../../core/ui/theme/performance_scope.dart';
 import '../../core/common/design_tokens.dart';
+import 'sqlite_toggle.dart';
 
 /// 设置页（第三十轮）：性能与动效、常规开关、外观阅读、来源与渠道。
 ///
@@ -77,20 +78,32 @@ class SettingsPage extends StatelessWidget {
                   onChanged: state.setTts,
                   title: Text(context.t('uiTtsReadAloud')),
                 ),
+                // 纯本地模式不再把开关设成 null（点了没反应）。
+                // 打开时由 AppState 一次完成「关 master switch + 开能力」，
+                // 归一化仍只走 AppSettings.normalized()，页面不自己解释规则。
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   value: state.settings.onlineDirectory,
-                  onChanged: state.settings.pureLocal
-                      ? null
-                      : state.setOnlineDirectory,
+                  onChanged: (bool v) => v
+                      ? state.enableOnlineDirectory()
+                      : state.setOnlineDirectory(false),
                   title: Text(context.t('uiOnlineDirectoryWenku8')),
+                  subtitle: Text(state.settings.pureLocal
+                      ? '当前为纯本地模式，开启后将允许在线目录请求'
+                      : '关闭后不产生任何在线目录请求'),
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   value: state.settings.webdav,
-                  onChanged: state.settings.pureLocal ? null : state.setWebdav,
+                  onChanged: (bool v) =>
+                      v ? state.enableWebdav() : state.setWebdav(false),
                   title: Text(context.t('uiWebdavBackup')),
+                  subtitle: Text(state.settings.pureLocal
+                      ? '当前为纯本地模式，开启后可配置 WebDAV 备份'
+                      : '可在下方配置服务器并执行备份 / 恢复'),
                 ),
+                // SQLite 是可选初始化：默认关闭，置 true 才建表与预热。
+                const SqliteToggle(),
               ],
             ),
           );
@@ -152,6 +165,24 @@ class SettingsPage extends StatelessWidget {
                   title: Text(context.t('wenkuLoginTitle')),
                   trailing: const Icon(Icons.chevron_right, size: 18),
                   onTap: nav.onOpenWenku8Login,
+                ),
+                // WebDAV 配置：五个备份动作都从这块面板发起，不再只改状态机。
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.backup_outlined),
+                  title: const Text('WebDAV 备份配置'),
+                  subtitle: const Text('服务器 / 账号 / 测试连接 / 备份 / 恢复 / 导出'),
+                  trailing: const Icon(Icons.chevron_right, size: 18),
+                  onTap: nav.onOpenWebDav,
+                ),
+                // R13 导入书籍：此前四条路由已注册却没有任何入口，点击永远进不去。
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.folder_copy_outlined),
+                  title: const Text('导入书籍'),
+                  subtitle: const Text('目录授权 → 扫描 → 冲突合并 → 写入书库'),
+                  trailing: const Icon(Icons.chevron_right, size: 18),
+                  onTap: nav.onOpenImportBooks,
                 ),
               ],
             ),

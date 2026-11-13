@@ -1,3 +1,4 @@
+import 'package:Local_reader/core/ui/components/glass/SectionHeader.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/model/book_identity.dart';
@@ -6,12 +7,6 @@ import '../../l10n/lr_localizations.dart';
 import '../../core/common/design_tokens.dart';
 import '../../core/ui/components/glass/Nav.dart';
 
-/// 第三十轮：详情页拆成一组可复用组件，页面只做拼装。
-/// 参考图的结构是「圆角返回 / 居中标题 / 右上来源动作 → 封面 + 书名 +
-/// 作者 + 状态 + 编号 + 缓存提示 → 标签 → 进度 → 简介 → 底部玻璃操作条」。
-/// 组件不持有跨页设置，不构造路由，所有文案走 ARB。
-
-/// 顶部条：云端显示云下载，本地显示删除 / 重置进度的菜单。
 class DetailTopBar extends StatelessWidget implements PreferredSizeWidget {
   const DetailTopBar({
     super.key,
@@ -334,20 +329,7 @@ class _DetailSynopsisState extends State<DetailSynopsis> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Row(
-          children: <Widget>[
-            Text(context.t('detailSynopsisIndex'), style: text.labelSmall),
-            const SizedBox(width: LrSpacing.xs),
-            Expanded(
-                child: Divider(
-                    color: Theme.of(context).colorScheme.outline, height: 1)),
-            const SizedBox(width: 2),
-            Container(
-                width: 4,
-                height: 4,
-                color: Theme.of(context).colorScheme.onSurface),
-          ],
-        ),
+        SectionHeader(title: context.t('detailSynopsis')),
         const SizedBox(height: LrSpacing.m),
         Text(context.t('detailSynopsisTitle'), style: text.headlineMedium),
         const SizedBox(height: LrSpacing.m),

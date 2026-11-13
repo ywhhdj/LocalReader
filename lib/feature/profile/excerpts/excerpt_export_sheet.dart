@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../../assembly/app_services.dart';
 import '../../../core/model/stats/excerpt_query.dart';
 import '../../../core/model/stats/reading_stats.dart';
 import '../../../core/common/design_tokens.dart';
@@ -31,6 +34,32 @@ class ExcerptExportSheet extends StatelessWidget {
         filterDescription: filterDescription,
       ),
     );
+  }
+
+  void _hint(BuildContext context, String message) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _saveLocal(BuildContext context, String plain) async {
+    try {
+      final String name =
+          'excerpts-${DateTime.now().millisecondsSinceEpoch}.txt';
+      final String? path =
+          await AppServices.of(context).share.saveText(name, plain);
+      _hint(context, path == null ? '未返回保存路径' : '已保存到 $path');
+    } catch (e) {
+      _hint(context, '保存失败：$e');
+    }
+  }
+
+  Future<void> _share(BuildContext context, String plain) async {
+    try {
+      await AppServices.of(context).share.shareText(plain);
+    } catch (e) {
+      _hint(context, '分享失败：$e');
+    }
   }
 
   @override
@@ -68,6 +97,23 @@ class ExcerptExportSheet extends StatelessWidget {
                     style: text.bodySmall?.copyWith(height: 1.75),
                   ),
                 ),
+              ),
+              const SizedBox(height: LrSpacing.m),
+              // 此前只有「预览 + 手动复制」，导出按钮并不存在：
+              // 现在接 PlatformShareBridge 真正写文件 / 拉起系统分享。
+              Wrap(
+                spacing: LrSpacing.xs,
+                runSpacing: LrSpacing.xs,
+                children: <Widget>[
+                  FilledButton.tonal(
+                    onPressed: () => unawaited(_saveLocal(context, plain)),
+                    child: const Text('保存到本地'),
+                  ),
+                  OutlinedButton(
+                    onPressed: () => unawaited(_share(context, plain)),
+                    child: const Text('系统分享'),
+                  ),
+                ],
               ),
               const SizedBox(height: LrSpacing.m),
               Row(

@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 ///
 /// **默认关闭**，且关闭态连「测试连接」都不能发请求（对齐 `pureLocal` 的口径）。
 /// 静态阶段只做状态机与预览文本：不读文件、不写文件、不发网络请求。
-/// 真实 `WebDavClient` / 平台文件导出是 ❄️ 冻结。
+/// 真实 `WebDavClient` / 平台文件导出是 平台实现。
 enum BackupState { disabled, idle, testing, backingUp, restoring, exporting, ok, failed }
 
 enum BackupAction { testConnection, backupNow, listRemote, restore, exportLocal }

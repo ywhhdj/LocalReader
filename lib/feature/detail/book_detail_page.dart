@@ -98,6 +98,7 @@ class BookDetailPage extends StatelessWidget {
           itemCount: blocks.length,
           itemBuilder: (BuildContext context, int index) {
             final _DetailBlock block = blocks[index];
+            SectionHeader()
             if (block == _DetailBlock.progress) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: LrSpacing.l),
@@ -319,8 +320,7 @@ class _BookInfoCard extends StatelessWidget {
           '卷序', book.volumeOrder == 0 ? '未分卷' : '第 ${book.volumeOrder} 卷'),
       if (isCloud) MapEntry<String, String>('评论', '$commentCount 条'),
     ];
-    return GlassPanel(
-      child: Column(
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text('书籍信息', style: text.titleMedium),
@@ -348,8 +348,7 @@ class _BookInfoCard extends StatelessWidget {
               ),
             ),
         ],
-      ),
-    );
+      );
   }
 }
 

@@ -27,8 +27,6 @@ class Wenku8Compliance {
 
   static const bool customSourcesAllowed = false;
 
-  // 第二十八轮：LegalTexts 改成读 ARB 的 getter（非常量），
-  // 所以这组规则不能再是 const 列表；改为每次读取时按当前语言解析。
   static List<String> get rules => <String>[
     LegalTexts.wenkuOnlySources,
     LegalTexts.wenkuContentOwnership,

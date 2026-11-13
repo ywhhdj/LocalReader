@@ -99,8 +99,6 @@ class _CloudShelfViewState extends State<CloudShelfView> {
             onOpen: (Wenku8Book b) => openBook(cloudBookSummary(b)),
             columns: widget.gridColumns,
           ),
-        const SizedBox(height: LrSpacing.m),
-        _complianceCard(context, text),
       ],
     );
   }
@@ -296,23 +294,6 @@ class _CloudShelfViewState extends State<CloudShelfView> {
               onPressed: onGoCollect,
               icon: const Icon(Icons.favorite_border, size: 18),
               label: Text(lrText('uiGoCollect')),
-            ),
-          ],
-        ),
-      );
-
-  Widget _complianceCard(BuildContext context, TextTheme text) => GlassPanel(
-        padding: const EdgeInsets.all(LrSpacing.m),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(lrText('wenkuOnlySources'), style: text.labelSmall),
-            const SizedBox(height: LrSpacing.xs),
-            ...Wenku8Compliance.rules.map<Widget>(
-              (String rule) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text('· $rule', style: text.labelSmall),
-              ),
             ),
           ],
         ),

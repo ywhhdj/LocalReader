@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -5,6 +7,9 @@ import '../../core/model/comic/comic_spread.dart';
 import '../../core/model/comic/comic_toc.dart';
 import '../../core/model/book_document.dart';
 import '../../assembly/app_scope.dart';
+import '../../assembly/app_services.dart';
+import '../../domain/repositories/render_bridge.dart'
+    show BookRenderBridge, RenderedPage;
 import '../../core/model/reader_style.dart';
 import '../../core/common/design_tokens.dart';
 import '../../core/ui/components/glass/Nav.dart';
@@ -25,7 +30,7 @@ class ComicReaderController {
 
 /// 漫画阅读视图：竖向连续滚动 / 横向跨页翻页（单页、双页、自动；左→右、右→左）。
 ///
-/// **静态边界**：页像素由 BookRenderBridge 提供（❄️ 冻结），这里只做
+/// **静态边界**：页像素由 BookRenderBridge 提供（平台实现），这里只做
 /// 「页序 → 跨页 → 视觉槽位 → 占位高度 → 当前话」的编排，不解码图片、
 /// 不返回空白页假装能读。补白槽显式标注「补白槽 · 非缺页」。
 /// 预取窗口只在**当前页变化**时批量 prefetch/evict，不在滚动回调里逐帧跨 channel。
@@ -58,6 +63,11 @@ class ComicReaderView extends StatefulWidget {
 class _ComicReaderViewState extends State<ComicReaderView> {
   final ScrollController _vertical = ScrollController();
   late PageController _paged;
+
+  /// 真实文档句柄：由三端 RenderPlugin.open() 返回；null 表示原生通道未就绪。
+  int? _handle;
+  bool _renderUnavailable = false;
+  bool _opening = false;
 
   late ComicLayoutMetrics _metrics;
   late ComicLayoutMetrics _halfMetrics;
@@ -109,6 +119,33 @@ class _ComicReaderViewState extends State<ComicReaderView> {
     // initState 里只初始化预取窗口；进度回调交给首帧后的滚动 / 跳转触发，
     // 避免在父页 build 期间回写状态（会触发 markNeedsBuild during build）。
     _syncPrefetch();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_handle != null || _renderUnavailable || _opening) return;
+    _opening = true;
+    unawaited(_openDocument(AppServices.of(context).render));
+  }
+
+  /// 用真实文件路径打开文档；成功后把预取窗口从占位句柄 0 切到真实句柄，
+  /// 并按原生返回的页数重建窗口。失败时保留占位布局并给出明确提示。
+  Future<void> _openDocument(BookRenderBridge bridge) async {
+    try {
+      final int handle = await bridge.open(
+        widget.document.id,
+        widget.document.sourcePath,
+      );
+      final int count = await bridge.pageCount(handle);
+      if (!mounted) return;
+      setState(() => _handle = handle);
+      widget.prefetch.attach(handle, count > 0 ? count : _toc.pageCount);
+      _syncPrefetch(force: true);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _renderUnavailable = true);
+    }
   }
 
   @override
@@ -170,7 +207,7 @@ class _ComicReaderViewState extends State<ComicReaderView> {
           : widget.style.comicDirection,
       pageSize: widget.pageSize,
       // 第十九轮：宽幅页（横幅 / 跨页彩图）独占一跨。占位宽高比来自
-      // 确定性演示值，真实值来自 PageInfo.aspectRatio（❄️ 冻结）。
+      // 确定性演示值，真实值来自 PageInfo.aspectRatio（平台实现）。
       aspectRatios: widget.aspectRatios,
       respectWidePages: widget.style.widePageSolo,
     );
@@ -417,6 +454,8 @@ class _ComicReaderViewState extends State<ComicReaderView> {
           headerHeight: _metrics.headerHeight,
           style: widget.style,
           gap: _metrics.pageGap,
+          handle: _handle,
+          renderUnavailable: _renderUnavailable,
         ),
       ),
     );
@@ -437,6 +476,8 @@ class _ComicReaderViewState extends State<ComicReaderView> {
         halfWidthMetrics: _halfMetrics,
         maxHeight: widget.pageSize.height - 2 * LrSpacing.m - 64,
         style: widget.style,
+        handle: _handle,
+        renderUnavailable: _renderUnavailable,
       ),
       turn: widget.style.pageTurn,
     );
@@ -452,6 +493,8 @@ class _SpreadSlot extends StatelessWidget {
     required this.halfWidthMetrics,
     required this.maxHeight,
     required this.style,
+    this.handle,
+    this.renderUnavailable = false,
   });
 
   final ComicSpread spread;
@@ -460,6 +503,8 @@ class _SpreadSlot extends StatelessWidget {
   final ComicLayoutMetrics halfWidthMetrics;
   final double maxHeight;
   final ReaderStyle style;
+  final int? handle;
+  final bool renderUnavailable;
 
   @override
   Widget build(BuildContext context) {
@@ -515,6 +560,8 @@ class _SpreadSlot extends StatelessWidget {
                     style: style,
                     gap: 0,
                     showHeader: false,
+                    handle: handle,
+                    renderUnavailable: renderUnavailable,
                   ),
                 ),
               )
@@ -565,7 +612,10 @@ class _BlankSlot extends StatelessWidget {
   }
 }
 
-class _PageSlot extends StatelessWidget {
+/// 单个页槽：句柄就绪后调用 `BookRenderBridge.render()` 取真实页像素。
+/// textureId 走外部纹理、imageBytes 走 Image.memory；只有原生通道未就绪
+/// 或解码失败时才回退到按宽高比的占位卡，并明确写出原因。
+class _PageSlot extends StatefulWidget {
   const _PageSlot({
     required this.item,
     required this.pageHeight,
@@ -573,6 +623,8 @@ class _PageSlot extends StatelessWidget {
     required this.style,
     required this.gap,
     this.showHeader = true,
+    this.handle,
+    this.renderUnavailable = false,
   });
 
   final ComicPageItem item;
@@ -581,69 +633,158 @@ class _PageSlot extends StatelessWidget {
   final ReaderStyle style;
   final double gap;
   final bool showHeader;
+  final int? handle;
+  final bool renderUnavailable;
+
+  @override
+  State<_PageSlot> createState() => _PageSlotState();
+}
+
+class _PageSlotState extends State<_PageSlot> {
+  BookRenderBridge? _bridge;
+  RenderedPage? _page;
+  bool _loading = false;
+  bool _failed = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final BookRenderBridge b = AppServices.of(context).render;
+    if (_bridge != b) {
+      _bridge = b;
+      _load();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _PageSlot old) {
+    super.didUpdateWidget(old);
+    if (old.handle != widget.handle ||
+        old.pageHeight != widget.pageHeight ||
+        old.item.pageIndex != widget.item.pageIndex) {
+      _load();
+    }
+  }
+
+  Future<void> _load() async {
+    final int? handle = widget.handle;
+    final BookRenderBridge? bridge = _bridge;
+    if (handle == null || bridge == null) return;
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _failed = false;
+      });
+    }
+    try {
+      // 按目标像素尺寸渲染，避免出 4K 图再在 Dart 侧缩。
+      final double width = widget.pageHeight * widget.item.aspectRatio;
+      final RenderedPage page = await bridge.render(
+        handle,
+        widget.item.pageIndex,
+        Size(width, widget.pageHeight),
+      );
+      if (!mounted) return;
+      setState(() {
+        _page = page;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _failed = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final TextTheme text = Theme.of(context).textTheme;
-    final String? header = item.headerLabel;
+    final String? header = widget.item.headerLabel;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        if (showHeader && header != null)
+        if (widget.showHeader && header != null)
           SizedBox(
-            // 必须与 ComicLayoutMetrics.headerHeight 一致，否则滚动偏移会漂移。
-            height: headerHeight,
+            height: widget.headerHeight,
             child: Row(
               children: <Widget>[
                 Icon(Icons.bookmark_outline,
-                    size: 15, color: style.subtleTextColor),
+                    size: 15, color: widget.style.subtleTextColor),
                 const SizedBox(width: LrSpacing.xs),
                 Expanded(
                   child: Text(
                     header,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: text.titleMedium?.copyWith(color: style.textColor),
+                    style: text.titleMedium
+                        ?.copyWith(color: widget.style.textColor),
                   ),
                 ),
               ],
             ),
           ),
         SizedBox(
-          height: pageHeight,
-          // TODO(静态冻结): 换成 BookRenderBridge.render(handle, index, targetPx)
-          // 的 Texture / Image.memory；目前只按宽高比占位，不解码图片。
-          child: GlassPanel(
-            padding: EdgeInsets.zero,
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Icon(Icons.image_outlined,
-                      size: 30, color: style.subtleTextColor),
-                  const SizedBox(height: LrSpacing.xs),
-                  Text(
-                    context.tArgs('uiPAspectRatioPlaceholder', <Object?>[
-                      item.pageIndex + 1,
-                      item.aspectRatio.toStringAsFixed(2)
-                    ]),
-                    style:
-                        text.bodySmall?.copyWith(color: style.subtleTextColor),
-                  ),
-                  const SizedBox(height: LrSpacing.xs),
-                  Text(
-                    context.t('comicPlaceholderNote'),
-                    style:
-                        text.labelSmall?.copyWith(color: style.subtleTextColor),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
+          height: widget.pageHeight,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(LrRadius.card),
+            child: _content(context, text),
           ),
         ),
-        if (gap > 0) SizedBox(height: gap),
+        if (widget.gap > 0) SizedBox(height: widget.gap),
       ],
+    );
+  }
+
+  Widget _content(BuildContext context, TextTheme text) {
+    final RenderedPage? page = _page;
+    if (page != null) {
+      if (page.textureId != null) {
+        return SizedBox.expand(child: Texture(textureId: page.textureId!));
+      }
+      if (page.imageBytes != null) {
+        return SizedBox.expand(
+          child: Image.memory(
+            page.imageBytes!,
+            fit: BoxFit.contain,
+            gaplessPlayback: true,
+          ),
+        );
+      }
+    }
+    final String status = _loading
+        ? '正在解码第 ${widget.item.pageIndex + 1} 页…'
+        : (_failed || widget.renderUnavailable)
+            ? '原生渲染通道未就绪，请确认已安装三端 RenderPlugin'
+            : context.t('comicPlaceholderNote');
+    return GlassPanel(
+      padding: EdgeInsets.zero,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(Icons.image_outlined,
+                size: 30, color: widget.style.subtleTextColor),
+            const SizedBox(height: LrSpacing.xs),
+            Text(
+              context.tArgs('uiPAspectRatioPlaceholder', <Object?>[
+                widget.item.pageIndex + 1,
+                widget.item.aspectRatio.toStringAsFixed(2)
+              ]),
+              style: text.bodySmall?.copyWith(
+                  color: widget.style.subtleTextColor),
+            ),
+            const SizedBox(height: LrSpacing.xs),
+            Text(
+              status,
+              style: text.labelSmall?.copyWith(
+                  color: widget.style.subtleTextColor),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

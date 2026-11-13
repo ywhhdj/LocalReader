@@ -803,6 +803,220 @@ class AppState extends ChangeNotifier {
     updateSettings(_settings.copyWith(webdav: value));
   }
 
+
+  void enableWebdav() => updateSettings(
+        _settings.copyWith(pureLocal: false, webdav: true),
+      );
+
+  // ---------------------------------------------------------------- WebDAV 备份载荷
+
+  /// README 四项：书库元数据 / 阅读进度 / 分组 / 阅读会话。
+  /// 额外带上收藏、摘录与小组件配置，恢复后各页面零改动即可重建。
+  Map<String, Object?> backupPayload() => <String, Object?>{
+        'schema': 1,
+        'settings': _settings.toMap(),
+        'books': <Object?>[
+          for (final BookSummary b in _importedBooks) _bookToMap(b),
+        ],
+        'lastReadAt': <Object?>[
+          for (final MapEntry<String, DateTime> e in _lastReadAt.entries)
+            <String, Object?>{
+              'id': e.key,
+              'at': e.value.millisecondsSinceEpoch,
+            },
+        ],
+        'progressOverrides': <Object?>[
+          for (final MapEntry<String, double> e in _progressOverrides.entries)
+            <String, Object?>{'id': e.key, 'progress': e.value},
+        ],
+        'favorites': <Object?>[
+          for (final FavoriteEntry f in _favorites) f.toMap(),
+        ],
+        'excerpts': <Object?>[
+          for (final Excerpt e in _userExcerpts) _excerptToMap(e),
+        ],
+        'widgetSpecs': <Object?>[
+          for (final WidgetSpec s in _widgetSpecs) _widgetToMap(s),
+        ],
+        'groups': <Object?>[],
+        'sessions': <Object?>[],
+      };
+
+  /// 从远端 / 本地备份恢复。未知字段一律忽略，坏数据不会让应用崩溃。
+  void restoreFromBackup(Map<String, Object?> m) {
+    final Object? rawSettings = m['settings'];
+    if (rawSettings is Map) {
+      updateSettings(AppSettings.fromMap(Map<String, Object?>.from(rawSettings)));
+    }
+
+    final Object? rawBooks = m['books'];
+    if (rawBooks is List) {
+      _importedBooks.clear();
+      for (final Object? item in rawBooks) {
+        if (item is Map) {
+          final BookSummary? b = _bookFromMap(Map<String, Object?>.from(item));
+          if (b != null) _importedBooks.add(b);
+        }
+      }
+    }
+
+    final Object? rawLast = m['lastReadAt'];
+    if (rawLast is List) {
+      _lastReadAt.clear();
+      for (final Object? item in rawLast) {
+        if (item is Map) {
+          final String id = (item['id'] as String?) ?? '';
+          final int ms = (item['at'] as num?)?.toInt() ?? 0;
+          if (id.isNotEmpty) {
+            _lastReadAt[id] = DateTime.fromMillisecondsSinceEpoch(ms);
+          }
+        }
+      }
+    }
+
+    final Object? rawProgress = m['progressOverrides'];
+    if (rawProgress is List) {
+      _progressOverrides.clear();
+      for (final Object? item in rawProgress) {
+        if (item is Map) {
+          final String id = (item['id'] as String?) ?? '';
+          final double p = (item['progress'] as num?)?.toDouble() ?? 0;
+          if (id.isNotEmpty) _progressOverrides[id] = p;
+        }
+      }
+    }
+
+    final Object? rawFavorites = m['favorites'];
+    if (rawFavorites is List) {
+      _favorites.clear();
+      for (final Object? item in rawFavorites) {
+        if (item is Map) {
+          final FavoriteEntry f =
+              FavoriteEntry.fromMap(Map<String, Object?>.from(item));
+          if (f.bookId.isNotEmpty) _favorites.add(f);
+        }
+      }
+    }
+
+    final Object? rawExcerpts = m['excerpts'];
+    if (rawExcerpts is List) {
+      _userExcerpts.clear();
+      _excerptSeq = 0;
+      for (final Object? item in rawExcerpts) {
+        if (item is Map) {
+          final Excerpt? e = _excerptFromMap(Map<String, Object?>.from(item));
+          if (e != null) {
+            _userExcerpts.add(e);
+            _excerptSeq++;
+          }
+        }
+      }
+    }
+
+    final Object? rawWidgets = m['widgetSpecs'];
+    if (rawWidgets is List) {
+      for (final Object? item in rawWidgets) {
+        if (item is Map) {
+          final Map<String, Object?> w = Map<String, Object?>.from(item);
+          final String id = (w['id'] as String?) ?? '';
+          if (id.isEmpty) continue;
+          updateWidgetSpec(WidgetSpec(
+            id: id,
+            content: _enumByName(
+                WidgetContent.values, w['content'], WidgetContent.today),
+            size: _enumByName(WidgetSize.values, w['size'], WidgetSize.small),
+            season: season.value,
+            showProgress: (w['showProgress'] as bool?) ?? true,
+          ));
+        }
+      }
+    }
+
+    notifyListeners();
+    unawaited(settingsStore.save(_settings));
+  }
+
+  T _enumByName<T>(List<T> values, Object? name, T fallback) {
+    if (name is! String) return fallback;
+    for (final T v in values) {
+      if ((v as dynamic).name == name) return v;
+    }
+    return fallback;
+  }
+
+  Map<String, Object?> _bookToMap(BookSummary b) => <String, Object?>{
+        'id': b.id,
+        'title': b.title,
+        'author': b.author,
+        'shelf': b.shelf,
+        'format': b.format,
+        'encoding': b.encoding,
+        'progress': b.progress,
+        'color': b.spineColor.toARGB32(),
+        'volumeOrder': b.volumeOrder,
+      };
+
+  BookSummary? _bookFromMap(Map<String, Object?> m) {
+    final String id = (m['id'] as String?) ?? '';
+    if (id.isEmpty) return null;
+    return BookSummary(
+      id: id,
+      title: (m['title'] as String?) ?? id,
+      author: (m['author'] as String?) ?? '',
+      shelf: (m['shelf'] as String?) ?? '本地书库',
+      format: (m['format'] as String?) ?? 'TXT',
+      encoding: (m['encoding'] as String?) ?? 'UTF-8',
+      progress: (m['progress'] as num?)?.toDouble() ?? 0,
+      spineColor: Color((m['color'] as num?)?.toInt() ?? 0xFF4A6180),
+      volumeOrder: (m['volumeOrder'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  Map<String, Object?> _excerptToMap(Excerpt e) => <String, Object?>{
+        'id': e.id,
+        'bookId': e.bookId,
+        'bookTitle': e.bookTitle,
+        'chapterTitle': e.chapterTitle,
+        'text': e.text,
+        'capturedAt': e.capturedAt.millisecondsSinceEpoch,
+        'chapterIndex': e.chapterIndex,
+        'pageIndex': e.pageIndex,
+        'highlight': e.highlight.name,
+        'note': e.note,
+        'signature': e.signature,
+        'crossParagraph': e.crossParagraph,
+      };
+
+  Excerpt? _excerptFromMap(Map<String, Object?> m) {
+    final String text = (m['text'] as String?) ?? '';
+    if (text.isEmpty) return null;
+    return Excerpt(
+      id: (m['id'] as String?) ?? 'u-restored',
+      bookId: (m['bookId'] as String?) ?? '',
+      bookTitle: (m['bookTitle'] as String?) ?? '',
+      chapterTitle: (m['chapterTitle'] as String?) ?? '',
+      text: text,
+      capturedAt: DateTime.fromMillisecondsSinceEpoch(
+          (m['capturedAt'] as num?)?.toInt() ??
+              DateTime.now().millisecondsSinceEpoch),
+      chapterIndex: (m['chapterIndex'] as num?)?.toInt() ?? 0,
+      pageIndex: (m['pageIndex'] as num?)?.toInt() ?? 0,
+      highlight: _enumByName(
+          HighlightColor.values, m['highlight'], HighlightColor.amber),
+      note: (m['note'] as String?) ?? '',
+      isUserAdded: true,
+      crossParagraph: (m['crossParagraph'] as bool?) ?? false,
+      signature: (m['signature'] as String?) ?? '',
+    );
+  }
+
+  Map<String, Object?> _widgetToMap(WidgetSpec s) => <String, Object?>{
+        'id': s.id,
+        'content': s.content.name,
+        'size': s.size.name,
+        'showProgress': s.showProgress,
+      };
+
   void setMotion(bool value) => updateSettings(_settings.copyWith(motion: value));
   void setTts(bool value) => updateSettings(_settings.copyWith(tts: value));
 

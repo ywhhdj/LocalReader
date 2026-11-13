@@ -57,3 +57,8 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+// SAF 目录树递归扫描（DocumentFile.fromTreeUri）需要 androidx.documentfile。
+dependencies {
+    implementation("androidx.documentfile:documentfile:1.0.1")
+}

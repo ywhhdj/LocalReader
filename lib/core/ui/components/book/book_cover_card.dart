@@ -107,57 +107,85 @@ class BookCoverCard extends StatelessWidget {
         : _gridLayout(context, theme, more);
   }
 
-  /// 书本格形态（带底部作者、进度）
+  /// 书本格形态（带底部作者、进度）。
+  ///
+  /// 外层调用方给的是**紧约束**（收藏页横向 rail 是 130 x 250），而封面按
+  /// `aspectRatio` 已经是 130 / 0.7 ≈ 186 高，再加标题 / 作者 / 进度就会
+  /// 超出 250，debug 下报 "A RenderFlex overflowed by 12 pixels on the bottom"。
+  /// 这里用 LayoutBuilder + FittedBox(scaleDown) 兜底：内容按自然尺寸排布，
+  /// 容器偏矮时整体等比缩小，任何字号 / 设备缩放下都不会再溢出，也不会裁字。
   Widget _gridLayout(
           BuildContext context, ThemeData theme, VoidCallback more) =>
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          AspectRatio(
-            aspectRatio: aspectRatio,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onClick,
-              onLongPress: onLongPress,
-              child: _cover(context, book, selected, compact: false),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 8, left: 2, right: 2),
-            child: Text(
-              book.title,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                fontSize: LrFontSize.noraml,
-                height: 1.3,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  book.author.isNotEmpty ? book.author : '未知作者',
-                  style: theme.textTheme.bodySmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+      LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double width = constraints.maxWidth.isFinite
+              ? constraints.maxWidth
+              : 130.0;
+          final double? height =
+              constraints.maxHeight.isFinite ? constraints.maxHeight : null;
+          return SizedBox(
+            width: width,
+            height: height,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: width,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    AspectRatio(
+                      aspectRatio: aspectRatio,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: onClick,
+                        onLongPress: onLongPress,
+                        child: _cover(context, book, selected, compact: false),
+                      ),
+                    ),
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(top: 8, left: 2, right: 2),
+                      child: Text(
+                        book.title,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: LrFontSize.noraml,
+                          height: 1.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            book.author.isNotEmpty ? book.author : '未知作者',
+                            style: theme.textTheme.bodySmall,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        _MoreButton(onTap: more, compact: true),
+                      ],
+                    ),
+                    if (book.resolvedProgressText.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 2, right: 2, bottom: 2),
+                        child: Text(
+                          book.resolvedProgressText,
+                          style: theme.textTheme.labelSmall,
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              _MoreButton(onTap: more, compact: true),
-            ],
-          ),
-          if (book.resolvedProgressText.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(left: 2, right: 2, bottom: 2),
-              child: Text(
-                book.resolvedProgressText,
-                style: theme.textTheme.labelSmall,
-              ),
             ),
-        ],
+          );
+        },
       );
 
   /// 列表形态（参考截图：透明背景、左侧深色封面、右侧紧凑文字、圆形更多按钮）

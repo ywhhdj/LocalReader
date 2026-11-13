@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 /// 下次启动进安全模式（跳过可选初始化、保留最小可读路径）。
 ///
 /// 框架回调注册由 `assembly/app_bootstrap.dart` 在启动时调用 [install]；
-/// 判据本身仍是纯 Dart，连续崩溃的持久化接平台存储（❄️ 冻结）。
+/// 判据本身仍是纯 Dart，连续崩溃的持久化接平台存储（平台实现）。
 @immutable
 class CrashGuardPolicy {
   const CrashGuardPolicy({
@@ -53,14 +53,44 @@ class CrashGuard {
 
   int get recentCount => timestamps.length;
 
-  /// 对应原项目 App.kt 的崩溃兜底：把框架错误与平台未捕获错误收成一条记录链。
-  /// 连续崩溃计数仍由 [record] / [shouldEnterSafeMode] 裁决，这里只接管回调。
+  /// 框架「可恢复错误」判据。
+  ///
+  /// Debug 下 `RenderFlex overflowed`、`Navigator operation requested with a
+  /// context that does not include a Navigator` 这类断言会**每帧 / 每次点击**
+  /// 走一次 `FlutterError.onError`，但 isolate 并没有终止，用户仍可继续操作。
+  /// 把它们计入「连续崩溃」会在几秒内把计数刷到阈值、误触发安全模式——
+  /// 真机日志里一次 12px 溢出被累计到 15 次就是这个原因。
+  ///
+  /// 这类错误仍然 `presentError` 方便排查，但不再进崩溃计数；
+  /// 真正的未捕获 Dart 异常由 `PlatformDispatcher.onError` 单独记录。
+  static bool isRecoverableFrameworkError(FlutterErrorDetails details) {
+    if (details.silent) return true;
+    final String message = '${details.exception}';
+    final String library = details.library ?? '';
+    if (library.contains('rendering') && message.contains('overflowed')) {
+      return true;
+    }
+    if (message.contains('A RenderFlex overflowed')) return true;
+    if (message.contains(
+        'Navigator operation requested with a context that does not include a Navigator')) {
+      return true;
+    }
+    // build / layout 阶段的断言属于框架可恢复错误，不是 isolate 级崩溃。
+    if (details.exception is AssertionError) return true;
+    return false;
+  }
+
+  /// 对应原项目 App.kt 的崩溃兜底：框架错误照常上报，
+  /// 只有真正的未捕获异常才进连续崩溃计数。
   static void install(
     CrashGuardPolicy policy, {
     void Function(Object error, StackTrace stack)? onCrash,
   }) {
     FlutterError.onError = (FlutterErrorDetails details) {
-      onCrash?.call(details.exception, details.stack ?? StackTrace.empty);
+      if (!isRecoverableFrameworkError(details)) {
+        onCrash?.call(details.exception, details.stack ?? StackTrace.empty);
+      }
+      // 布局 / 导航断言仍然打印，方便在 DevTools 里定位，但不刷崩溃计数。
       FlutterError.presentError(details);
     };
     PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
@@ -68,6 +98,10 @@ class CrashGuard {
       return true;
     };
   }
+
+  /// 启动时由持久化崩溃记录裁决；AppBootstrap 与 app 层据此跳过可选初始化，
+  /// 保留最小可读路径。持久化在 assembly/app_bootstrap.dart，纯 Dart 层不反向依赖。
+  static bool safeModeActive = false;
 
   /// 安全模式下要跳过的可选初始化，只有一份清单。
   static const List<String> skippedInSafeMode = <String>[

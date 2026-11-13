@@ -1,12 +1,8 @@
 import 'package:Local_reader/core/ui/components/CircleIconButton.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui' show ImageFilter;
-
-import 'package:Local_reader/core/model/performance_prefs.dart';
 
 import '../../../common/design_tokens.dart';
 import 'HeroHeader.dart';
-import '../../theme/performance_scope.dart';
 
 /// 吸顶
 class StickyGlassHeader extends StatelessWidget {
@@ -90,8 +86,6 @@ class _GlassSurface extends StatelessWidget {
       return child;
     }
 
-    final ColorScheme scheme = Theme.of(context).colorScheme;
-    final PerformanceBudget budget = PerformanceScope.of(context);
 
     // 2. 如果设备性能差，不支持 BackdropFilter，给出一个半透明底色兜底
     // （否则文字叠加在繁杂的背景上会看不清）

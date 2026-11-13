@@ -67,6 +67,11 @@ class _TocPageState extends State<TocPage> {
           padding: const EdgeInsets.fromLTRB(
               LrSpacing.l, LrSpacing.xs, LrSpacing.l, LrSpacing.xxl),
           children: <Widget>[
+            Row(
+                children: [
+                    
+                ],
+            )
             GlassPanel(
               borderRadius: LrRadius.pill,
               padding: const EdgeInsets.symmetric(
@@ -136,14 +141,6 @@ class _TocPageState extends State<TocPage> {
                       onTap: () => Navigator.of(context).pop<int>(e.key),
                     ),
                   )),
-            const SizedBox(height: LrSpacing.l),
-            GlassPanel(
-              child: Text(
-                context.t('uiContentsBodyTextBookdocumentChapters') +
-                    context.t('uiCurrentSampleDataTocentryChapters'),
-                style: text.bodySmall,
-              ),
-            ),
           ],
         ),
       ),
